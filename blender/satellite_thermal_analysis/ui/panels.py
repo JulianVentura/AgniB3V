@@ -16,3 +16,8 @@ class ThermalAnalysisPanel(bpy.types.Panel):
         
         row = layout.row()
         row.operator("thermal.export_mesh")
+
+        row = layout.row()
+        calc_solar_view_factor = row.operator("thermal.calc_solar_view_factor")
+        calc_solar_view_factor.solar_direction_vector = [0,0,-1]
+        calc_solar_view_factor.ray_cast_displacement = 0.01

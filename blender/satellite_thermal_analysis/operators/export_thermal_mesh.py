@@ -17,5 +17,5 @@ class ExportThermalMesh(bpy.types.Operator):
                 for neighbour_v in edge.verts:
                     if neighbour_v.index != v.index:
                         neighbors.append(neighbour_v.index)
-                        f.write(",".join(map(str, [v.index, v.co.x, v.co.y, v.co.z] + neighbors)) + "\n")
-                        return {'FINISHED'}
+            f.write(",".join(map(str, [v.index, v.co.x, v.co.y, v.co.z] + neighbors)) + "\n")
+        return {'FINISHED'}

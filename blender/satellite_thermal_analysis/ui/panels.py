@@ -12,12 +12,15 @@ class ThermalAnalysisPanel(bpy.types.Panel):
         obj = context.object
 
         row = layout.row()
-        row.label(text="Objeto activo: " + obj.name)
+        row.prop(context.scene.thermal_tool_settings, "solar_direction_vector")
+        row.prop(context.scene.thermal_tool_settings, "ray_cast_displacement")
         
         row = layout.row()
         row.operator("thermal.export_mesh")
-
+        
         row = layout.row()
         calc_solar_view_factor = row.operator("thermal.calc_solar_view_factor")
-        calc_solar_view_factor.solar_direction_vector = [0,0,-1]
-        calc_solar_view_factor.ray_cast_displacement = 0.01
+        #calc_solar_view_factor.solar_direction_vector = [0,0,-1]
+        #calc_solar_view_factor.ray_cast_displacement = 0.01
+
+

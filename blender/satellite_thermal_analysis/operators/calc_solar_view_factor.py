@@ -7,9 +7,10 @@ class CalcSolarViewFactor(bpy.types.Operator):
     bl_idname = "thermal.calc_solar_view_factor"
     bl_label = "Calcular factor de vista solar"
 
-    solar_direction_vector : bpy.props.FloatVectorProperty()
-    ray_cast_displacement : bpy.props.FloatProperty()
-
+    def invoke(self, context, event): # Used for user interaction
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+    
     def execute(self, context):
         obj = bpy.context.active_object
         bpy.ops.object.mode_set(mode='OBJECT')
@@ -18,10 +19,12 @@ class CalcSolarViewFactor(bpy.types.Operator):
         bvhtree = BVHTree.FromObject(obj, depsgraph)
 
         visible_vertices = set()
-        solar_direction_vector = mathutils.Vector(self.solar_direction_vector)
+        tool_settings = context.scene.thermal_tool_settings
+        solar_direction_vector = mathutils.Vector(tool_settings.solar_direction_vector)
+        ray_cast_displacement = tool_settings.ray_cast_displacement
 
         for vert in obj.data.vertices:
-            location, normal, index, dist = bvhtree.ray_cast(vert.co -self.ray_cast_displacement*solar_direction_vector, -solar_direction_vector)
+            location, normal, index, dist = bvhtree.ray_cast(vert.co -ray_cast_displacement*solar_direction_vector, -solar_direction_vector)
             if not location:
                 visible_vertices.add(vert.index)
 

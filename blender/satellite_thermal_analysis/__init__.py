@@ -15,6 +15,8 @@ def register():
     bpy.utils.register_class(calc_solar_view_factor.CalcSolarViewFactor)
     bpy.utils.register_class(export_thermal_mesh.ExportThermalMesh)
     bpy.utils.register_class(panels.ThermalAnalysisPanel)
+    bpy.utils.register_class(panels.ThermalAnalysisPanel)
+    panels.custom_materials.custom_materials_register()
 
 def unregister():
     bpy.utils.unregister_class(panels.ThermalAnalysisPanel)
@@ -22,3 +24,4 @@ def unregister():
     bpy.utils.unregister_class(calc_solar_view_factor.CalcSolarViewFactor)
     del bpy.types.Scene.thermal_tool_settings
     bpy.utils.unregister_class(tool_settings.ThermalToolSettings)
+    panels.custom_materials.custom_materials_unregister()

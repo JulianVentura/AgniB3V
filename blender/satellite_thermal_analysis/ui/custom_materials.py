@@ -1,10 +1,14 @@
 import bpy
+import bmesh
 from bpy.props import StringProperty, IntProperty, CollectionProperty, FloatProperty
 from bpy.types import PropertyGroup, UIList, Operator, Panel
 
 ##################################################
 # List of properties to be added to the material #
 ##################################################
+
+class SelectedNode(PropertyGroup):
+    node: bpy.props.IntProperty()
 
 class ListItem(PropertyGroup):
     """Group of properties representing an item in the list."""
@@ -34,6 +38,12 @@ class ListItem(PropertyGroup):
         default=0.5,
         min=0,
         max=1,
+    )
+
+    selected_nodes: CollectionProperty(
+        type = SelectedNode,
+        name="selected_nodes",
+        description="Selected nodes",
     )
 
 class PT_UL_CustomMaterials(UIList):
@@ -124,6 +134,39 @@ class LIST_OT_MoveMaterial(Operator):
 
         return{'FINISHED'}
 
+class LIST_OT_AddNodes(Operator):
+    """Add selected nodes to the material list."""
+    
+    bl_idname = "mat_prop_list.add_nodes"
+    bl_label = "Add nodes"
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.mat_prop_list
+
+    def execute(self, context):
+        mat_prop_list = context.scene.mat_prop_list
+        selected_nodes = mat_prop_list[context.scene.list_index].selected_nodes
+
+        obj = bpy.context.active_object
+        bpy.ops.object.mode_set(mode = 'EDIT')
+        bm = bmesh.from_edit_mesh(obj.data)
+
+        for node in bm.verts:
+            # if node is selected and not already in the list
+            if node.select and not any(node.index == x.node for x in selected_nodes):
+                selected_nodes.add()
+                selected_nodes[-1].node = node.index
+                # if node was already in other material, remove it from that material
+                for material in mat_prop_list:
+                    if material.index == mat_prop_list[context.scene.list_index].index:
+                        continue
+                    for selected_node in material.selected_nodes:
+                        if selected_node.node.index == node.index:
+                            material.selected_nodes.remove(selected_node)
+
+        return{'FINISHED'}
+
 #################################################
 # Panel to display the list of custom materials #
 #################################################
@@ -152,23 +195,30 @@ class PT_CustomMaterial(Panel):
         col.operator('mat_prop_list.move_material', text='', icon="TRIA_UP").direction = 'UP'
         col.operator('mat_prop_list.move_material', text='', icon="TRIA_DOWN").direction = 'DOWN'
 
+        col = layout.column(align=True)
+        col.operator('mat_prop_list.add_nodes', text='Add selected nodes', icon="ADD")
+
         if scene.list_index >= 0 and scene.mat_prop_list:
             material = scene.mat_prop_list[scene.list_index]
 
             layout.row().prop(material, 'name')
             layout.row().prop(material, 'emissivity')
             layout.row().prop(material, 'absorptivity')
+            layout.row().prop(material, 'selected_nodes')
+            print(material.selected_nodes)
 
 ##############################################
 # Registration and unregistration of classes #
 ##############################################
 
 def custom_materials_register():
+    bpy.utils.register_class(SelectedNode)
     bpy.utils.register_class(ListItem)
     bpy.utils.register_class(PT_UL_CustomMaterials)
     bpy.utils.register_class(LIST_OT_NewMaterial)
     bpy.utils.register_class(LIST_OT_DeleteMaterial)
     bpy.utils.register_class(LIST_OT_MoveMaterial)
+    bpy.utils.register_class(LIST_OT_AddNodes)
     bpy.utils.register_class(PT_CustomMaterial)
 
     bpy.types.Scene.mat_prop_list = CollectionProperty(type = ListItem)
@@ -182,9 +232,11 @@ def custom_materials_unregister():
     del bpy.types.Scene.list_index
     del bpy.types.Scene.unique_index
 
+    bpy.utils.unregister_class(SelectedNode)
     bpy.utils.unregister_class(ListItem)
     bpy.utils.unregister_class(PT_UL_CustomMaterials)
     bpy.utils.unregister_class(LIST_OT_NewMaterial)
     bpy.utils.unregister_class(LIST_OT_DeleteMaterial)
     bpy.utils.unregister_class(LIST_OT_MoveMaterial)
+    bpy.utils.unregister_class(LIST_OT_AddNodes)
     bpy.utils.unregister_class(PT_CustomMaterial)

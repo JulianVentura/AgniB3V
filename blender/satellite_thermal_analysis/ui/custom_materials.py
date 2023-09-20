@@ -1,6 +1,10 @@
 import bpy
-from bpy.props import StringProperty, IntProperty, CollectionProperty, BoolProperty, FloatProperty
+from bpy.props import StringProperty, IntProperty, CollectionProperty, FloatProperty
 from bpy.types import PropertyGroup, UIList, Operator, Panel
+
+##################################################
+# List of properties to be added to the material #
+##################################################
 
 class ListItem(PropertyGroup):
     """Group of properties representing an item in the list."""
@@ -27,8 +31,7 @@ class ListItem(PropertyGroup):
         max=1,
     )
 
-
-class CustomMaterialsUIList(UIList):
+class PT_UL_CustomMaterials(UIList):
     """Custom Materials UIList. This is the component which renders the box."""
 
     def draw_item(self, context, layout, data, item, icon, active_data,
@@ -46,12 +49,15 @@ class CustomMaterialsUIList(UIList):
             layout.alignment = 'CENTER'
             layout.label(text='', icon = custom_icon)
 
+###############################################
+# Operators to add, remove and move materials #
+###############################################
 
-class LIST_OT_NewItem(Operator):
-    """Add a new item to the list."""
+class LIST_OT_NewMaterial(Operator):
+    """Add a new material to the list."""
 
-    bl_idname = "mat_prop_list.new_item"
-    bl_label = "Add a new item"
+    bl_idname = "mat_prop_list.new_material"
+    bl_label = "Add a new material"
 
     def execute(self, context):
         context.scene.mat_prop_list.add()
@@ -59,11 +65,11 @@ class LIST_OT_NewItem(Operator):
         return{'FINISHED'}
 
 
-class LIST_OT_DeleteItem(Operator):
-    """Delete the selected item from the list."""
+class LIST_OT_DeleteMaterial(Operator):
+    """Delete the selected material from the list."""
 
-    bl_idname = "mat_prop_list.delete_item"
-    bl_label = "Deletes an item"
+    bl_idname = "mat_prop_list.delete_material"
+    bl_label = "Deletes an material"
 
     @classmethod
     def poll(cls, context):
@@ -79,11 +85,11 @@ class LIST_OT_DeleteItem(Operator):
         return{'FINISHED'}
 
 
-class LIST_OT_MoveItem(Operator):
-    """Move an item in the list."""
+class LIST_OT_MoveMaterial(Operator):
+    """Move an material in the list."""
 
-    bl_idname = "mat_prop_list.move_item"
-    bl_label = "Move an item in the list"
+    bl_idname = "mat_prop_list.move_material"
+    bl_label = "Move an material in the list"
 
     direction: bpy.props.EnumProperty(items=(('UP', 'Up', ""),
                                               ('DOWN', 'Down', ""),))
@@ -111,6 +117,9 @@ class LIST_OT_MoveItem(Operator):
 
         return{'FINISHED'}
 
+#################################################
+# Panel to display the list of custom materials #
+#################################################
 
 class PT_CustomMaterial(Panel):
     """Custom Material Panel"""
@@ -126,30 +135,33 @@ class PT_CustomMaterial(Panel):
         scene = context.scene
 
         row = layout.row()
-        row.template_list("CustomMaterialsUIList", "The_List", scene,
+        row.template_list("PT_UL_CustomMaterials", "The_List", scene,
                           "mat_prop_list", scene, "list_index")
 
         col = row.column(align=True)
-        col.operator('mat_prop_list.new_item', text='', icon="ADD")
-        col.operator('mat_prop_list.delete_item', text='', icon="REMOVE")
+        col.operator('mat_prop_list.new_material', text='', icon="ADD")
+        col.operator('mat_prop_list.delete_material', text='', icon="REMOVE")
         col.separator()
-        col.operator('mat_prop_list.move_item', text='', icon="TRIA_UP").direction = 'UP'
-        col.operator('mat_prop_list.move_item', text='', icon="TRIA_DOWN").direction = 'DOWN'
+        col.operator('mat_prop_list.move_material', text='', icon="TRIA_UP").direction = 'UP'
+        col.operator('mat_prop_list.move_material', text='', icon="TRIA_DOWN").direction = 'DOWN'
 
         if scene.list_index >= 0 and scene.mat_prop_list:
-            item = scene.mat_prop_list[scene.list_index]
+            material = scene.mat_prop_list[scene.list_index]
 
-            layout.row().prop(item, 'name')
-            layout.row().prop(item, 'emissivity')
-            layout.row().prop(item, 'absorptivity')
+            layout.row().prop(material, 'name')
+            layout.row().prop(material, 'emissivity')
+            layout.row().prop(material, 'absorptivity')
 
+##############################################
+# Registration and unregistration of classes #
+##############################################
 
 def custom_materials_register():
     bpy.utils.register_class(ListItem)
-    bpy.utils.register_class(CustomMaterialsUIList)
-    bpy.utils.register_class(LIST_OT_NewItem)
-    bpy.utils.register_class(LIST_OT_DeleteItem)
-    bpy.utils.register_class(LIST_OT_MoveItem)
+    bpy.utils.register_class(PT_UL_CustomMaterials)
+    bpy.utils.register_class(LIST_OT_NewMaterial)
+    bpy.utils.register_class(LIST_OT_DeleteMaterial)
+    bpy.utils.register_class(LIST_OT_MoveMaterial)
     bpy.utils.register_class(PT_CustomMaterial)
 
     bpy.types.Scene.mat_prop_list = CollectionProperty(type = ListItem)
@@ -159,10 +171,9 @@ def custom_materials_register():
 def custom_materials_unregister():
     del bpy.types.Scene.mat_prop_list
     del bpy.types.Scene.list_index
-
     bpy.utils.unregister_class(ListItem)
-    bpy.utils.unregister_class(CustomMaterialsUIList)
-    bpy.utils.unregister_class(LIST_OT_NewItem)
-    bpy.utils.unregister_class(LIST_OT_DeleteItem)
-    bpy.utils.unregister_class(LIST_OT_MoveItem)
+    bpy.utils.unregister_class(PT_UL_CustomMaterials)
+    bpy.utils.unregister_class(LIST_OT_NewMaterial)
+    bpy.utils.unregister_class(LIST_OT_DeleteMaterial)
+    bpy.utils.unregister_class(LIST_OT_MoveMaterial)
     bpy.utils.unregister_class(PT_CustomMaterial)

@@ -15,6 +15,11 @@ class ListItem(PropertyGroup):
         default="Untitled",
     )
 
+    index: IntProperty(
+        name="Index",
+        description="Unique index",
+    )
+
     emissivity: FloatProperty(
         name="Emissivity",
         description="Emissivity of the material",
@@ -42,7 +47,7 @@ class PT_UL_CustomMaterials(UIList):
         # Make sure your code supports all 3 layout types
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             split = layout.split(factor=0.4)
-            split.label(text="Index: %d" % (index))
+            split.label(text="Index: %d" % (item.index))
             layout.label(text=item.name, icon = custom_icon)
 
         elif self.layout_type in {'GRID'}:
@@ -61,6 +66,8 @@ class LIST_OT_NewMaterial(Operator):
 
     def execute(self, context):
         context.scene.mat_prop_list.add()
+        context.scene.mat_prop_list[-1].index = context.scene.unique_index
+        context.scene.unique_index += 1
 
         return{'FINISHED'}
 
@@ -167,10 +174,14 @@ def custom_materials_register():
     bpy.types.Scene.mat_prop_list = CollectionProperty(type = ListItem)
     bpy.types.Scene.list_index = IntProperty(name = "Index for mat_prop_list",
                                              default = 0)
+    bpy.types.Scene.unique_index = IntProperty(name = "Unique index for mat_prop_list",
+                                             default = 0)
 
 def custom_materials_unregister():
     del bpy.types.Scene.mat_prop_list
     del bpy.types.Scene.list_index
+    del bpy.types.Scene.unique_index
+
     bpy.utils.unregister_class(ListItem)
     bpy.utils.unregister_class(PT_UL_CustomMaterials)
     bpy.utils.unregister_class(LIST_OT_NewMaterial)

@@ -161,9 +161,9 @@ class LIST_OT_AddNodes(Operator):
                 for material in mat_prop_list:
                     if material.index == mat_prop_list[context.scene.list_index].index:
                         continue
-                    for selected_node in material.selected_nodes:
-                        if selected_node.node.index == node.index:
-                            material.selected_nodes.remove(selected_node)
+                    for (index, selected_node) in enumerate(material.selected_nodes):
+                        if selected_node.node == node.index:
+                            material.selected_nodes.remove(index)
 
         return{'FINISHED'}
 

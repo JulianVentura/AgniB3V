@@ -20,6 +20,11 @@ class PaintTemperatureValues(bpy.types.Operator):
                 max_temp = temperature
             if not min_temp or temperature < min_temp:
                 min_temp = temperature
+
+        if (min_temp == max_temp):
+            min_temp = 0
+            max_temp = 1
+        
         for v in bm.verts:
             temperature = (v[temperature_layer] - min_temp)/(max_temp - min_temp)
             v[color_layer] = [temperature, 0, 1 - temperature, 1]

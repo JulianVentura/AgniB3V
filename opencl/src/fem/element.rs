@@ -71,7 +71,7 @@ impl Element {
 
         area = area.abs() / 2.0;
 
-        return area;
+        area
     }
 
     fn calculate_sqr_distance(p1: &Point, p2: &Point) -> f32 {
@@ -81,7 +81,7 @@ impl Element {
         let mut distance = (p1.position[0] - p2.position[0]).powi(2);
         distance += (p1.position[1] - p2.position[1]).powi(2);
 
-        return distance;
+        distance
     }
 
     fn calculate_dot_product(fixed: &Point, start: &Point, end: &Point) -> f32 {
@@ -99,11 +99,12 @@ impl Element {
         let mut dot_product = edge1[0] * edge2[0];
         dot_product += edge1[1] * edge2[1];
 
-        return dot_product;
+        dot_product
     }
 
     fn check_point_length(point: &Point) {
         //TODO: Add 3D
+        //TODO: Add error handling
         if point.position.size() != 2 {
             panic!("Point length is not 2");
         }
@@ -139,7 +140,7 @@ impl Element {
 
         k = k * (conductivity / (4.0 * area));
 
-        return k;
+        k
     }
 
     fn calculate_m(area: f32, specific_heat: f32, density: f32, thickness: f32) -> Matrix {
@@ -152,7 +153,7 @@ impl Element {
         //Thickness is necessary in order to get a volume
         m = m * (area * specific_heat * density * thickness / 12.0);
 
-        return m;
+        m
     }
 
     fn calculate_f(area: f32, generated_heat: f32) -> Vector {
@@ -164,6 +165,6 @@ impl Element {
         // f += [nodo1.heat_source, nodo2.heat_source, nodo3.heat_source]
         //Note: probably that would make each element where that node is part add its heat source, so it would be duplicated
 
-        return f;
+        f
     }
 }

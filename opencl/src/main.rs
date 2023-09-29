@@ -3,6 +3,7 @@ use anyhow::Result;
 use log::error;
 
 fn run() -> Result<()> {
+    
     Ok(())
 }
 

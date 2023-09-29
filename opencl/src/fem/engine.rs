@@ -14,6 +14,13 @@ pub struct FEMEngine {
     f: Vector,
 }
 
+#[allow(dead_code)]
+pub struct FEMProblem {
+    elements: Vec<Element>,
+    simulation_time: f32,
+    time_step: f32,
+}
+
 impl FEMEngine {
     pub fn new(simulation_time: f32, time_step: f32, elements: Vec<Element>) -> Self {
         let n_points = Self::calculate_number_of_points(&elements);

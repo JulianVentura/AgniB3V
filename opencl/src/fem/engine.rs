@@ -11,6 +11,7 @@ pub struct FEMEngine {
     points: Vec<Point>,
     m_inverse: Matrix,
     m_inverse_k: Matrix,
+    f: Vector,
 }
 
 impl FEMEngine {
@@ -18,6 +19,7 @@ impl FEMEngine {
         let n_points = Self::calculate_number_of_points(&elements);
         let m = Self::construct_global_matrix(&elements, n_points, |e: &Element| &e.m);
         let k = Self::construct_global_matrix(&elements, n_points, |e: &Element| &e.k);
+        let f = Self::construct_global_vector_f(&elements, n_points);
         let points = Self::construct_points_array(elements, n_points);
 
         let m_inverse = m
@@ -32,6 +34,7 @@ impl FEMEngine {
             points,
             m_inverse,
             m_inverse_k,
+            f,
         }
     }
 
@@ -53,16 +56,13 @@ impl FEMEngine {
     }
 
     pub fn step(&mut self, temp: &Vector) -> Vector {
-        todo!(); //TODO: Flux vector is not implemented
-
-        let flux = Vector::zeros(self.points.len());
-
-        temp + (&self.m_inverse * flux - &self.m_inverse_k * temp) * self.time_step
+        temp + (&self.m_inverse * &self.f - &self.m_inverse_k * temp) * self.time_step
     }
 
     fn calculate_number_of_points(elements: &Vec<Element>) -> usize {
         use std::cmp::max;
 
+        //Right now its ok, but we have to make sure the global ids are sequential (and start from 1)
         let mut size: u32 = 0;
         for e in elements {
             size = max(
@@ -78,6 +78,7 @@ impl FEMEngine {
         let mut points: Vec<Point> = Vec::new();
         points.reserve_exact(n_points);
 
+        // TODO: This is not very efficient, we can check if the point already exists
         for e in elements {
             points[(e.p1.global_id - 1) as usize] = e.p1.clone();
             points[(e.p2.global_id - 1) as usize] = e.p2.clone();
@@ -109,5 +110,22 @@ impl FEMEngine {
         }
 
         m
+    }
+
+    fn construct_global_vector_f(elements: &Vec<Element>, n_points: usize) -> Vector {
+        let mut f = Vector::zeros(n_points);
+
+        for e in elements {
+            let map = [e.p1.global_id, e.p2.global_id, e.p3.global_id];
+            let local_vector = &e.f;
+
+            for i in 0..3 {
+                let v = local_vector[i];
+                let new_i = (map[i] - 1) as usize;
+                f[new_i] += v;
+            }
+        }
+
+        f
     }
 }

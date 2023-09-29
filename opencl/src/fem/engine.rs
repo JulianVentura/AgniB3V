@@ -32,7 +32,6 @@ impl FEMEngine {
         let m_inverse = m
             .inverse()
             .expect("Couldn't invert M matrix, this is wrong...");
-
         let m_inverse_k = &m_inverse * &k;
 
         FEMEngine {
@@ -45,7 +44,7 @@ impl FEMEngine {
         }
     }
 
-    pub fn run(&mut self) -> Result<()> {
+    pub fn run(&mut self) -> Result<Vec<Vector>> {
         let mut time = 0.0;
         let mut temp = Vector::new(
             self.points
@@ -53,13 +52,16 @@ impl FEMEngine {
                 .map(|p| p.temperature)
                 .collect::<Vec<f32>>(),
         );
+        let mut temp_results = Vec::new();
+        temp_results.push(temp.clone());
 
         while time < self.simulation_time {
             temp = self.step(&temp);
+            temp_results.push(temp.clone());
             time += self.time_step;
         }
 
-        Ok(())
+        Ok(temp_results)
     }
 
     pub fn step(&mut self, temp: &Vector) -> Vector {
@@ -84,6 +86,9 @@ impl FEMEngine {
     fn construct_points_array(elements: Vec<Element>, n_points: usize) -> Vec<Point> {
         let mut points: Vec<Point> = Vec::new();
         points.reserve_exact(n_points);
+
+        points.resize(n_points, Default::default());
+        // If we dont fill the vector with default values, we will get an error when trying to access an element
 
         // TODO: This is not very efficient, we can check if the point already exists
         for e in elements {

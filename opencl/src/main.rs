@@ -3,7 +3,7 @@ use anyhow::Result;
 use log::error;
 
 fn run() -> Result<()> {
-    
+    fem::examples::test_square();
     Ok(())
 }
 

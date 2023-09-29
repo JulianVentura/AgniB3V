@@ -21,6 +21,9 @@ class CalcSolarViewFactor(bpy.types.Operator):
         visible_vertices = set()
         tool_settings = context.scene.thermal_tool_settings
         solar_direction_vector = mathutils.Vector(tool_settings.solar_direction_vector)
+        if (solar_direction_vector == [0,0,0]):
+            solar_direction_vector = (bpy.data.objects['Cube'].location - bpy.data.objects['Sun'].location).normalize()
+        print(solar_direction_vector)
         ray_cast_displacement = tool_settings.ray_cast_displacement
 
         for vert in obj.data.vertices:

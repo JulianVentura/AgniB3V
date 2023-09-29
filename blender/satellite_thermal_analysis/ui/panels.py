@@ -18,6 +18,7 @@ class ThermalAnalysisPanel(bpy.types.Panel):
         column.prop(context.scene.thermal_tool_settings, "ray_cast_displacement", text="Desplazamiento", slider=True)
         column.label(text="Malla")
         column.operator("thermal.export_mesh", text="Exportar")
+        column.operator("thermal.export_mesh_second", text="Exportar 2")
         column.label(text="Factor de vista solar")
         column.operator("thermal.calc_solar_view_factor", text="Calcular")
         column.label(text="Resultados")

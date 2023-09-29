@@ -1,6 +1,6 @@
 import bpy
 from .ui import panels, custom_materials
-from .operators import export_thermal_mesh, calc_solar_view_factor, load_temperature_values, paint_temperature_values
+from .operators import export_thermal_mesh, export_thermal_mesh_second, calc_solar_view_factor, load_temperature_values, paint_temperature_values
 from .property_groups import tool_settings
 
 bl_info = {
@@ -16,11 +16,13 @@ def register():
     bpy.utils.register_class(load_temperature_values.LoadTemperatureValues)
     bpy.utils.register_class(paint_temperature_values.PaintTemperatureValues)
     bpy.utils.register_class(export_thermal_mesh.ExportThermalMesh)
+    bpy.utils.register_class(export_thermal_mesh_second.ExportThermalMeshSecond)
     bpy.utils.register_class(panels.ThermalAnalysisPanel)
     custom_materials.custom_materials_register()
 
 def unregister():
     bpy.utils.unregister_class(panels.ThermalAnalysisPanel)
+    bpy.utils.unregister_class(export_thermal_mesh_second.ExportThermalMeshSecond)
     bpy.utils.unregister_class(export_thermal_mesh.ExportThermalMesh)
     bpy.utils.unregister_class(paint_temperature_values.PaintTemperatureValues)
     bpy.utils.unregister_class(load_temperature_values.LoadTemperatureValues)

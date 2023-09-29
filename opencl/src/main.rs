@@ -1,9 +1,15 @@
-pub mod graph;
+pub mod fem;
+use anyhow::Result;
+use log::error;
+
+fn run() -> Result<()> {
+    Ok(())
+}
 
 fn main() {
-    if let Ok(ex_graph) = graph::Graph::new_from_file("./Cube.csv") {
-        println!("{:?}", ex_graph);
-    } else {
-        println!("Error");
-    }
+    env_logger::init();
+    match run() {
+        Ok(_) => println!("Ok"),
+        Err(e) => error!("{e:?}"),
+    };
 }

@@ -1,8 +1,6 @@
 use super::point::Point;
+use super::structures::{Vector, Matrix};
 use rulinalg::{matrix, vector};
-
-type Matrix = matrix::Matrix<f32>;
-type Vector = vector::Vector<f32>;
 
 pub struct Element {
     pub p1: Point,

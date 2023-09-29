@@ -1,9 +1,6 @@
+use super::structures::{Matrix, Vector};
 use super::{element::Element, point::Point};
 use anyhow::Result;
-use rulinalg::{matrix, vector};
-
-type Vector = vector::Vector<f32>;
-type Matrix = matrix::Matrix<f32>;
 
 pub struct FEMEngine {
     simulation_time: f32, //TODO
@@ -45,7 +42,6 @@ impl FEMEngine {
     }
 
     pub fn run(&mut self) -> Result<Vec<Vector>> {
-        let mut time = 0.0;
         let mut temp = Vector::new(
             self.points
                 .iter()
@@ -54,6 +50,8 @@ impl FEMEngine {
         );
         let mut temp_results = Vec::new();
         temp_results.push(temp.clone());
+        
+        let mut time = 0.0;
 
         while time < self.simulation_time {
             temp = self.step(&temp);

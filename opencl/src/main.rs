@@ -1,9 +1,12 @@
+pub mod examples;
 pub mod fem;
 use anyhow::Result;
 use log::error;
 
 fn run() -> Result<()> {
-    fem::examples::test_square();
+    examples::test_square_only_temperature(false)?;
+    examples::test_square_only_heat(false)?;
+
     Ok(())
 }
 

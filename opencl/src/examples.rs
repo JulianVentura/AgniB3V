@@ -3,10 +3,10 @@ use anyhow::Result;
 use super::fem::{element::Element, engine::FEMEngine, point::Point, structures::Vector};
 
 pub fn test_square_only_temperature(verbose: bool) -> Result<()> {
-    let p1 = Point::new(Vector::new([0.0, 0.0]), 273.0, 1, 0);
-    let p2 = Point::new(Vector::new([1.0, 0.0]), 283.0, 2, 0);
-    let p3 = Point::new(Vector::new([1.0, 1.0]), 273.0, 3, 0);
-    let p4 = Point::new(Vector::new([0.0, 1.0]), 273.0, 4, 0);
+    let p1 = Point::new(Vector::new([0.0, 0.0]), 273.0, 0, 0);
+    let p2 = Point::new(Vector::new([1.0, 0.0]), 283.0, 1, 0);
+    let p3 = Point::new(Vector::new([1.0, 1.0]), 273.0, 2, 0);
+    let p4 = Point::new(Vector::new([0.0, 1.0]), 273.0, 3, 0);
 
     //Alumium
     let conductivity = 237.0;
@@ -61,10 +61,10 @@ pub fn test_square_only_temperature(verbose: bool) -> Result<()> {
 }
 
 pub fn test_square_only_heat(verbose: bool) -> Result<()> {
-    let p1 = Point::new(Vector::new([0.0, 0.0]), 273.0, 1, 0);
-    let p2 = Point::new(Vector::new([1.0, 0.0]), 273.0, 2, 0);
-    let p3 = Point::new(Vector::new([0.0, 1.0]), 273.0, 3, 0);
-    let p4 = Point::new(Vector::new([1.0, 1.0]), 273.0, 4, 0);
+    let p1 = Point::new(Vector::new([0.0, 0.0]), 273.0, 0, 0);
+    let p2 = Point::new(Vector::new([1.0, 0.0]), 273.0, 1, 0);
+    let p3 = Point::new(Vector::new([0.0, 1.0]), 273.0, 2, 0);
+    let p4 = Point::new(Vector::new([1.0, 1.0]), 273.0, 3, 0);
 
     //Alumium
     let conductivity = 237.0;

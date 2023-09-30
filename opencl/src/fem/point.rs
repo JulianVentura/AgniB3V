@@ -1,8 +1,6 @@
-use rulinalg::vector;
+use super::structures::Vector;
 
-type Vector = vector::Vector<f32>;
-
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Point {
     pub global_id: u32,
     pub local_id: u32,
@@ -28,10 +26,10 @@ impl Point {
 impl Default for Point {
     fn default() -> Self {
         Point {
-            global_id: 0,                // Default global_id value
-            local_id: 0,                 // Default local_id value
-            position: vector![0.0, 0.0], // Default position
-            temperature: 0.0,            // Default temperature value
+            global_id: 0,                      // Default global_id value
+            local_id: 0,                       // Default local_id value
+            position: Vector::new([0.0, 0.0]), // Default position
+            temperature: 0.0,                  // Default temperature value
         }
     }
 }

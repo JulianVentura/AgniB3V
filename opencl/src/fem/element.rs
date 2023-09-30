@@ -62,23 +62,21 @@ impl Element {
     }
 
     fn calculate_area(p1: &Point, p2: &Point, p3: &Point) -> f32 {
-        //TODO: Add 3D
-
-        let mut area = p1.position[0] * (p2.position[1] - p3.position[1]);
-        area += p2.position[0] * (p3.position[1] - p1.position[1]);
-        area += p3.position[0] * (p1.position[1] - p2.position[1]);
-
-        area = area.abs() / 2.0;
-
-        area
+        let q1 = vec![p2.position[0] - p1.position[0], p2.position[1] - p1.position[1], p2.position[2] - p1.position[2]];
+        let q2 = vec![p3.position[0] - p1.position[0], p3.position[1] - p1.position[1], p3.position[2] - p1.position[2]];
+    
+        //Cross product
+        let a : f32 = q1[1]*q1[2] - q2[1]*q1[2];
+        let b : f32 = q2[0]*q1[2] - q1[0]*q2[2];
+        let c : f32 = q1[0]*q2[1] - q2[0]*q1[1];
+        
+        (a*a + b*b + c*c).sqrt()/2.0
     }
 
     fn calculate_sqr_distance(p1: &Point, p2: &Point) -> f32 {
-        //Calculate the distance between two points squared
-        //TODO: Add 3D
-
         let mut distance = (p1.position[0] - p2.position[0]).powi(2);
         distance += (p1.position[1] - p2.position[1]).powi(2);
+        distance += (p1.position[2] - p2.position[2]).powi(2);
 
         distance
     }
@@ -86,17 +84,16 @@ impl Element {
     fn edges_dot_product(a: (&Point, &Point), b: (&Point, &Point)) -> f32 {
         //Calculate the dot product between two edges
 
-        let edge1 = &a.1.position - &a.0.position;
-        let edge2 = &b.1.position - &b.0.position;
-
-        edge1.dot(&edge2)
+        let q1 = vec![&a.1.position[0] - &a.0.position[0], &a.1.position[1] - &a.0.position[1], &a.1.position[2] - &a.0.position[2]];
+        let q2 = vec![&b.1.position[0] - &b.0.position[0], &b.1.position[1] - &b.0.position[1], &a.1.position[2] - &b.0.position[2]];
+    
+        q1[0]*q2[0] + q1[1]*q2[1] + q1[2]*q2[2]
     }
 
     fn check_point_length(point: &Point) {
-        //TODO: Add 3D
         //TODO: Add error handling
-        if point.position.size() != 2 {
-            panic!("Point length is not 2");
+        if point.position.size() != 3 {
+            panic!("Point length is not 3");
         }
     }
 

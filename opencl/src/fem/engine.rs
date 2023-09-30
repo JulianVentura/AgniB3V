@@ -71,12 +71,14 @@ impl FEMEngine {
         let steps = (self.simulation_time / self.time_step) as u32;
         let snapshot_period = (self.snapshot_period / self.time_step) as u32;
 
-        for step in 1..=steps {
-            temp = self.step(&temp);
+        for step in 0..steps {
             if step % snapshot_period == 0 {
                 temp_results.push(temp.clone());
             }
+            temp = self.step(&temp);
         }
+
+        temp_results.push(temp.clone());
 
         Ok(temp_results)
     }

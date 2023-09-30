@@ -5,6 +5,7 @@ use anyhow::Result;
 pub struct FEMEngine {
     simulation_time: f32, //TODO
     time_step: f32,       //TODO
+    snapshot_period: f32,
     points: Vec<Point>,
     m_inverse: Matrix,
     m_inverse_k: Matrix,
@@ -20,7 +21,21 @@ pub struct FEMProblem {
 }
 
 impl FEMEngine {
-    pub fn new(simulation_time: f32, time_step: f32, elements: Vec<Element>) -> Self {
+    pub fn new(
+        simulation_time: f32,
+        time_step: f32,
+        elements: Vec<Element>,
+        snapshot_period: f32,
+    ) -> Self {
+        //TODO add error handling
+        if time_step > snapshot_period {
+            panic!("Snapshot period cannot be smaller than time step");
+        }
+
+        if !Self::is_multiple(simulation_time, snapshot_period) {
+            panic!("Snapshot period must be multiple of simulation time");
+        }
+
         let n_points = Self::calculate_number_of_points(&elements);
         let m = Self::construct_global_matrix(&elements, n_points, |e: &Element| &e.m);
         let k = Self::construct_global_matrix(&elements, n_points, |e: &Element| &e.k);
@@ -35,6 +50,7 @@ impl FEMEngine {
         FEMEngine {
             simulation_time,
             time_step,
+            snapshot_period,
             points,
             m_inverse,
             m_inverse_k,
@@ -52,12 +68,14 @@ impl FEMEngine {
         let mut temp_results = Vec::new();
         temp_results.push(temp.clone());
 
-        let mut time = 0.0;
+        let steps = (self.simulation_time / self.time_step) as u32;
+        let snapshot_period = (self.snapshot_period / self.time_step) as u32;
 
-        while time < self.simulation_time {
+        for step in 1..=steps {
             temp = self.step(&temp);
-            temp_results.push(temp.clone());
-            time += self.time_step;
+            if step % snapshot_period == 0 {
+                temp_results.push(temp.clone());
+            }
         }
 
         Ok(temp_results)
@@ -138,5 +156,11 @@ impl FEMEngine {
         }
 
         f
+    }
+    
+    fn is_multiple(number: f32, divisor: f32) -> bool {
+        let tolerance = f32::EPSILON;
+        let remainder = number % divisor;
+        remainder.abs() < tolerance.into()
     }
 }

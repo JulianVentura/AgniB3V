@@ -6,6 +6,9 @@ use log::error;
 fn run() -> Result<()> {
     examples::test_square_only_temperature(true)?;
     examples::test_square_only_heat(false)?;
+    // let problem = fem::parser::fem_problem_from_csv();
+    //
+    // println!("{:#?}", problem);
 
     Ok(())
 }

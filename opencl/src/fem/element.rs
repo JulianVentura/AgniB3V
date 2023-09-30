@@ -2,6 +2,7 @@ use super::point::Point;
 use super::structures::{Matrix, Vector};
 use rulinalg::{matrix, vector};
 
+#[derive(Debug)]
 pub struct Element {
     pub p1: Point,
     pub p2: Point,

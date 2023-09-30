@@ -12,10 +12,11 @@ pub struct FEMEngine {
 }
 
 #[allow(dead_code)]
+#[derive(Debug)]
 pub struct FEMProblem {
-    elements: Vec<Element>,
-    simulation_time: f32,
-    time_step: f32,
+    pub elements: Vec<Element>,
+    pub simulation_time: f32,
+    pub time_step: f32,
 }
 
 impl FEMEngine {
@@ -50,7 +51,7 @@ impl FEMEngine {
         );
         let mut temp_results = Vec::new();
         temp_results.push(temp.clone());
-        
+
         let mut time = 0.0;
 
         while time < self.simulation_time {
@@ -78,7 +79,7 @@ impl FEMEngine {
             );
         }
 
-        size as usize
+        (size + 1) as usize
     }
 
     fn construct_points_array(elements: Vec<Element>, n_points: usize) -> Vec<Point> {
@@ -90,9 +91,9 @@ impl FEMEngine {
 
         // TODO: This is not very efficient, we can check if the point already exists
         for e in elements {
-            points[(e.p1.global_id - 1) as usize] = e.p1.clone();
-            points[(e.p2.global_id - 1) as usize] = e.p2.clone();
-            points[(e.p3.global_id - 1) as usize] = e.p3.clone();
+            points[e.p1.global_id as usize] = e.p1.clone();
+            points[e.p2.global_id as usize] = e.p2.clone();
+            points[e.p3.global_id as usize] = e.p3.clone();
         }
 
         points
@@ -112,8 +113,8 @@ impl FEMEngine {
             for y in 0..3 {
                 for x in 0..3 {
                     let v = local_matrix[[y, x]];
-                    let new_x = (map[x] - 1) as usize;
-                    let new_y = (map[y] - 1) as usize;
+                    let new_x = map[x] as usize;
+                    let new_y = map[y] as usize;
                     m[[new_y, new_x]] += v;
                 }
             }
@@ -131,7 +132,7 @@ impl FEMEngine {
 
             for i in 0..3 {
                 let v = local_vector[i];
-                let new_i = (map[i] - 1) as usize;
+                let new_i = map[i] as usize;
                 f[new_i] += v;
             }
         }

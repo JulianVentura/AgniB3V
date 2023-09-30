@@ -1,6 +1,28 @@
-use anyhow::Result;
+use std::collections::HashMap;
 
-use super::fem::{element::Element, engine::FEMEngine, point::Point, structures::Vector};
+use anyhow::{anyhow, Result};
+
+use super::fem::{element::Element, engine::FEMEngine, parser, point::Point, structures::Vector};
+
+fn log_results(temp_results: Vec<Vector>, time_step: f32, verbose: bool) {
+    if !verbose {
+        return;
+    }
+
+    let mut step = 0.0;
+    for temp in temp_results.iter() {
+        let d = temp.data();
+        println!(
+            "Time: {:.3} , Temp: [{:.2}, {:.2}, {:.2}, {:.2}]",
+            (time_step * step),
+            d[0],
+            d[1],
+            d[2],
+            d[3]
+        );
+        step += time_step;
+    }
+}
 
 pub fn test_square_only_temperature(verbose: bool) -> Result<()> {
     let p1 = Point::new(Vector::new([0.0, 0.0, 0.0]), 273.0, 0, 0);
@@ -41,21 +63,7 @@ pub fn test_square_only_temperature(verbose: bool) -> Result<()> {
 
     let temp_results = engine.run()?;
 
-    if verbose {
-        let mut step = 0.0;
-        for temp in temp_results.iter() {
-            let d = temp.data();
-            println!(
-                "Time: {:.3} , Temp: [{:.2}, {:.2}, {:.2}, {:.2}]",
-                (time_step * step),
-                d[0],
-                d[1],
-                d[2],
-                d[3]
-            );
-            step += time_step;
-        }
-    }
+    log_results(temp_results, time_step, verbose);
 
     Ok(())
 }
@@ -99,17 +107,31 @@ pub fn test_square_only_heat(verbose: bool) -> Result<()> {
 
     let temp_results = engine.run()?;
 
-    if verbose {
-        let mut step = 0.0;
-        for temp in temp_results.iter() {
-            let d = temp.data();
-            println!(
-                "Time: {:.2} seg, T: [{:.2} K, {:.2} K, {:.2} K, {:.2} K]",
-                step, d[0], d[1], d[2], d[3]
-            );
-            step += time_step;
-        }
-    }
+    log_results(temp_results, time_step, verbose);
+
+    Ok(())
+}
+
+pub fn test_2d_plane() -> Result<()> {
+    let elements_path = "./models/2D-plane_triangles.csv".to_string();
+    let nodes_path = "./models/2D-plane_verts.csv".to_string();
+    let results_path = "./models/2D-plane_results.csv".to_string();
+
+    let initial_temp_map: HashMap<u32, f32> = [(0, 373.0), (3, 373.0)].into_iter().collect();
+
+    let problem = parser::fem_problem_from_csv(elements_path, nodes_path, initial_temp_map);
+
+    let simulation_time = 10.0;
+    let time_step = 1.0;
+
+    let mut engine = FEMEngine::new(simulation_time, time_step, problem.elements);
+
+    let temp_results = engine.run()?;
+
+    parser::fem_results_to_csv(
+        results_path,
+        &temp_results.last().ok_or(anyhow!("No result"))?.clone(),
+    )?;
 
     Ok(())
 }

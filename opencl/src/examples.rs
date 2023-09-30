@@ -91,11 +91,11 @@ pub fn test_square_only_heat(verbose: bool) -> Result<()> {
         density,
         specific_heat,
         thickness,
-        0.0,
+        1000.0,
     );
 
     let time_step = 10.0;
-    let time_res = 100.0;
+    let time_res = 10.0;
     let simulation_time = 600.0;
     let mut engine = FEMEngine::new(simulation_time, time_step, vec![e1, e2], time_res);
 
@@ -106,7 +106,7 @@ pub fn test_square_only_heat(verbose: bool) -> Result<()> {
         for temp in temp_results.iter() {
             let d = temp.data();
             println!(
-                "Time: {:.2} seg, T: [{:.2} K, {:.2} K, {:.2} K, {:.2} K]",
+                "Time: {:.2} seg, T: [{:.4} K, {:.4} K, {:.4} K, {:.4} K]",
                 step, d[0], d[1], d[2], d[3]
             );
             step += time_res;

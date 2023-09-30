@@ -64,7 +64,7 @@ impl FEMEngine {
         temp_results.push(temp.clone());
 
         let mut time = 0.0;
-        let mut i = 1.0;
+        let mut i = 0.0;
         while time < self.simulation_time {
             temp = self.step(&temp);
 

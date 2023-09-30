@@ -3,12 +3,12 @@ use super::{element::Element, point::Point};
 use anyhow::Result;
 
 pub struct FEMEngine {
-    simulation_time: f32, //TODO
-    time_step: f32,       //TODO
-    snapshot_period: f32,
+    simulation_time: f64, //TODO
+    time_step: f64,       //TODO
+    snapshot_period: f64,
     points: Vec<Point>,
-    m_inverse: Matrix,
-    m_inverse_k: Matrix,
+    pub m_inverse: Matrix,
+    pub m_inverse_k: Matrix,
     f: Vector,
 }
 
@@ -16,16 +16,17 @@ pub struct FEMEngine {
 #[derive(Debug)]
 pub struct FEMProblem {
     pub elements: Vec<Element>,
-    pub simulation_time: f32,
-    pub time_step: f32,
+    pub simulation_time: f64,
+    pub time_step: f64,
+    pub snapshot_period: f64
 }
 
 impl FEMEngine {
     pub fn new(
-        simulation_time: f32,
-        time_step: f32,
+        simulation_time: f64,
+        time_step: f64,
         elements: Vec<Element>,
-        snapshot_period: f32,
+        snapshot_period: f64,
     ) -> Self {
         //TODO add error handling
         if time_step > snapshot_period {
@@ -84,7 +85,7 @@ impl FEMEngine {
     }
 
     pub fn step(&mut self, temp: &Vector) -> Vector {
-        temp + (&self.m_inverse * &self.f - &self.m_inverse_k * temp) * self.time_step
+        temp + (&self.m_inverse * &self.f - &self.m_inverse_k * temp) * (self.time_step as f32)
     }
 
     fn calculate_number_of_points(elements: &Vec<Element>) -> usize {
@@ -160,9 +161,7 @@ impl FEMEngine {
         f
     }
 
-    fn is_multiple(number: f32, divisor: f32) -> bool {
-        let tolerance = f32::EPSILON;
-        let remainder = number % divisor;
-        remainder.abs() < tolerance.into()
+    fn is_multiple(dividend: f64, divisor: f64) -> bool {
+        (dividend / divisor).fract().abs() < f64::EPSILON
     }
 }

@@ -5,6 +5,7 @@ use anyhow::Result;
 pub struct FEMEngine {
     simulation_time: f32, //TODO
     time_step: f32,       //TODO
+    time_res: f32,
     points: Vec<Point>,
     m_inverse: Matrix,
     m_inverse_k: Matrix,
@@ -20,7 +21,16 @@ pub struct FEMProblem {
 }
 
 impl FEMEngine {
-    pub fn new(simulation_time: f32, time_step: f32, elements: Vec<Element>) -> Self {
+    pub fn new(
+        simulation_time: f32,
+        time_step: f32,
+        elements: Vec<Element>,
+        time_res: f32,
+    ) -> Self {
+        //TODO add error handling
+        if time_res < time_step {
+            panic!("Time result times cannot be smaller than time step");
+        }
         let n_points = Self::calculate_number_of_points(&elements);
         let m = Self::construct_global_matrix(&elements, n_points, |e: &Element| &e.m);
         let k = Self::construct_global_matrix(&elements, n_points, |e: &Element| &e.k);
@@ -35,6 +45,7 @@ impl FEMEngine {
         FEMEngine {
             simulation_time,
             time_step,
+            time_res,
             points,
             m_inverse,
             m_inverse_k,
@@ -53,10 +64,17 @@ impl FEMEngine {
         temp_results.push(temp.clone());
 
         let mut time = 0.0;
-
+        let mut i = 1.0;
         while time < self.simulation_time {
             temp = self.step(&temp);
-            temp_results.push(temp.clone());
+
+            if self.time_res * i <= time + self.time_step / 2.0
+                && self.time_res * i >= time - self.time_step / 2.0
+            {
+                temp_results.push(temp.clone());
+                i += 1.0;
+            }
+
             time += self.time_step;
         }
 

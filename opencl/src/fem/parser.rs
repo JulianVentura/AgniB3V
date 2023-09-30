@@ -1,8 +1,11 @@
+use std::collections::HashMap;
+
 use super::element::Element;
 use super::engine::FEMProblem;
 use super::point::Point;
 use super::structures::Vector;
-use serde::Deserialize;
+use anyhow::Result;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
 pub struct ParserElement {
@@ -20,10 +23,43 @@ pub struct ParserNode {
     z: f32,
 }
 
-pub fn fem_problem_from_csv() -> FEMProblem {
-    let elements_path = "./models/2D-plane_triangles.csv";
-    let nodes_path = "./models/2D-plane_verts.csv";
+#[derive(Serialize)]
+struct FEMResult {
+    id: u32,
+    temp: f32,
+}
 
+pub fn fem_results_to_csv(results_path: String, results: &Vector) -> Result<()> {
+    let r: Vec<FEMResult> = results
+        .iter()
+        .enumerate()
+        .map(|(i, &x)| FEMResult {
+            id: i as u32,
+            temp: x,
+        })
+        .collect();
+
+    // Serialize the data to CSV
+    let mut writer = csv::WriterBuilder::new()
+        .has_headers(false)
+        .from_path(results_path)?;
+
+    // Serialize and write each Result struct
+    for result in r.iter() {
+        writer.serialize(result)?;
+    }
+
+    // Finish writing and flush the file
+    writer.flush()?;
+
+    Ok(())
+}
+
+pub fn fem_problem_from_csv(
+    elements_path: String,
+    nodes_path: String,
+    initial_temp: HashMap<u32, f32>,
+) -> FEMProblem {
     //Alumium
     let conductivity = 237.0;
     let density = 2700.0;
@@ -39,9 +75,10 @@ pub fn fem_problem_from_csv() -> FEMProblem {
 
     for result in reader.deserialize() {
         let pnode: ParserNode = result.unwrap();
+        let temp = initial_temp.get(&pnode.id).unwrap_or(&273f32);
         points.push(Point::new(
             Vector::new([pnode.x, pnode.y, pnode.z]),
-            0.0,
+            *temp,
             pnode.id,
             0,
         ));

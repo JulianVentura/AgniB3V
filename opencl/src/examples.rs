@@ -99,11 +99,11 @@ pub fn test_square_only_heat(verbose: bool) -> Result<()> {
         density,
         specific_heat,
         thickness,
-        0.0,
+        1000.0,
     );
 
     let time_step = 10.0;
-    let time_res = 100.0;
+    let time_res = 10.0;
     let simulation_time = 600.0;
     let mut engine = FEMEngine::new(simulation_time, time_step, vec![e1, e2], time_res);
 

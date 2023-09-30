@@ -157,7 +157,7 @@ impl FEMEngine {
 
         f
     }
-    
+
     fn is_multiple(number: f32, divisor: f32) -> bool {
         let tolerance = f32::EPSILON;
         let remainder = number % divisor;

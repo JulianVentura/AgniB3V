@@ -4,7 +4,7 @@ use anyhow::Result;
 use log::error;
 
 fn run() -> Result<()> {
-    examples::test_square_only_temperature(false)?;
+    examples::test_square_only_temperature(true)?;
     examples::test_square_only_heat(false)?;
 
     Ok(())

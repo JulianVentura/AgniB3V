@@ -62,15 +62,23 @@ impl Element {
     }
 
     fn calculate_area(p1: &Point, p2: &Point, p3: &Point) -> f32 {
-        let q1 = vec![p2.position[0] - p1.position[0], p2.position[1] - p1.position[1], p2.position[2] - p1.position[2]];
-        let q2 = vec![p3.position[0] - p1.position[0], p3.position[1] - p1.position[1], p3.position[2] - p1.position[2]];
-    
+        let q1 = vec![
+            p2.position[0] - p1.position[0],
+            p2.position[1] - p1.position[1],
+            p2.position[2] - p1.position[2],
+        ];
+        let q2 = vec![
+            p3.position[0] - p1.position[0],
+            p3.position[1] - p1.position[1],
+            p3.position[2] - p1.position[2],
+        ];
+
         //Cross product
-        let a : f32 = q1[1]*q1[2] - q2[1]*q1[2];
-        let b : f32 = q2[0]*q1[2] - q1[0]*q2[2];
-        let c : f32 = q1[0]*q2[1] - q2[0]*q1[1];
-        
-        (a*a + b*b + c*c).sqrt()/2.0
+        let a: f32 = q1[1] * q1[2] - q2[1] * q1[2];
+        let b: f32 = q2[0] * q1[2] - q1[0] * q2[2];
+        let c: f32 = q1[0] * q2[1] - q2[0] * q1[1];
+
+        (a * a + b * b + c * c).sqrt() / 2.0
     }
 
     fn calculate_sqr_distance(p1: &Point, p2: &Point) -> f32 {
@@ -84,10 +92,18 @@ impl Element {
     fn edges_dot_product(a: (&Point, &Point), b: (&Point, &Point)) -> f32 {
         //Calculate the dot product between two edges
 
-        let q1 = vec![&a.1.position[0] - &a.0.position[0], &a.1.position[1] - &a.0.position[1], &a.1.position[2] - &a.0.position[2]];
-        let q2 = vec![&b.1.position[0] - &b.0.position[0], &b.1.position[1] - &b.0.position[1], &a.1.position[2] - &b.0.position[2]];
-    
-        q1[0]*q2[0] + q1[1]*q2[1] + q1[2]*q2[2]
+        let q1 = vec![
+            &a.1.position[0] - &a.0.position[0],
+            &a.1.position[1] - &a.0.position[1],
+            &a.1.position[2] - &a.0.position[2],
+        ];
+        let q2 = vec![
+            &b.1.position[0] - &b.0.position[0],
+            &b.1.position[1] - &b.0.position[1],
+            &b.1.position[2] - &b.0.position[2],
+        ];
+
+        q1[0] * q2[0] + q1[1] * q2[1] + q1[2] * q2[2]
     }
 
     fn check_point_length(point: &Point) {

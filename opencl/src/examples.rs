@@ -58,8 +58,9 @@ pub fn test_square_only_temperature(verbose: bool) -> Result<()> {
     );
 
     let time_step = 1.0;
+    let time_res = 1.0;
     let simulation_time = 20.0;
-    let mut engine = FEMEngine::new(simulation_time, time_step, vec![e1, e2]);
+    let mut engine = FEMEngine::new(simulation_time, time_step, vec![e1, e2], time_res);
 
     let temp_results = engine.run()?;
 
@@ -102,8 +103,9 @@ pub fn test_square_only_heat(verbose: bool) -> Result<()> {
     );
 
     let time_step = 10.0;
+    let time_res = 100.0;
     let simulation_time = 600.0;
-    let mut engine = FEMEngine::new(simulation_time, time_step, vec![e1, e2]);
+    let mut engine = FEMEngine::new(simulation_time, time_step, vec![e1, e2], time_res);
 
     let temp_results = engine.run()?;
 
@@ -124,7 +126,7 @@ pub fn test_2d_plane() -> Result<()> {
     let simulation_time = 10.0;
     let time_step = 1.0;
 
-    let mut engine = FEMEngine::new(simulation_time, time_step, problem.elements);
+    let mut engine = FEMEngine::new(simulation_time, time_step, problem.elements, 10.0);
 
     let temp_results = engine.run()?;
 

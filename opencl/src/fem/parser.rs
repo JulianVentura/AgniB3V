@@ -17,7 +17,7 @@ pub struct ParserNode {
     id: u32,
     x: f32,
     y: f32,
-    _z: f32,
+    z: f32,
 }
 
 pub fn fem_problem_from_csv() -> FEMProblem {
@@ -39,9 +39,8 @@ pub fn fem_problem_from_csv() -> FEMProblem {
 
     for result in reader.deserialize() {
         let pnode: ParserNode = result.unwrap();
-        //TODO: Add 3D
         points.push(Point::new(
-            Vector::new([pnode.x, pnode.y]),
+            Vector::new([pnode.x, pnode.y, pnode.z]),
             0.0,
             pnode.id,
             0,

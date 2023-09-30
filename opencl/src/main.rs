@@ -4,8 +4,8 @@ use anyhow::Result;
 use log::error;
 
 fn run() -> Result<()> {
-    examples::test_square_only_temperature(true)?;
-    examples::test_square_only_heat(false)?;
+    examples::test_square_only_temperature(false)?;
+    examples::test_square_only_heat(true)?;
     // let problem = fem::parser::fem_problem_from_csv();
     //
     // println!("{:#?}", problem);

@@ -1,5 +1,5 @@
 use super::point::Point;
-use super::structures::{Vector, Matrix};
+use super::structures::{Matrix, Vector};
 use rulinalg::{matrix, vector};
 
 pub struct Element {
@@ -82,22 +82,13 @@ impl Element {
         distance
     }
 
-    fn calculate_dot_product(fixed: &Point, start: &Point, end: &Point) -> f32 {
+    fn edges_dot_product(a: (&Point, &Point), b: (&Point, &Point)) -> f32 {
         //Calculate the dot product between two edges
-        //TODO: Add 3D
 
-        let edge1: Vector = Vector::new([
-            fixed.position[0] - start.position[0],
-            fixed.position[1] - start.position[1],
-        ]);
-        let edge2: Vector = Vector::new([
-            end.position[0] - fixed.position[0],
-            end.position[1] - fixed.position[1],
-        ]);
-        let mut dot_product = edge1[0] * edge2[0];
-        dot_product += edge1[1] * edge2[1];
+        let edge1 = &a.1.position - &a.0.position;
+        let edge2 = &b.1.position - &b.0.position;
 
-        dot_product
+        edge1.dot(&edge2)
     }
 
     fn check_point_length(point: &Point) {
@@ -113,9 +104,12 @@ impl Element {
         let k22 = Self::calculate_sqr_distance(&p1, &p3);
         let k33 = Self::calculate_sqr_distance(&p1, &p2);
 
-        let k12 = Self::calculate_dot_product(&p3, &p2, &p1);
-        let k13 = Self::calculate_dot_product(&p2, &p1, &p3);
-        let k23 = Self::calculate_dot_product(&p1, &p3, &p2);
+        //(2 -> 3) ^ (3 -> 1)
+        let k12 = Self::edges_dot_product((&p2, &p3), (&p3, &p1));
+        //(2 -> 3) ^ (1 -> 2)
+        let k13 = Self::edges_dot_product((&p2, &p3), (&p1, &p2));
+        //(3 -> 1) ^ (1 -> 2)
+        let k23 = Self::edges_dot_product((&p3, &p1), (&p1, &p2));
 
         let k21 = k12;
         let k31 = k13;

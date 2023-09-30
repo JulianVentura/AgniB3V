@@ -4,7 +4,7 @@ use anyhow::{anyhow, Result};
 
 use super::fem::{element::Element, engine::FEMEngine, parser, point::Point, structures::Vector};
 
-fn log_results(temp_results: Vec<Vector>, time_step: f32, verbose: bool) {
+fn log_results(temp_results: Vec<Vector>, time_step: f64, verbose: bool) {
     if !verbose {
         return;
     }

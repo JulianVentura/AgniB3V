@@ -6,7 +6,8 @@ use log::error;
 fn run() -> Result<()> {
     // examples::test_square_only_temperature(false)?;
     // examples::test_square_only_heat(false)?;
-    examples::test_2d_plane()?;
+    //examples::test_2d_plane()?;
+    examples::test_non_tilted_3d_plane()?;
 
     Ok(())
 }

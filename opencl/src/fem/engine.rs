@@ -67,7 +67,6 @@ impl FEMEngine {
                 .collect::<Vec<f32>>(),
         );
         let mut temp_results = Vec::new();
-        temp_results.push(temp.clone());
 
         let steps = (self.simulation_time / self.time_step) as u32;
         let snapshot_period = (self.snapshot_period / self.time_step) as u32;

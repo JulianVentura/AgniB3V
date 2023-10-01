@@ -126,25 +126,7 @@ impl Element {
             k32,
             k33
         ];
-        // if p3.global_id == 57 {
-        //     println!("----");
-        //     println!("{k11}, {k12}, {k13}");
-        //     println!("{k21}, {k22}, {k23}");
-        //     println!("{k31}, {k32}, {k33}");
-        //     println!("----");
-        //     println!("----");
-        //     println!("{:#?}", k);
-        //     println!("----");
-        // }
         k = k * (conductivity / (4.0 * area));
-        //
-        // if p3.global_id == 57 {
-        //     println!("Area: {area}");
-        //     println!("----");
-        //     println!("{:#?}", k);
-        //     println!("----");
-        // }
-        //
         k
     }
 

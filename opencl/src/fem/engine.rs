@@ -18,7 +18,7 @@ pub struct FEMProblem {
     pub elements: Vec<Element>,
     pub simulation_time: f64,
     pub time_step: f64,
-    pub snapshot_period: f64
+    pub snapshot_period: f64,
 }
 
 impl FEMEngine {
@@ -162,6 +162,6 @@ impl FEMEngine {
     }
 
     fn is_multiple(dividend: f64, divisor: f64) -> bool {
-        (dividend / divisor).fract().abs() < f64::EPSILON
+        (dividend / divisor).fract().abs() < 1e-12
     }
 }

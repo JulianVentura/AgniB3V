@@ -114,5 +114,6 @@ pub fn fem_problem_from_csv(
         simulation_time: 0.0,
         time_step: 0.0,
         elements,
+        snapshot_period: 0.0,
     }
 }

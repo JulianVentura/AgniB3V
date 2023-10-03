@@ -26,10 +26,10 @@ impl Point {
 impl Default for Point {
     fn default() -> Self {
         Point {
-            global_id: 0,                           // Default global_id value
-            local_id: 0,                            // Default local_id value
-            position: Vector::new([0.0, 0.0, 0.0]), // Default position
-            temperature: 0.0,                       // Default temperature value
+            global_id: 0,                                       // Default global_id value
+            local_id: 0,                                        // Default local_id value
+            position: Vector::from_row_slice(&[0.0, 0.0, 0.0]), // Default position
+            temperature: 0.0,                                   // Default temperature value
         }
     }
 }

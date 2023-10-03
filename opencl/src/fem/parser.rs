@@ -64,7 +64,7 @@ pub fn fem_problem_from_csv(
     let conductivity = 237.0;
     let density = 2700.0;
     let specific_heat = 900.0;
-    let thickness = 0.01;
+    let thickness = 2e-3;
 
     let mut reader = csv::ReaderBuilder::new()
         .has_headers(false)
@@ -77,7 +77,7 @@ pub fn fem_problem_from_csv(
         let pnode: ParserNode = result.unwrap();
         let temp = initial_temp.get(&pnode.id).unwrap_or(&273f32);
         points.push(Point::new(
-            Vector::new([pnode.x, pnode.y, pnode.z]),
+            Vector::from_row_slice(&[pnode.x, pnode.y, pnode.z]),
             *temp,
             pnode.id,
             0,

@@ -3,10 +3,10 @@ use opencl::fem::{element::Element, engine::FEMEngine, point::Point, structures:
 
 #[test]
 pub fn test_square_only_temperature() -> Result<()> {
-    let p1 = Point::new(Vector::new([0.0, 0.0, 0.0]), 273.0, 0, 0);
-    let p2 = Point::new(Vector::new([1.0, 0.0, 0.0]), 283.0, 1, 0);
-    let p3 = Point::new(Vector::new([1.0, 1.0, 0.0]), 273.0, 2, 0);
-    let p4 = Point::new(Vector::new([0.0, 1.0, 0.0]), 273.0, 3, 0);
+    let p1 = Point::new(Vector::from_row_slice(&[0.0, 0.0, 0.0]), 273.0, 0, 0);
+    let p2 = Point::new(Vector::from_row_slice(&[1.0, 0.0, 0.0]), 283.0, 1, 0);
+    let p3 = Point::new(Vector::from_row_slice(&[1.0, 1.0, 0.0]), 273.0, 2, 0);
+    let p4 = Point::new(Vector::from_row_slice(&[0.0, 1.0, 0.0]), 273.0, 3, 0);
 
     //Alumium
     let conductivity = 237.0;
@@ -70,12 +70,11 @@ pub fn test_square_only_temperature() -> Result<()> {
     let accepted_error = 0.02;
     let mut step = 0;
     for temp in temp_results.iter() {
-        let d = temp.data();
-        for i in 0..d.len() {
+        for (i, val) in temp.iter().enumerate() {
             assert!(
-                (d[i] - results[step][i]).abs() < accepted_error,
+                (val - results[step][i]).abs() < accepted_error,
                 "data {:?} is not equal to result {:?}",
-                d,
+                val,
                 &results[step]
             );
         }
@@ -87,10 +86,10 @@ pub fn test_square_only_temperature() -> Result<()> {
 
 #[test]
 pub fn test_square_only_heat() -> Result<()> {
-    let p1 = Point::new(Vector::new([0.0, 0.0, 0.0]), 273.0, 0, 0);
-    let p2 = Point::new(Vector::new([1.0, 0.0, 0.0]), 273.0, 1, 0);
-    let p3 = Point::new(Vector::new([0.0, 1.0, 0.0]), 273.0, 2, 0);
-    let p4 = Point::new(Vector::new([1.0, 1.0, 0.0]), 273.0, 3, 0);
+    let p1 = Point::new(Vector::from_row_slice(&[0.0, 0.0, 0.0]), 273.0, 0, 0);
+    let p2 = Point::new(Vector::from_row_slice(&[1.0, 0.0, 0.0]), 273.0, 1, 0);
+    let p3 = Point::new(Vector::from_row_slice(&[0.0, 1.0, 0.0]), 273.0, 2, 0);
+    let p4 = Point::new(Vector::from_row_slice(&[1.0, 1.0, 0.0]), 273.0, 3, 0);
 
     //Alumium
     let conductivity = 237.0;
@@ -130,13 +129,12 @@ pub fn test_square_only_heat() -> Result<()> {
     let accepted_error = 0.02;
     let mut prev_temp = &temp_results[0];
     for temp in temp_results[1..].iter() {
-        let d = temp.data();
-        for i in 0..d.len() {
+        for (i, val) in temp.iter().enumerate() {
             assert!(
-                (d[i] - prev_temp.data()[i] - 0.04).abs() < accepted_error,
+                (val - prev_temp[i] - 0.04).abs() < accepted_error,
                 "data {:?} is not 0.04 greater than previous {:?}",
-                d,
-                prev_temp.data()
+                val,
+                prev_temp
             );
         }
         prev_temp = &temp;
@@ -156,31 +154,30 @@ pub fn test_rotations_and_deformations() -> Result<()> {
     let accepted_error = 1.5; //There can be difference in rounding, rigth know this is the maximum difference
     let mut step = 0;
     for temp in initial_temperatures.iter() {
-        let d = temp.data();
-        for i in 0..d.len() {
+        for (i, val) in temp.iter().enumerate() {
             assert!(
-                (d[i] - translated_temperatures[step].data()[i]).abs() < accepted_error,
+                (val - translated_temperatures[step][i]).abs() < accepted_error,
                 "data {:?} is not equal to translated {:?}",
-                d,
-                translated_temperatures[step].data()
+                val,
+                translated_temperatures[step]
             );
             assert!(
-                (d[i] - rotated_xy_temperatures[step].data()[i]).abs() < accepted_error,
+                (val - rotated_xy_temperatures[step][i]).abs() < accepted_error,
                 "data {:?} is not equal to rotated_xy {:?}",
-                d,
-                rotated_xy_temperatures[step].data()
+                val,
+                rotated_xy_temperatures[step]
             );
             assert!(
-                (d[i] - rotated_xz_temperatures[step].data()[i]).abs() < accepted_error,
+                (val - rotated_xz_temperatures[step][i]).abs() < accepted_error,
                 "data {:?} is not equal to rotated_xz {:?}",
-                d,
-                rotated_xz_temperatures[step].data()
+                val,
+                rotated_xz_temperatures[step]
             );
             assert!(
-                (d[i] - deformated_temperatures[step].data()[i]).abs() < accepted_error,
+                (val - deformated_temperatures[step][i]).abs() < accepted_error,
                 "data {:?} is not equal to deformated {:?}",
-                d,
-                deformated_temperatures[step].data()
+                val,
+                deformated_temperatures[step]
             );
         }
         step += 1;
@@ -226,46 +223,46 @@ fn create_example(p1: Point, p2: Point, p3: Point, p4: Point) -> Result<Vec<Vect
 }
 
 fn create_initial_example() -> Result<Vec<Vector>> {
-    let p1 = Point::new(Vector::new([0.0, 0.0, 0.0]), 273.0, 0, 0);
-    let p2 = Point::new(Vector::new([1.0, 0.0, 0.0]), 283.0, 1, 0);
-    let p3 = Point::new(Vector::new([1.0, 1.0, 0.0]), 273.0, 2, 0);
-    let p4 = Point::new(Vector::new([0.0, 1.0, 0.0]), 273.0, 3, 0);
+    let p1 = Point::new(Vector::from_row_slice(&[0.0, 0.0, 0.0]), 273.0, 0, 0);
+    let p2 = Point::new(Vector::from_row_slice(&[1.0, 0.0, 0.0]), 283.0, 1, 0);
+    let p3 = Point::new(Vector::from_row_slice(&[1.0, 1.0, 0.0]), 273.0, 2, 0);
+    let p4 = Point::new(Vector::from_row_slice(&[0.0, 1.0, 0.0]), 273.0, 3, 0);
 
     Ok(create_example(p1, p2, p3, p4)?)
 }
 
 fn create_translated_example() -> Result<Vec<Vector>> {
-    let p1 = Point::new(Vector::new([0.0, 0.0, 1.0]), 273.0, 0, 0);
-    let p2 = Point::new(Vector::new([1.0, 0.0, 1.0]), 283.0, 1, 0);
-    let p3 = Point::new(Vector::new([1.0, 1.0, 1.0]), 273.0, 2, 0);
-    let p4 = Point::new(Vector::new([0.0, 1.0, 1.0]), 273.0, 3, 0);
+    let p1 = Point::new(Vector::from_row_slice(&[0.0, 0.0, 1.0]), 273.0, 0, 0);
+    let p2 = Point::new(Vector::from_row_slice(&[1.0, 0.0, 1.0]), 283.0, 1, 0);
+    let p3 = Point::new(Vector::from_row_slice(&[1.0, 1.0, 1.0]), 273.0, 2, 0);
+    let p4 = Point::new(Vector::from_row_slice(&[0.0, 1.0, 1.0]), 273.0, 3, 0);
 
     Ok(create_example(p1, p2, p3, p4)?)
 }
 
 fn create_rotated_xy_example() -> Result<Vec<Vector>> {
-    let p1 = Point::new(Vector::new([0.0, 0.0, 0.0]), 273.0, 0, 0);
-    let p2 = Point::new(Vector::new([0.525, 0.85, 0.0]), 283.0, 1, 0);
-    let p3 = Point::new(Vector::new([-0.325, 1.325, 0.0]), 273.0, 2, 0);
-    let p4 = Point::new(Vector::new([-0.85, 0.525, 0.0]), 273.0, 3, 0);
+    let p1 = Point::new(Vector::from_row_slice(&[0.0, 0.0, 0.0]), 273.0, 0, 0);
+    let p2 = Point::new(Vector::from_row_slice(&[0.525, 0.85, 0.0]), 283.0, 1, 0);
+    let p3 = Point::new(Vector::from_row_slice(&[-0.325, 1.325, 0.0]), 273.0, 2, 0);
+    let p4 = Point::new(Vector::from_row_slice(&[-0.85, 0.525, 0.0]), 273.0, 3, 0);
 
     Ok(create_example(p1, p2, p3, p4)?)
 }
 
 fn create_rotated_xz_example() -> Result<Vec<Vector>> {
-    let p1 = Point::new(Vector::new([0.0, 0.0, 0.0]), 273.0, 0, 0);
-    let p2 = Point::new(Vector::new([0.525, 0.0, -0.85]), 283.0, 1, 0);
-    let p3 = Point::new(Vector::new([0.525, 1.0, -0.85]), 273.0, 2, 0);
-    let p4 = Point::new(Vector::new([0.0, 1.0, 0.0]), 273.0, 3, 0);
+    let p1 = Point::new(Vector::from_row_slice(&[0.0, 0.0, 0.0]), 273.0, 0, 0);
+    let p2 = Point::new(Vector::from_row_slice(&[0.525, 0.0, -0.85]), 283.0, 1, 0);
+    let p3 = Point::new(Vector::from_row_slice(&[0.525, 1.0, -0.85]), 273.0, 2, 0);
+    let p4 = Point::new(Vector::from_row_slice(&[0.0, 1.0, 0.0]), 273.0, 3, 0);
 
     Ok(create_example(p1, p2, p3, p4)?)
 }
 
 fn create_deformated_example() -> Result<Vec<Vector>> {
-    let p1 = Point::new(Vector::new([0.0, 0.0, 0.0]), 273.0, 0, 0);
-    let p2 = Point::new(Vector::new([1.0, 0.0, 0.0]), 283.0, 1, 0);
-    let p3 = Point::new(Vector::new([1.0, 1.0, 0.0]), 273.0, 2, 0);
-    let p4 = Point::new(Vector::new([0.5, 0.5, 0.7071]), 273.0, 3, 0);
+    let p1 = Point::new(Vector::from_row_slice(&[0.0, 0.0, 0.0]), 273.0, 0, 0);
+    let p2 = Point::new(Vector::from_row_slice(&[1.0, 0.0, 0.0]), 283.0, 1, 0);
+    let p3 = Point::new(Vector::from_row_slice(&[1.0, 1.0, 0.0]), 273.0, 2, 0);
+    let p4 = Point::new(Vector::from_row_slice(&[0.5, 0.5, 0.7071]), 273.0, 3, 0);
 
     Ok(create_example(p1, p2, p3, p4)?)
 }

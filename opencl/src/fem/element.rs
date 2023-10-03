@@ -1,6 +1,5 @@
 use super::point::Point;
 use super::structures::{Matrix, Vector};
-use rulinalg::{matrix, vector};
 
 #[derive(Debug)]
 pub struct Element {
@@ -91,7 +90,7 @@ impl Element {
 
     fn check_point_length(point: &Point) {
         //TODO: Add error handling
-        if point.position.size() != 3 {
+        if point.position.len() != 3 {
             panic!("Point length is not 3");
         }
     }
@@ -112,30 +111,29 @@ impl Element {
         let k31 = k13;
         let k32 = k23;
 
-        let mut k = matrix![
-            //Row 1
-            k11,
-            k12,
-            k13;
-            //Row 2
-            k21,
-            k22,
-            k23;
-            //Row 3
-            k31,
-            k32,
-            k33
-        ];
+        let mut k = Matrix::from_row_slice(
+            3,
+            3,
+            &[
+                k11, k12, k13, //Row 1
+                k21, k22, k23, //Row 2
+                k31, k32, k33, //Row 3
+            ],
+        );
         k = k * (conductivity / (4.0 * area));
         k
     }
 
     fn calculate_m(area: f32, specific_heat: f32, density: f32, thickness: f32) -> Matrix {
-        let mut m = matrix![
-            2.0, 1.0, 1.0; //Row 1
-            1.0, 2.0, 1.0; //Row 2
-            1.0, 1.0, 2.0 //Row 3
-        ];
+        let mut m = Matrix::from_row_slice(
+            3,
+            3,
+            &[
+                2.0, 1.0, 1.0, //Row 1
+                1.0, 2.0, 1.0, //Row 2
+                1.0, 1.0, 2.0, //Row 3
+            ],
+        );
 
         //Thickness is necessary in order to get a volume
         m = m * (area * specific_heat * density * thickness / 12.0);
@@ -144,7 +142,7 @@ impl Element {
     }
 
     fn calculate_f(area: f32, generated_heat: f32) -> Vector {
-        let mut f = vector![1.0, 1.0, 1.0];
+        let mut f = Vector::from_row_slice(&[1.0, 1.0, 1.0]);
 
         f = f * (generated_heat * area / 3.0);
 

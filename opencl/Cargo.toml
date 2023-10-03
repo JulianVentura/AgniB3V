@@ -10,5 +10,5 @@ anyhow = "1.0.75"
 csv = "1.2.2"
 env_logger = "0.10.0"
 log = "0.4.20"
-rulinalg = "0.4.2"
+nalgebra = "0.32.3"
 serde = { version = "1.0.188", features = ["derive"] }

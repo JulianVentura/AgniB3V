@@ -1,4 +1,4 @@
-use super::structures::{Matrix, Vector};
+use super::structures::{Matrix, Vector, LU};
 use super::{element::Element, point::Point};
 use anyhow::Result;
 
@@ -7,8 +7,8 @@ pub struct FEMEngine {
     time_step: f64,       //TODO
     snapshot_period: f64,
     points: Vec<Point>,
-    pub m_inverse: Matrix,
-    pub m_inverse_k: Matrix,
+    pub m_lu: LU,
+    pub k: Matrix,
     f: Vector,
 }
 
@@ -38,29 +38,32 @@ impl FEMEngine {
         }
 
         let n_points = Self::calculate_number_of_points(&elements);
+        println!("Constructing global M matrix");
         let m = Self::construct_global_matrix(&elements, n_points, |e: &Element| &e.m);
+        println!("Constructing global K matrix");
         let k = Self::construct_global_matrix(&elements, n_points, |e: &Element| &e.k);
+        println!("Constructing global flux vector");
         let f = Self::construct_global_vector_f(&elements, n_points);
+        println!("Constructing points array");
         let points = Self::construct_points_array(elements, n_points);
 
-        let m_inverse = m
-            .inverse()
-            .expect("Couldn't invert M matrix, this is wrong...");
-        let m_inverse_k = &m_inverse * &k;
+        let m_lu = m.lu();
+
+        println!("FEM Engine built successfully");
 
         FEMEngine {
             simulation_time,
             time_step,
             snapshot_period,
             points,
-            m_inverse,
-            m_inverse_k,
+            m_lu,
+            k,
             f,
         }
     }
 
     pub fn run(&mut self) -> Result<Vec<Vector>> {
-        let mut temp = Vector::new(
+        let mut temp = Vector::from_vec(
             self.points
                 .iter()
                 .map(|p| p.temperature)
@@ -70,6 +73,8 @@ impl FEMEngine {
 
         let steps = (self.simulation_time / self.time_step) as u32;
         let snapshot_period = (self.snapshot_period / self.time_step) as u32;
+
+        println!("Running for {steps} steps");
 
         for step in 0..steps {
             if step % snapshot_period == 0 {
@@ -84,7 +89,10 @@ impl FEMEngine {
     }
 
     pub fn step(&mut self, temp: &Vector) -> Vector {
-        temp + (&self.m_inverse * &self.f - &self.m_inverse_k * temp) * (self.time_step as f32)
+        let b = &self.f - &self.k * temp;
+        let x = &self.m_lu.solve(&b).expect("Oh no...");
+
+        (self.time_step as f32) * x + temp
     }
 
     fn calculate_number_of_points(elements: &Vec<Element>) -> usize {
@@ -132,10 +140,10 @@ impl FEMEngine {
 
             for y in 0..3 {
                 for x in 0..3 {
-                    let v = local_matrix[[y, x]];
+                    let v = local_matrix[(y, x)];
                     let new_x = map[x] as usize;
                     let new_y = map[y] as usize;
-                    m[[new_y, new_x]] += v;
+                    m[(new_y, new_x)] += v;
                 }
             }
         }

@@ -55,6 +55,20 @@ pub fn fem_results_to_csv(results_path: String, results: &Vector) -> Result<()> 
     Ok(())
 }
 
+pub fn fem_multiple_results_to_csv(
+    directory_path: String,
+    file_name: String,
+    format: String,
+    results: &Vec<Vector>,
+) -> Result<()> {
+    std::fs::create_dir_all(&directory_path)?;
+    for (i, result) in results.iter().enumerate() {
+        let file_path = format!("{}/{}_{}.{}", directory_path, file_name, i, format);
+        fem_results_to_csv(file_path, result)?;
+    }
+    Ok(())
+}
+
 pub fn fem_problem_from_csv(
     elements_path: String,
     nodes_path: String,

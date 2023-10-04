@@ -153,3 +153,147 @@ impl Element {
         f
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::fem::element::Element;
+    use crate::fem::point::Point;
+    use crate::fem::structures::Vector;
+
+    fn calculate_area_default(
+        position1: [f32; 3],
+        position2: [f32; 3],
+        position3: [f32; 3],
+    ) -> f32 {
+        let p1 = Point::new(Vector::new(position1), 0.0, 0, 0);
+        let p2 = Point::new(Vector::new(position2), 0.0, 1, 0);
+        let p3 = Point::new(Vector::new(position3), 0.0, 2, 0);
+
+        let area = Element::calculate_area(&p1, &p2, &p3);
+
+        area
+    }
+
+    fn assert_float_eq(value_1: f32, value_2: f32, precision: f32) {
+        assert!(
+            (value_1 - value_2).abs() < precision,
+            "value1 {} != {}",
+            value_1,
+            value_2
+        );
+    }
+
+    fn calculate_distance_default(position1: [f32; 3], position2: [f32; 3]) -> f32 {
+        let p1 = Point::new(Vector::new(position1), 0.0, 0, 0);
+        let p2 = Point::new(Vector::new(position2), 0.0, 1, 0);
+
+        let distance = Element::calculate_sqr_distance(&p1, &p2);
+
+        distance
+    }
+
+    fn calculate_edges_dot_product_default(
+        position1: [f32; 3],
+        position2: [f32; 3],
+        position3: [f32; 3],
+        position4: [f32; 3],
+    ) -> f32 {
+        let p1 = Point::new(Vector::new(position1), 0.0, 0, 0);
+        let p2 = Point::new(Vector::new(position2), 0.0, 1, 0);
+        let p3 = Point::new(Vector::new(position3), 0.0, 2, 0);
+        let p4 = Point::new(Vector::new(position4), 0.0, 3, 0);
+
+        let dot_product = Element::edges_dot_product((&p1, &p2), (&p3, &p4));
+
+        dot_product
+    }
+    #[test]
+    fn test_calculate_area_1() {
+        let position1 = [0.0, 0.0, 0.0];
+        let position2 = [1.0, 0.0, 0.0];
+        let position3 = [0.0, 1.0, 0.0];
+        let area = calculate_area_default(position1, position2, position3);
+
+        assert_eq!(area, 0.5);
+    }
+    #[test]
+    fn test_calculate_area_2() {
+        let position1 = [4.3, 7.9, 1.3];
+        let position2 = [9.0, -1.7, 13.2];
+        let position3 = [13.0, 5.1, -3.7];
+        let area = calculate_area_default(position1, position2, position3);
+
+        assert_float_eq(area, 83.217, 0.01);
+    }
+
+    #[test]
+    fn test_calculate_area_3() {
+        let position1 = [-8.1, 2.3, 4.2];
+        let position2 = [6.3, 1.1, 2.2];
+        let position3 = [3.3, -5.2, -4.2];
+        let area = calculate_area_default(position1, position2, position3);
+
+        assert_float_eq(area, 68.11, 0.01);
+    }
+
+    #[test]
+    fn test_calculate_sqr_distance_1() {
+        let position1 = [0.0, 0.0, 0.0];
+        let position2 = [1.0, 0.0, 0.0];
+        let distance = calculate_distance_default(position1, position2);
+
+        assert_eq!(distance, 1.0);
+    }
+    #[test]
+    fn test_calculate_sqr_distance_2() {
+        let position1 = [-1.7, 2.6, 7.3];
+        let position2 = [2.2, -1.0, 5.5];
+        let distance = calculate_distance_default(position1, position2);
+
+        assert_float_eq(distance, 31.4, 0.02);
+    }
+    #[test]
+    fn test_calculate_sqr_distance_3() {
+        let position1 = [2.32, 7.2, 2.4];
+        let position2 = [9.31, -3.46, 5.2];
+        let distance = calculate_distance_default(position1, position2);
+
+        assert_float_eq(distance, 170.3, 0.04);
+    }
+
+    #[test]
+    fn test_calculate_edges_dot_product_1() {
+        let position1 = [0.0, 0.0, 0.0];
+        let position2 = [1.0, 0.0, 0.0];
+        let position3 = [0.0, 1.0, 0.0];
+        let position4 = [0.0, 0.0, 1.0];
+        let dot_product =
+            calculate_edges_dot_product_default(position1, position2, position3, position4);
+
+        assert_eq!(dot_product, 0.0);
+    }
+
+    #[test]
+    fn test_calculate_edges_dot_product_2() {
+        let position1 = [2.3, -2.5, 3.6];
+        let position2 = [1.8, 2.1, -4.1];
+        let position3 = [3.5, 6.2, -4.2];
+        let position4 = [4.3, 1.3, -2.3];
+        let dot_product =
+            calculate_edges_dot_product_default(position1, position2, position3, position4);
+
+        assert_float_eq(dot_product, -37.57, 0.01);
+    }
+
+    #[test]
+    fn test_calculate_edges_dot_product_3() {
+        let position1 = [6.335, 1.262, 4.326];
+        let position2 = [1.3, 0.0, 1.2];
+        let position3 = [3.66, -1.0, -2.0];
+        let position4 = [1.2, 2.445, 0.05];
+        let dot_product =
+            calculate_edges_dot_product_default(position1, position2, position3, position4);
+
+        assert_float_eq(dot_product, 1.63, 0.01);
+    }
+}

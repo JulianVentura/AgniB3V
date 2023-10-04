@@ -165,9 +165,9 @@ mod tests {
         position2: [f32; 3],
         position3: [f32; 3],
     ) -> f32 {
-        let p1 = Point::new(Vector::new(position1), 0.0, 0, 0);
-        let p2 = Point::new(Vector::new(position2), 0.0, 1, 0);
-        let p3 = Point::new(Vector::new(position3), 0.0, 2, 0);
+        let p1 = Point::new(Vector::from_row_slice(&position1), 0.0, 0, 0);
+        let p2 = Point::new(Vector::from_row_slice(&position2), 0.0, 1, 0);
+        let p3 = Point::new(Vector::from_row_slice(&position3), 0.0, 2, 0);
 
         let area = Element::calculate_area(&p1, &p2, &p3);
 
@@ -184,8 +184,8 @@ mod tests {
     }
 
     fn calculate_distance_default(position1: [f32; 3], position2: [f32; 3]) -> f32 {
-        let p1 = Point::new(Vector::new(position1), 0.0, 0, 0);
-        let p2 = Point::new(Vector::new(position2), 0.0, 1, 0);
+        let p1 = Point::new(Vector::from_row_slice(&position1), 0.0, 0, 0);
+        let p2 = Point::new(Vector::from_row_slice(&position2), 0.0, 1, 0);
 
         let distance = Element::calculate_sqr_distance(&p1, &p2);
 
@@ -198,10 +198,10 @@ mod tests {
         position3: [f32; 3],
         position4: [f32; 3],
     ) -> f32 {
-        let p1 = Point::new(Vector::new(position1), 0.0, 0, 0);
-        let p2 = Point::new(Vector::new(position2), 0.0, 1, 0);
-        let p3 = Point::new(Vector::new(position3), 0.0, 2, 0);
-        let p4 = Point::new(Vector::new(position4), 0.0, 3, 0);
+        let p1 = Point::new(Vector::from_row_slice(&position1), 0.0, 0, 0);
+        let p2 = Point::new(Vector::from_row_slice(&position2), 0.0, 1, 0);
+        let p3 = Point::new(Vector::from_row_slice(&position3), 0.0, 2, 0);
+        let p4 = Point::new(Vector::from_row_slice(&position4), 0.0, 3, 0);
 
         let dot_product = Element::edges_dot_product((&p1, &p2), (&p3, &p4));
 

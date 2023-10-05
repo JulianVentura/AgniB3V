@@ -78,7 +78,7 @@ pub fn fem_problem_from_csv(
     let conductivity = 237.0;
     let density = 2700.0;
     let specific_heat = 900.0;
-    let thickness = 2e-3;
+    let thickness = 0.1;
 
     let mut reader = csv::ReaderBuilder::new()
         .has_headers(false)

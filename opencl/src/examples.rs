@@ -2,6 +2,8 @@ use std::collections::HashMap;
 
 use anyhow::{anyhow, Result};
 
+use crate::fem::engine::FEMProblem;
+
 use super::fem::{engine::FEMEngine, parser};
 
 pub fn test_2d_plane() -> Result<()> {
@@ -28,32 +30,41 @@ pub fn test_2d_plane() -> Result<()> {
     Ok(())
 }
 
-pub fn test_non_tilted_3d_plane() -> Result<()> {
-    // let elements_path = "./models/monkey_mesh_triangles.csv".to_string();
-    // let nodes_path = "./models/monkey_mesh_verts.csv".to_string();
-    // let results_path = "./models/monkey_mesh_results.csv".to_string();
+#[allow(dead_code)]
+fn test_2_d_plane() -> (FEMProblem, String) {
+    let elements_path = "./models/2D_plane_triangles.csv".to_string();
+    let nodes_path = "./models/2D_plane_verts.csv".to_string();
+    let results_path = "./models/2D_plane_results.csv".to_string();
 
+    let initial_temp_map: HashMap<u32, f32> = [(104, 473.0)].into_iter().collect();
+
+    (
+        parser::fem_problem_from_csv(elements_path, nodes_path, initial_temp_map),
+        results_path,
+    )
+}
+
+#[allow(dead_code)]
+fn test_monkey() -> (FEMProblem, String) {
+    let elements_path = "./models/monkey_mesh_triangles.csv".to_string();
+    let nodes_path = "./models/monkey_mesh_verts.csv".to_string();
+    let results_path = "./models/monkey_mesh_results.csv".to_string();
+
+    let initial_temp_map: HashMap<u32, f32> = [(575, 573.0), (633, 573.0)].into_iter().collect();
+
+    (
+        parser::fem_problem_from_csv(elements_path, nodes_path, initial_temp_map),
+        results_path,
+    )
+}
+
+#[allow(dead_code)]
+fn test_3_d_plane_non_tilted() -> (FEMProblem, String) {
     let elements_path = "./models/3D_plane_non_tilted_triangles.csv".to_string();
     let nodes_path = "./models/3D_plane_non_tilted_verts.csv".to_string();
     let results_path = "./models/3D_plane_non_tilted_results.csv".to_string();
 
-    // let elements_path = "./models/3d-plane_triangles.csv".to_string();
-    // let nodes_path = "./models/3d-plane_triangles.csv".to_string();
-    // let results_path = "./models/3d-plane_results.csv".to_string();
-
-    // let initial_temp_map: HashMap<u32, f32> = [
-    //     (2, 373.0),
-    //     (22, 373.0),
-    //     (5, 373.0),
-    //     (0, 373.0),
-    //     (20, 373.0),
-    //     (7, 373.0),
-    //     // (112, 373.0),
-    //     // (5, 373.0),
-    // ]
-    // .into_iter()
-    // .collect();
-
+    //TODO: Check
     let initial_temp_map: HashMap<u32, f32> = [
         (130, 473.0),
         (145, 473.0),
@@ -65,13 +76,19 @@ pub fn test_non_tilted_3d_plane() -> Result<()> {
     .into_iter()
     .collect();
 
-    // let initial_temp_map: HashMap<u32, f32> = [(575, 573.0), (633, 573.0)].into_iter().collect();
+    (
+        parser::fem_problem_from_csv(elements_path, nodes_path, initial_temp_map),
+        results_path,
+    )
+}
 
-    let problem = parser::fem_problem_from_csv(elements_path, nodes_path, initial_temp_map);
+pub fn test_non_tilted_3d_plane() -> Result<()> {
+    let (problem, results_path) = test_2_d_plane();
+
     println!("{}", problem.elements.len());
 
-    let simulation_time = 1.0;
-    let time_step = 1e-4;
+    let simulation_time = 3600.0;
+    let time_step = 1.0;
 
     let mut engine = FEMEngine::new(simulation_time, time_step, problem.elements, time_step);
 

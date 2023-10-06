@@ -38,7 +38,7 @@ impl Element {
         p2.set_local_id(2);
         p3.set_local_id(3);
 
-        let k = Self::calculate_k(&p1, &p2, &p3, conductivity, area);
+        let k = Self::calculate_k(&p1, &p2, &p3, conductivity, area, thickness);
 
         let m = Self::calculate_m(area, specific_heat, density, thickness);
 
@@ -95,7 +95,14 @@ impl Element {
         }
     }
 
-    fn calculate_k(p1: &Point, p2: &Point, p3: &Point, conductivity: f32, area: f32) -> Matrix {
+    fn calculate_k(
+        p1: &Point,
+        p2: &Point,
+        p3: &Point,
+        conductivity: f32,
+        area: f32,
+        thickness: f32,
+    ) -> Matrix {
         let k11 = Self::calculate_sqr_distance(&p2, &p3);
         let k22 = Self::calculate_sqr_distance(&p1, &p3);
         let k33 = Self::calculate_sqr_distance(&p1, &p2);
@@ -120,7 +127,9 @@ impl Element {
                 k31, k32, k33, //Row 3
             ],
         );
-        k = k * (conductivity / (4.0 * area));
+        
+        //TODO: Check if thickness is correct
+        k = k * thickness * conductivity / (4.0 * area);
         k
     }
 
@@ -135,7 +144,7 @@ impl Element {
             ],
         );
 
-        //Thickness is necessary in order to get a volume
+        //TODO: Check if thickness is correct
         m = m * (area * specific_heat * density * thickness / 12.0);
 
         m

@@ -7,6 +7,8 @@ use super::structures::Vector;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
+use vtkio::model::*;
+
 #[derive(Debug, Deserialize)]
 pub struct ParserElement {
     _id: u32,
@@ -29,6 +31,64 @@ struct FEMResult {
     temp: f32,
 }
 
+pub fn fem_results_to_vtk(
+    results_path: String,
+    points: &Vec<Point>,
+    elements: &Vec<Element>,
+    results: &Vector,
+) -> Result<()> {
+    let vtk_data = Vtk {
+        version: Version { major: 4, minor: 2 },
+        title: String::new(),
+        byte_order: ByteOrder::BigEndian,
+        file_path: None,
+        data: DataSet::inline(UnstructuredGridPiece {
+            points: IOBuffer::F32(
+                points
+                    .iter()
+                    .map(|point| [point.position[0], point.position[1], point.position[2]])
+                    .flatten()
+                    .collect(),
+            ),
+            cells: Cells {
+                cell_verts: VertexNumbers::XML {
+                    connectivity: elements
+                        .iter()
+                        .map(|element| {
+                            [
+                                element.p1.global_id as u64,
+                                element.p2.global_id as u64,
+                                element.p3.global_id as u64,
+                            ]
+                        })
+                        .flatten()
+                        .collect(),
+                    offsets: elements
+                        .iter()
+                        .enumerate()
+                        .map(|(i, _)| (i as u64 + 1) * 3)
+                        .collect(),
+                },
+                types: vec![CellType::Triangle; elements.len()],
+            },
+            data: Attributes {
+                point: vec![Attribute::scalars("Temperatura", 1)
+                    .with_data(results.iter().map(|&x| x).collect::<Vec<f32>>())],
+                cell: vec![],
+            },
+            /*
+               data: Attributes {
+                   ..Default::default()
+               },
+            */
+        }),
+    };
+
+    let _ = vtk_data.export_ascii(results_path + ".vtk");
+
+    Ok(())
+}
+
 pub fn fem_results_to_csv(results_path: String, results: &Vector) -> Result<()> {
     let r: Vec<FEMResult> = results
         .iter()
@@ -42,7 +102,7 @@ pub fn fem_results_to_csv(results_path: String, results: &Vector) -> Result<()> 
     // Serialize the data to CSV
     let mut writer = csv::WriterBuilder::new()
         .has_headers(false)
-        .from_path(results_path)?;
+        .from_path(results_path + ".csv")?;
 
     // Serialize and write each Result struct
     for result in r.iter() {

@@ -128,3 +128,78 @@ pub fn run_example() -> Result<()> {
 
     Ok(())
 }
+
+pub fn test_plane_0_2() -> Result<()> {
+    let name = "plano_chico_mesh";
+    let elements_path = format!("./models/{}_triangles.csv", name);
+    let nodes_path = format!("./models/{}_verts.csv", name);
+    let results_folder = format!("./models/{}_results", name);
+    let results_file = format!("{}_results", name);
+    let results_format = "csv".to_string();
+
+    let initial_temp_map: HashMap<u32, f32> = [
+        (482, 573.0),
+        (499, 573.0),
+        (501, 573.0),
+        (504, 573.0),
+        (506, 573.0),
+        (509, 573.0),
+        (511, 573.0),
+        (514, 573.0),
+        (516, 573.0),
+        (520, 573.0),
+        (522, 573.0),
+        (525, 573.0),
+        (528, 573.0),
+        (530, 573.0),
+        (532, 573.0),
+        (535, 573.0),
+        (537, 573.0),
+    ]
+    .into_iter()
+    .collect();
+
+    // let initial_temp_map: HashMap<u32, f32> = [(575, 573.0), (633, 573.0)].into_iter().collect();
+
+    let problem = parser::fem_problem_from_csv(elements_path, nodes_path, initial_temp_map);
+    println!("{}", problem.elements.len());
+    let simulation_time = 0.005;
+    let time_step = 0.000001;
+    let snap_time = simulation_time / 10.0;
+
+    let mut engine = FEMEngine::new(simulation_time, time_step, problem.elements, snap_time);
+
+    let temp_results = engine.run()?;
+
+    println!("{}", temp_results.last().unwrap());
+
+    /*for temp in &temp_results {
+        println!("{:#?}", temp.data());
+    }*/
+
+    // println!("{:#?}", temp_results);
+
+    println!("{:#?}", &temp_results.last());
+
+    //Calculate the average temperature
+
+    let mut sum = 0.0;
+    let mut len = 0;
+    let last = &temp_results.last();
+    for temp in last {
+        sum += temp.iter().sum::<f32>();
+        len += temp.len();
+    }
+    let avg = sum / len as f32;
+
+    println!("Average temperature: {}", avg);
+
+    parser::fem_multiple_results_to_csv(
+        results_folder,
+        results_file,
+        results_format,
+        &temp_results,
+    )?;
+
+    Ok(())
+}

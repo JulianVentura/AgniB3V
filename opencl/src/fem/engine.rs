@@ -6,7 +6,7 @@ pub struct FEMEngine {
     simulation_time: f64, //TODO
     time_step: f64,       //TODO
     snapshot_period: f64,
-    points: Vec<Point>,
+    pub points: Vec<Point>,
     pub m_lu: LU,
     pub k: Matrix,
     f: Vector,
@@ -25,7 +25,7 @@ impl FEMEngine {
     pub fn new(
         simulation_time: f64,
         time_step: f64,
-        elements: Vec<Element>,
+        elements: &Vec<Element>,
         snapshot_period: f64,
     ) -> Self {
         //TODO add error handling
@@ -37,13 +37,13 @@ impl FEMEngine {
             panic!("Snapshot period must be multiple of simulation time");
         }
 
-        let n_points = Self::calculate_number_of_points(&elements);
+        let n_points = Self::calculate_number_of_points(elements);
         println!("Constructing global M matrix");
-        let m = Self::construct_global_matrix(&elements, n_points, |e: &Element| &e.m);
+        let m = Self::construct_global_matrix(elements, n_points, |e: &Element| &e.m);
         println!("Constructing global K matrix");
-        let k = Self::construct_global_matrix(&elements, n_points, |e: &Element| &e.k);
+        let k = Self::construct_global_matrix(elements, n_points, |e: &Element| &e.k);
         println!("Constructing global flux vector");
-        let f = Self::construct_global_vector_f(&elements, n_points);
+        let f = Self::construct_global_vector_f(elements, n_points);
         println!("Constructing points array");
         let points = Self::construct_points_array(elements, n_points);
 
@@ -110,7 +110,7 @@ impl FEMEngine {
         (size + 1) as usize
     }
 
-    fn construct_points_array(elements: Vec<Element>, n_points: usize) -> Vec<Point> {
+    fn construct_points_array(elements: &Vec<Element>, n_points: usize) -> Vec<Point> {
         let mut points: Vec<Point> = Vec::new();
         points.reserve_exact(n_points);
 

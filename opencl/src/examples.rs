@@ -18,7 +18,13 @@ pub fn test_2d_plane() -> Result<()> {
     let simulation_time = 10.0;
     let time_step = 1.0;
 
-    let mut engine = FEMEngine::new(simulation_time, time_step, &problem.elements, 10.0);
+    let mut engine = FEMEngine::new(
+        simulation_time,
+        time_step,
+        &problem.elements,
+        10.0,
+        "Explicit",
+    );
 
     let temp_results = engine.run()?;
 
@@ -104,7 +110,13 @@ pub fn run_example() -> Result<()> {
     let simulation_time = 7200.0;
     let time_step = 1.0;
 
-    let mut engine = FEMEngine::new(simulation_time, time_step, &problem.elements, time_step);
+    let mut engine = FEMEngine::new(
+        simulation_time,
+        time_step,
+        &problem.elements,
+        time_step,
+        "Explicit",
+    );
 
     let temp_results = engine.run()?;
 
@@ -151,15 +163,21 @@ pub fn test_plane_0_2() -> Result<()> {
 
     let problem = parser::fem_problem_from_csv(elements_path, nodes_path, initial_temp_map);
     println!("{}", problem.elements.len());
-    let simulation_time = 5.0;
-    let time_step = 0.01;
+    let simulation_time = 500000.0;
+    let time_step = 1.0;
     let snap_time = simulation_time / 10.0;
 
-    let mut engine = FEMEngine::new(simulation_time, time_step, &problem.elements, snap_time);
+    let mut engine = FEMEngine::new(
+        simulation_time,
+        time_step,
+        &problem.elements,
+        snap_time,
+        "Explicit",
+    );
 
     let temp_results = engine.run()?;
 
-    println!("{}", temp_results.last().unwrap());
+    //println!("{}", temp_results.last().unwrap());
 
     /*for temp in &temp_results {
         println!("{:#?}", temp.data());

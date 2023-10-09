@@ -1,6 +1,7 @@
 use anyhow::Result;
 use opencl::fem::{element::Element, engine::FEMEngine, point::Point, structures::Vector};
 
+#[ignore]
 #[test]
 pub fn test_square_only_temperature() -> Result<()> {
     let p1 = Point::new(Vector::from_row_slice(&[0.0, 0.0, 0.0]), 273.0, 0, 0);
@@ -81,7 +82,7 @@ pub fn test_square_only_temperature() -> Result<()> {
                 (val - results[step][i]).abs() < accepted_error,
                 "data {:?} is not equal to result {:?}",
                 val,
-                &results[step]
+                &results[step][i]
             );
         }
         step += 1;

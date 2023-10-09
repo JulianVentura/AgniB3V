@@ -110,34 +110,8 @@ fn test_cylinder() -> (FEMProblem, String) {
 
     let initial_temp_map: HashMap<u32, f32> = [(56, 473.0)].into_iter().collect();
 
-<<<<<<< HEAD
     (
         parser::fem_problem_from_csv(elements_path, nodes_path, initial_temp_map),
-=======
-    let simulation_time = 7200.0;
-    let time_step = 1.0;
-
-    let mut engine = FEMEngine::new(
-        simulation_time,
-        time_step,
-        &problem.elements,
-        time_step,
-        "Explicit",
-    );
-
-    let temp_results = engine.run()?;
-
-    println!("{}", temp_results.last().unwrap());
-
-    parser::fem_results_to_vtk(
-        results_path.clone(),
-        &engine.points,
-        &problem.elements,
-        &temp_results.last().ok_or(anyhow!("No result"))?.clone(),
-    )?;
-
-    parser::fem_results_to_csv(
->>>>>>> eab24e26a8048e2f23539d0607bb8647cd848d41
         results_path,
     )
 }
@@ -236,7 +210,13 @@ pub fn run_example() -> Result<()> {
     let simulation_time = 7200.0;
     let time_step = 1.0;
 
-    let mut engine = FEMEngine::new(simulation_time, time_step, &problem.elements, time_step);
+    let mut engine = FEMEngine::new(
+        simulation_time,
+        time_step,
+        &problem.elements,
+        time_step,
+        "Explicit",
+    );
 
     let temp_results = engine.run()?;
 

@@ -14,7 +14,8 @@ class CmdOpenGlobalProperties:
         return True
         
     def GetResources(self):
-        return {'MenuText': ("Set Global Properties"),
-                'ToolTip': ("Set Global Properties"),
-                # TODO: change icon
-                'Pixmap': FreeCAD.getUserAppDataDir() + "Mod/Rocket/Resources/icons/Rocket_Calculator.svg"}
+        return {
+            'MenuText': ("Set Global Properties"),
+            'ToolTip': ("Set Global Properties"),
+            'Pixmap': "./public/icons/Settings.svg",
+        }

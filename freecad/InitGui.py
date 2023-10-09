@@ -22,6 +22,7 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         # List of tools in the workbench toolbar
         thermalList = [
             "THM_Global_Properties",
+            "THM_Export_Mesh"
         ]
         femList = [
             "FEM_Analysis",

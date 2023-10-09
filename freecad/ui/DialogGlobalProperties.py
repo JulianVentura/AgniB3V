@@ -3,8 +3,13 @@ import FreeCADGui
 
 from PySide import QtGui, QtCore
 from PySide2.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QGridLayout
+from constants.global_properties import GLOBAL_PROPERTIES_INPUTS
 
 class DialogGlobalProperties(QDialog):
+    """
+    Dialog to set global properties
+    """
+
     def __init__(self, workbench):
         super().__init__()
 
@@ -19,28 +24,14 @@ class DialogGlobalProperties(QDialog):
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
         # create inputs
-
-        # Beta angle
-        print(self.workbench.getBetaAngle())
-        self.create_input(
-            ui,
-            "betaAngle",
-            "Beta angle",
-            "deg",
-            f"{self.workbench.betaAngle} deg",
-            self.onBetaAngleChange,
-        )
-
-        # Orbit height
-        print(self.workbench.getOrbitHeight())
-        self.create_input(
-            ui,
-            "orbitHeight",
-            "Orbit height",
-            "km",
-            f"{self.workbench.orbitHeight} km",
-            self.onOrbitHeightChange,
-        )
+        for property in GLOBAL_PROPERTIES_INPUTS:
+            self.create_input(
+                ui,
+                property[0],
+                property[1],
+                property[2],
+                f"{getattr(self.workbench, property[0])}",
+            )
 
         # create OK button
         okButton = QtGui.QPushButton('OK', self)
@@ -55,14 +46,13 @@ class DialogGlobalProperties(QDialog):
 
         line = QGridLayout()
 
+        # Add inputs to layout
         row = 0
-        line.addWidget(self.betaAngleLabel, row, 0, 1, 2)
-        line.addWidget(self.betaAngleInput, row, 1)
-        row += 1
 
-        line.addWidget(self.orbitHeightLabel, row, 0)
-        line.addWidget(self.orbitHeightInput, row, 1)
-        row += 1
+        for property in GLOBAL_PROPERTIES_INPUTS:
+            line.addWidget(getattr(self, property[0] + "Label"), row, 0)
+            line.addWidget(getattr(self, property[0] + "Input"), row, 1)
+            row += 1
 
         layout.addLayout(line)
 
@@ -76,40 +66,31 @@ class DialogGlobalProperties(QDialog):
         # now make the window visible
         self.show()    
 
-    def onBetaAngleChange(self, value):
-        self.betaAngleInput.setText(value)
+    def onInputChange(self, attribute_name, value):
+        getattr(self, attribute_name + "Input").setText(value)
         try:
-            print(value)
-            self.workbench.setBetaAngle(float(value))
-            print("Salio bien")
-        except ValueError:
-            pass
-
-    def onOrbitHeightChange(self, value):
-        self.orbitHeightInput.setText(value)
-        try:
-            print(value)
-            self.workbench.setOrbitHeight(float(value))
-            print("Salio bien")
+            getattr(self.workbench, "set" + attribute_name[:1].upper() + attribute_name[1:])(float(value))
         except ValueError:
             pass
 
     def validate_input(self, value):
-        # Elimina cualquier carácter no numérico excepto el punto (.)
+        # Deletes any non-numeric character except the dot (.)
         cleaned_value = ''.join(c for c in value if c.isdigit() or c == '.')
 
-        # Reemplaza la coma (,) con el punto (.) para garantizar que sea un número válido
+        # Replaces any dot (.) after the first one with an empty string
         cleaned_value = cleaned_value.replace(',', '.')
 
         return cleaned_value
 
-    def create_input(self, ui, attribute_name, label, unit, value, change_function):
-        label = QtGui.QLabel(label, self)
+    def create_input(self, ui, attribute_name, label, unit, value):
+        label = QtGui.QLabel(label + (f" ({unit})" if unit else ""), self)
 
         input = ui.createWidget("Gui::InputField")
-        input.unit = unit
+        # input.unit = unit
         input.setText(value)
-        input.textEdited.connect(lambda value: change_function(self.validate_input(value)))
+        input.textEdited.connect(
+            lambda value: self.onInputChange(attribute_name, self.validate_input(value))
+        )
 
         setattr(self, attribute_name + "Label", label)
         setattr(self, attribute_name + "Input", input)

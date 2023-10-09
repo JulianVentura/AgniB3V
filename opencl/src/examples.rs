@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, result};
 
 use anyhow::{anyhow, Result};
 
@@ -18,7 +18,13 @@ pub fn test_2d_plane() -> Result<()> {
     let simulation_time = 10.0;
     let time_step = 1.0;
 
-    let mut engine = FEMEngine::new(simulation_time, time_step, &problem.elements, 10.0);
+    let mut engine = FEMEngine::new(
+        simulation_time,
+        time_step,
+        &problem.elements,
+        10.0,
+        "Explicit",
+    );
 
     let temp_results = engine.run()?;
 
@@ -104,8 +110,34 @@ fn test_cylinder() -> (FEMProblem, String) {
 
     let initial_temp_map: HashMap<u32, f32> = [(56, 473.0)].into_iter().collect();
 
+<<<<<<< HEAD
     (
         parser::fem_problem_from_csv(elements_path, nodes_path, initial_temp_map),
+=======
+    let simulation_time = 7200.0;
+    let time_step = 1.0;
+
+    let mut engine = FEMEngine::new(
+        simulation_time,
+        time_step,
+        &problem.elements,
+        time_step,
+        "Explicit",
+    );
+
+    let temp_results = engine.run()?;
+
+    println!("{}", temp_results.last().unwrap());
+
+    parser::fem_results_to_vtk(
+        results_path.clone(),
+        &engine.points,
+        &problem.elements,
+        &temp_results.last().ok_or(anyhow!("No result"))?.clone(),
+    )?;
+
+    parser::fem_results_to_csv(
+>>>>>>> eab24e26a8048e2f23539d0607bb8647cd848d41
         results_path,
     )
 }
@@ -125,7 +157,7 @@ fn test_plane_medium() -> (FEMProblem, String) {
 }
 
 pub fn test_plane_0_2() -> Result<()> {
-    let name = "plano_chico_mesh";
+    let name = "plano_metros_mesh2";
     let elements_path = format!("./models/{}_triangles.csv", name);
     let nodes_path = format!("./models/{}_verts.csv", name);
     let results_folder = format!("./models/{}_results", name);
@@ -133,38 +165,36 @@ pub fn test_plane_0_2() -> Result<()> {
     let results_format = "csv".to_string();
 
     let initial_temp_map: HashMap<u32, f32> = [
-        (482, 573.0),
-        (499, 573.0),
-        (501, 573.0),
-        (504, 573.0),
-        (506, 573.0),
-        (509, 573.0),
-        (511, 573.0),
-        (514, 573.0),
-        (516, 573.0),
-        (520, 573.0),
-        (522, 573.0),
-        (525, 573.0),
-        (528, 573.0),
-        (530, 573.0),
-        (532, 573.0),
-        (535, 573.0),
-        (537, 573.0),
+        (143, 573.0),
+        (141, 573.0),
+        (138, 573.0),
+        (136, 573.0),
+        (133, 573.0),
+        (131, 573.0),
+        (128, 573.0),
+        (126, 573.0),
+        (120, 573.0),
     ]
     .into_iter()
     .collect();
 
     let problem = parser::fem_problem_from_csv(elements_path, nodes_path, initial_temp_map);
     println!("{}", problem.elements.len());
-    let simulation_time = 0.005;
-    let time_step = 0.000001;
+    let simulation_time = 500000.0;
+    let time_step = 1.0;
     let snap_time = simulation_time / 10.0;
 
-    let mut engine = FEMEngine::new(simulation_time, time_step, &problem.elements, snap_time);
+    let mut engine = FEMEngine::new(
+        simulation_time,
+        time_step,
+        &problem.elements,
+        snap_time,
+        "Explicit",
+    );
 
     let temp_results = engine.run()?;
 
-    println!("{}", temp_results.last().unwrap());
+    //println!("{}", temp_results.last().unwrap());
 
     println!("{:#?}", &temp_results.last());
 
@@ -186,6 +216,13 @@ pub fn test_plane_0_2() -> Result<()> {
         results_file,
         results_format,
         &temp_results,
+    )?;
+
+    parser::fem_results_to_vtk(
+        "./models/plano_metros_mesh2_results".to_string(),
+        &engine.points,
+        &problem.elements,
+        &temp_results.last().ok_or(anyhow!("No result"))?.clone(),
     )?;
 
     Ok(())

@@ -10,6 +10,10 @@ pub struct FEMEngine {
     pub m_lu: LU,
     pub k: Matrix,
     f: Vector,
+    pub theta: f32,
+    pub implicit_matrix_right: Matrix,
+    pub implicit_matrix_left_lu: LU,
+    pub mode: String,
 }
 
 #[allow(dead_code)]
@@ -27,6 +31,7 @@ impl FEMEngine {
         time_step: f64,
         elements: &Vec<Element>,
         snapshot_period: f64,
+        mode: &str,
     ) -> Self {
         //TODO add error handling
         if time_step > snapshot_period {
@@ -47,9 +52,16 @@ impl FEMEngine {
         println!("Constructing points array");
         let points = Self::construct_points_array(elements, n_points);
 
-        let m_lu = m.lu();
+        //Implicit matrixes
+        let theta = 0.5;
+        let implicit_matrix_right = &m / (time_step as f32) - (1.0 - theta) * &k;
+        let implicit_matrix_left = &m / (time_step as f32) + theta * &k;
+        let implicit_matrix_left_lu = implicit_matrix_left.lu();
 
+        let m_lu = m.lu();
         println!("FEM Engine built successfully");
+
+        let str_mode = mode.to_string();
 
         FEMEngine {
             simulation_time,
@@ -59,6 +71,10 @@ impl FEMEngine {
             m_lu,
             k,
             f,
+            theta,
+            implicit_matrix_right,
+            implicit_matrix_left_lu,
+            mode: str_mode,
         }
     }
 
@@ -80,7 +96,11 @@ impl FEMEngine {
             if step % snapshot_period == 0 {
                 temp_results.push(temp.clone());
             }
-            temp = self.step(&temp);
+            if self.mode == "Implicit" {
+                temp = self.step_implicit(&temp);
+            } else {
+                temp = self.step(&temp);
+            }
         }
 
         temp_results.push(temp.clone());
@@ -93,6 +113,16 @@ impl FEMEngine {
         let x = &self.m_lu.solve(&b).expect("Oh no...");
 
         (self.time_step as f32) * x + temp
+    }
+
+    pub fn step_implicit(&mut self, temp: &Vector) -> Vector {
+        // A * tn + (1 - theta) * fn + theta * fn+1, rigth now fn = fn+1
+        let b = &self.implicit_matrix_right * temp
+            + (1.0 - self.theta) * &self.f
+            + self.theta * &self.f;
+        let x = &self.implicit_matrix_left_lu.solve(&b).expect("Oh no...");
+
+        x * 1.0 // I dont know how to not return a reference, multiplying by 1.0 is a workaround
     }
 
     fn calculate_number_of_points(elements: &Vec<Element>) -> usize {

@@ -88,11 +88,7 @@ fn test_3_d_cube() -> (FEMProblem, String) {
     let nodes_path = "./models/Cube_verts.csv".to_string();
     let results_path = "./models/Cube_results".to_string();
 
-    let initial_temp_map: HashMap<u32, f32> = [
-        (25, 600.0),
-    ]
-    .into_iter()
-    .collect();
+    let initial_temp_map: HashMap<u32, f32> = [(25, 600.0)].into_iter().collect();
 
     (
         parser::fem_problem_from_csv(elements_path, nodes_path, initial_temp_map),
@@ -100,33 +96,32 @@ fn test_3_d_cube() -> (FEMProblem, String) {
     )
 }
 
-pub fn run_example() -> Result<()> {
-    let (problem, results_path) = test_3_d_cube();
+#[allow(dead_code)]
+fn test_cylinder() -> (FEMProblem, String) {
+    let elements_path = "./models/cylinder_triangles.csv".to_string();
+    let nodes_path = "./models/cylinder_verts.csv".to_string();
+    let results_path = "./models/cylinder_results.csv".to_string();
 
-    println!("{}", problem.elements.len());
+    let initial_temp_map: HashMap<u32, f32> = [(56, 473.0)].into_iter().collect();
 
-    let simulation_time = 7200.0;
-    let time_step = 1.0;
-
-    let mut engine = FEMEngine::new(simulation_time, time_step, &problem.elements, time_step);
-
-    let temp_results = engine.run()?;
-
-    println!("{}", temp_results.last().unwrap());
-
-    parser::fem_results_to_vtk(
-        results_path.clone(),
-        &engine.points,
-        &problem.elements,
-        &temp_results.last().ok_or(anyhow!("No result"))?.clone(),
-    )?;
-
-    parser::fem_results_to_csv(
+    (
+        parser::fem_problem_from_csv(elements_path, nodes_path, initial_temp_map),
         results_path,
-        &temp_results.last().ok_or(anyhow!("No result"))?.clone(),
-    )?;
+    )
+}
 
-    Ok(())
+#[allow(dead_code)]
+fn test_plane_medium() -> (FEMProblem, String) {
+    let elements_path = "./models/plane_medium_triangles.csv".to_string();
+    let nodes_path = "./models/plane_medium_verts.csv".to_string();
+    let results_path = "./models/plane_medium_results.csv".to_string();
+
+    let initial_temp_map: HashMap<u32, f32> = [(265, 473.0), (252, 473.0)].into_iter().collect();
+
+    (
+        parser::fem_problem_from_csv(elements_path, nodes_path, initial_temp_map),
+        results_path,
+    )
 }
 
 pub fn test_plane_0_2() -> Result<()> {
@@ -159,25 +154,17 @@ pub fn test_plane_0_2() -> Result<()> {
     .into_iter()
     .collect();
 
-    // let initial_temp_map: HashMap<u32, f32> = [(575, 573.0), (633, 573.0)].into_iter().collect();
-
     let problem = parser::fem_problem_from_csv(elements_path, nodes_path, initial_temp_map);
     println!("{}", problem.elements.len());
     let simulation_time = 0.005;
     let time_step = 0.000001;
     let snap_time = simulation_time / 10.0;
 
-    let mut engine = FEMEngine::new(simulation_time, time_step, problem.elements, snap_time);
+    let mut engine = FEMEngine::new(simulation_time, time_step, &problem.elements, snap_time);
 
     let temp_results = engine.run()?;
 
     println!("{}", temp_results.last().unwrap());
-
-    /*for temp in &temp_results {
-        println!("{:#?}", temp.data());
-    }*/
-
-    // println!("{:#?}", temp_results);
 
     println!("{:#?}", &temp_results.last());
 
@@ -199,6 +186,35 @@ pub fn test_plane_0_2() -> Result<()> {
         results_file,
         results_format,
         &temp_results,
+    )?;
+
+    Ok(())
+}
+
+pub fn run_example() -> Result<()> {
+    let (problem, results_path) = test_3_d_cube();
+
+    println!("{}", problem.elements.len());
+
+    let simulation_time = 7200.0;
+    let time_step = 1.0;
+
+    let mut engine = FEMEngine::new(simulation_time, time_step, &problem.elements, time_step);
+
+    let temp_results = engine.run()?;
+
+    println!("{}", temp_results.last().unwrap());
+
+    parser::fem_results_to_vtk(
+        results_path.clone(),
+        &engine.points,
+        &problem.elements,
+        &temp_results.last().ok_or(anyhow!("No result"))?.clone(),
+    )?;
+
+    parser::fem_results_to_csv(
+        results_path,
+        &temp_results.last().ok_or(anyhow!("No result"))?.clone(),
     )?;
 
     Ok(())

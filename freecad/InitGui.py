@@ -11,13 +11,27 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         It is executed once in a FreeCAD session followed by the Activated function.
         """
         import commands.Commander as Commander
+        import femcommands.commands
+        from constants.global_properties import GLOBAL_PROPERTIES_INPUTS
 
         # Attributes
-        self.betaAngle = 30.0
-        self.orbitHeight = 300.0
+        for property in GLOBAL_PROPERTIES_INPUTS:
+            print(property)
+            self.createAttributes(property)
 
         # List of tools in the workbench toolbar
-        self.appendToolbar("Thermal", ["Global_Properties"])
+        thermalList = [
+            "THM_Global_Properties",
+            "THM_Export_Mesh"
+        ]
+        femList = [
+            "FEM_Analysis",
+            "FEM_MaterialSolid",
+            "FEM_MaterialEditor",
+            "FEM_MeshGmshFromShape"
+        ]
+        self.appendToolbar("Thermal", thermalList)
+        self.appendToolbar("FEM", femList)
 
         Commander.addCommands(self)
 
@@ -39,16 +53,16 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         # This is not a template, the returned string should be exactly "Gui::PythonWorkbench"
         return "Gui::PythonWorkbench"
     
-    def getBetaAngle(self):
-        return self.betaAngle
-    
-    def setBetaAngle(self, betaAngle):
-        self.betaAngle = betaAngle
-
-    def getOrbitHeight(self):
-        return self.orbitHeight
-    
-    def setOrbitHeight(self, orbitHeight):
-        self.orbitHeight = orbitHeight
+    def createAttributes(self, property):
+        """
+        This functions creates the attributes of the workbench
+        It creates the setters and getters for each attribute
+        """
+        # Create attribute for property[0]
+        setattr(self, property[0], property[3])
+        # Create getter with capitalized first letter
+        setattr(self, f"get{property[0][:1].upper() + property[0][1:]}", lambda: getattr(self, property[0]))
+        # Create setter with capitalized first letter
+        setattr(self, f"set{property[0][:1].upper() + property[0][1:]}", lambda x: setattr(self, property[0], x))
 
 FreeCAD.Gui.addWorkbench(ThermalWorkbench())

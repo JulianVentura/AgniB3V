@@ -1,12 +1,13 @@
 use super::element::Element;
-use super::explicit_solver::ExplicitSolver;
 use super::structures::Vector;
+use super::{explicit_solver::ExplicitSolver, implicit_solver::ImplicitSolver};
 use anyhow::Result;
 
 //TODO: Check how much slower the solver gets if we use a dyn (dynamic dispatch) over the Solver
 //object
 pub enum Solver {
     Explicit(ExplicitSolver),
+    Implicit(ImplicitSolver),
 }
 
 pub struct FEMEngine {
@@ -56,16 +57,19 @@ impl FEMEngine {
             if step % snapshot_period == 0 {
                 let temp = match &self.solver {
                     Solver::Explicit(s) => s.temperature(),
+                    Solver::Implicit(s) => s.temperature(),
                 };
                 temp_results.push(temp);
             }
             match &mut self.solver {
                 Solver::Explicit(s) => s.step(self.time_step as f32),
+                Solver::Implicit(s) => s.step(),
             };
         }
 
         let temp = match &self.solver {
             Solver::Explicit(s) => s.temperature(),
+            Solver::Implicit(s) => s.temperature(),
         };
 
         temp_results.push(temp);

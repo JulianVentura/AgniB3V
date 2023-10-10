@@ -1,6 +1,8 @@
 use super::point::Point;
 use super::structures::{Matrix, Vector};
 
+const BOLTZMANN: f64 = 1.380649e-23;
+
 #[derive(Debug)]
 pub struct Element {
     pub p1: Point,
@@ -8,13 +10,27 @@ pub struct Element {
     pub p3: Point,
     pub k: Matrix,
     pub m: Matrix,
+    pub e: Matrix,
     pub f: Vector,
+    pub emissivity: f32,
+    pub absorptivity: f32,
+    pub view_factors: Vec<f32>,
+    pub area: f32,
+}
+
+pub struct MaterialProperties {
     pub conductivity: f32,
     pub density: f32,
     pub specific_heat: f32,
     pub thickness: f32,
-    pub area: f32,
-    pub generated_heat: f32,
+    pub emissivity: f32,
+    pub absorptivity: f32,
+}
+
+pub struct ViewFactors {
+    pub earth: f32,
+    pub sun: f32,
+    pub elements: Vec<f32>,
 }
 
 impl Element {
@@ -22,10 +38,11 @@ impl Element {
         mut p1: Point,
         mut p2: Point,
         mut p3: Point,
-        conductivity: f32,
-        density: f32,
-        specific_heat: f32,
-        thickness: f32,
+        properties: MaterialProperties,
+        factors: ViewFactors,
+        solar_intensity: f32,
+        betha: f32,
+        albedo_factor: f32,
         generated_heat: f32,
     ) -> Self {
         Self::check_point_length(&p1);
@@ -38,11 +55,33 @@ impl Element {
         p2.set_local_id(2);
         p3.set_local_id(3);
 
-        let k = Self::calculate_k(&p1, &p2, &p3, conductivity, area, thickness);
+        let k = Self::calculate_k(
+            &p1,
+            &p2,
+            &p3,
+            properties.conductivity,
+            area,
+            properties.thickness,
+        );
 
-        let m = Self::calculate_m(area, specific_heat, density, thickness);
+        let m = Self::calculate_m(
+            area,
+            properties.specific_heat,
+            properties.density,
+            properties.thickness,
+        );
 
-        let f = Self::calculate_f(area, generated_heat);
+        let e = Self::calculate_e(area, properties.emissivity);
+
+        let f = Self::calculate_f(
+            area,
+            &properties,
+            &factors,
+            solar_intensity,
+            betha,
+            albedo_factor,
+            generated_heat,
+        );
 
         Element {
             p1,
@@ -50,14 +89,52 @@ impl Element {
             p3,
             k,
             m,
+            e,
             f,
+            emissivity: properties.emissivity,
+            absorptivity: properties.absorptivity,
+            view_factors: factors.elements,
+            area,
+        }
+    }
+
+    pub fn basic(p1: Point, p2: Point, p3: Point, generated_heat: f32, n_elements: usize) -> Self {
+        let conductivity = 237.0;
+        let density = 2700.0;
+        let specific_heat = 900.0;
+        let thickness = 0.01;
+        let absorptivity = 1.0;
+        let emissivity = 1.0;
+        let solar_intensity = 300.0;
+        let betha = 0.1;
+        let albedo_factor = 0.1;
+
+        let props = MaterialProperties {
             conductivity,
             density,
             specific_heat,
             thickness,
-            area,
+            emissivity,
+            absorptivity,
+        };
+
+        let factors = ViewFactors {
+            earth: 1.0,
+            sun: 1.0,
+            elements: vec![0.1f32; n_elements],
+        };
+
+        Self::new(
+            p1,
+            p2,
+            p3,
+            props,
+            factors,
+            solar_intensity,
+            betha,
+            albedo_factor,
             generated_heat,
-        }
+        )
     }
 
     fn calculate_area(p1: &Point, p2: &Point, p3: &Point) -> f32 {
@@ -127,7 +204,7 @@ impl Element {
                 k31, k32, k33, //Row 3
             ],
         );
-        
+
         //TODO: Check if thickness is correct
         k = k * thickness * conductivity / (4.0 * area);
         k
@@ -150,16 +227,47 @@ impl Element {
         m
     }
 
-    fn calculate_f(area: f32, generated_heat: f32) -> Vector {
-        let mut f = Vector::from_row_slice(&[1.0, 1.0, 1.0]);
+    fn calculate_e(area: f32, emissivity: f32) -> Matrix {
+        let e = Matrix::from_row_slice(
+            3,
+            3,
+            &[
+                1.0, 0.0, 0.0, //Row 1
+                0.0, 1.0, 0.0, //Row 2
+                0.0, 0.0, 1.0, //Row 3
+            ],
+        );
 
-        f = f * (generated_heat * area / 3.0);
+        ((BOLTZMANN as f32) * emissivity * area / 3.0) * e
+    }
 
+    fn calculate_f(
+        area: f32,
+        properties: &MaterialProperties,
+        factors: &ViewFactors,
+        solar_intensity: f32,
+        betha: f32,
+        albedo_factor: f32,
+        generated_heat: f32,
+    ) -> Vector {
         //TODO: Add single node heat source
         // f += [nodo1.heat_source, nodo2.heat_source, nodo3.heat_source]
         //Note: probably that would make each element where that node is part add its heat source, so it would be duplicated
+        let f = Vector::from_row_slice(&[1.0, 1.0, 1.0]);
 
-        f
+        //TODO: Define constant value
+        let constant = 1.0;
+
+        let solar = properties.absorptivity
+            * solar_intensity
+            * (f64::sin(betha.into()) as f32)
+            * factors.sun;
+        let ir = properties.absorptivity * constant * factors.earth;
+        let albedo = properties.absorptivity * solar_intensity * albedo_factor * factors.earth;
+
+        let magnitude = (generated_heat + solar + ir + albedo) * area / 3.0;
+
+        magnitude * f
     }
 }
 

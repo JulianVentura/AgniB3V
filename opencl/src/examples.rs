@@ -1,40 +1,10 @@
-use std::{collections::HashMap, result};
-
+use super::fem::{
+    engine::{FEMEngine, FEMProblem, Solver},
+    explicit_solver::ExplicitSolver,
+    parser,
+};
 use anyhow::{anyhow, Result};
-
-use crate::fem::engine::FEMProblem;
-
-use super::fem::{engine::FEMEngine, parser};
-
-pub fn test_2d_plane() -> Result<()> {
-    let elements_path = "./models/2D-plane_triangles.csv".to_string();
-    let nodes_path = "./models/2D-plane_verts.csv".to_string();
-    let results_path = "./models/2D-plane_results".to_string();
-
-    let initial_temp_map: HashMap<u32, f32> = [(0, 373.0), (3, 373.0)].into_iter().collect();
-
-    let problem = parser::fem_problem_from_csv(elements_path, nodes_path, initial_temp_map);
-
-    let simulation_time = 10.0;
-    let time_step = 1.0;
-
-    let mut engine = FEMEngine::new(
-        simulation_time,
-        time_step,
-        &problem.elements,
-        10.0,
-        "Explicit",
-    );
-
-    let temp_results = engine.run()?;
-
-    parser::fem_results_to_csv(
-        results_path,
-        &temp_results.last().ok_or(anyhow!("No result"))?.clone(),
-    )?;
-
-    Ok(())
-}
+use std::collections::HashMap;
 
 #[allow(dead_code)]
 fn test_2_d_plane() -> (FEMProblem, String) {
@@ -158,17 +128,18 @@ pub fn test_plane_0_2() -> Result<()> {
     let time_step = 1.0;
     let snap_time = simulation_time / 10.0;
 
+    let solver = ExplicitSolver::new(&problem.elements);
+
+    let points = solver.points().clone();
+
     let mut engine = FEMEngine::new(
         simulation_time,
         time_step,
-        &problem.elements,
         snap_time,
-        "Explicit",
+        Solver::Explicit(solver),
     );
 
     let temp_results = engine.run()?;
-
-    //println!("{}", temp_results.last().unwrap());
 
     println!("{:#?}", &temp_results.last());
 
@@ -194,7 +165,7 @@ pub fn test_plane_0_2() -> Result<()> {
 
     parser::fem_results_to_vtk(
         "./models/plano_metros_mesh2_results".to_string(),
-        &engine.points,
+        &points,
         &problem.elements,
         &temp_results.last().ok_or(anyhow!("No result"))?.clone(),
     )?;
@@ -210,12 +181,15 @@ pub fn run_example() -> Result<()> {
     let simulation_time = 7200.0;
     let time_step = 1.0;
 
+    let solver = ExplicitSolver::new(&problem.elements);
+
+    let points = solver.points().clone();
+
     let mut engine = FEMEngine::new(
         simulation_time,
         time_step,
-        &problem.elements,
         time_step,
-        "Explicit",
+        Solver::Explicit(solver),
     );
 
     let temp_results = engine.run()?;
@@ -224,7 +198,7 @@ pub fn run_example() -> Result<()> {
 
     parser::fem_results_to_vtk(
         results_path.clone(),
-        &engine.points,
+        &points,
         &problem.elements,
         &temp_results.last().ok_or(anyhow!("No result"))?.clone(),
     )?;

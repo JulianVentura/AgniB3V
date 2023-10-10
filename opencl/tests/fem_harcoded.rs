@@ -1,5 +1,8 @@
 use anyhow::Result;
-use opencl::fem::{element::Element, engine::FEMEngine, point::Point, structures::Vector};
+use opencl::fem::{
+    element::Element, engine::FEMEngine, engine::Solver, explicit_solver::ExplicitSolver,
+    point::Point, structures::Vector,
+};
 
 #[ignore]
 #[test]
@@ -39,12 +42,14 @@ pub fn test_square_only_temperature() -> Result<()> {
     let time_step = 1.0;
     let time_res = 1.0;
     let simulation_time = 5.0;
+
+    let solver = ExplicitSolver::new(&vec![e1, e2]);
+
     let mut engine = FEMEngine::new(
         simulation_time,
         time_step,
-        &vec![e1, e2],
         time_res,
-        "Explicit",
+        Solver::Explicit(solver),
     );
 
     let temp_results = engine.run()?;
@@ -128,12 +133,13 @@ pub fn test_square_only_heat() -> Result<()> {
     let time_step = 10.0;
     let time_res = 10.0;
     let simulation_time = 600.0;
+    let solver = ExplicitSolver::new(&vec![e1, e2]);
+
     let mut engine = FEMEngine::new(
         simulation_time,
         time_step,
-        &vec![e1, e2],
         time_res,
-        "Explicit",
+        Solver::Explicit(solver),
     );
 
     let temp_results = engine.run()?;
@@ -230,12 +236,13 @@ fn create_example(p1: Point, p2: Point, p3: Point, p4: Point) -> Result<Vec<Vect
     let time_step = 1.0;
     let time_res = 1.0;
     let simulation_time = 20.0;
+    let solver = ExplicitSolver::new(&vec![e1, e2]);
+
     let mut engine = FEMEngine::new(
         simulation_time,
         time_step,
-        &vec![e1, e2],
         time_res,
-        "Explicit",
+        Solver::Explicit(solver),
     );
 
     Ok(engine.run()?)

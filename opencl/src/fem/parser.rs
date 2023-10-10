@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::element::Element;
+use super::element::{Element, MaterialProperties, ViewFactors};
 use super::engine::FEMProblem;
 use super::point::Point;
 use super::structures::Vector;
@@ -76,11 +76,6 @@ pub fn fem_results_to_vtk(
                     .with_data(results.iter().map(|&x| x).collect::<Vec<f32>>())],
                 cell: vec![],
             },
-            /*
-               data: Attributes {
-                   ..Default::default()
-               },
-            */
         }),
     };
 
@@ -139,6 +134,11 @@ pub fn fem_problem_from_csv(
     let density = 2700.0;
     let specific_heat = 900.0;
     let thickness = 0.1;
+    let absorptivity = 1.0;
+    let emissivity = 1.0;
+    let solar_intensity = 300.0;
+    let betha = 0.1;
+    let albedo_factor = 0.1;
 
     let mut reader = csv::ReaderBuilder::new()
         .has_headers(false)
@@ -167,19 +167,44 @@ pub fn fem_problem_from_csv(
         .from_path(elements_path)
         .unwrap();
 
+    let mut elements_count = 0;
+    for result in reader.deserialize() {
+        let _: ParserNode = result.unwrap();
+        elements_count += 1;
+    }
+
+    let _ = reader.seek(csv::Position::new());
+
     for result in reader.deserialize() {
         let pelement: ParserElement = result.unwrap();
         let p1 = points[pelement.nodeidx1 as usize].clone();
         let p2 = points[pelement.nodeidx2 as usize].clone();
         let p3 = points[pelement.nodeidx3 as usize].clone();
-        elements.push(Element::new(
-            p1,
-            p2,
-            p3,
+
+        let props = MaterialProperties {
             conductivity,
             density,
             specific_heat,
             thickness,
+            emissivity,
+            absorptivity,
+        };
+
+        let factors = ViewFactors {
+            earth: 1.0,
+            sun: 1.0,
+            elements: vec![0.1f32; elements_count],
+        };
+
+        elements.push(Element::new(
+            p1,
+            p2,
+            p3,
+            props,
+            factors,
+            solar_intensity,
+            betha,
+            albedo_factor,
             0.0,
         ));
     }

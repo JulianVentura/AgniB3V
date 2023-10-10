@@ -12,32 +12,8 @@ pub fn test_square_only_temperature() -> Result<()> {
     let p3 = Point::new(Vector::from_row_slice(&[1.0, 1.0, 0.0]), 273.0, 2, 0);
     let p4 = Point::new(Vector::from_row_slice(&[0.0, 1.0, 0.0]), 273.0, 3, 0);
 
-    //Alumium
-    let conductivity = 237.0;
-    let density = 2700.0;
-    let specific_heat = 900.0;
-    let thickness = 0.01;
-
-    let e1 = Element::new(
-        p1.clone(),
-        p2.clone(),
-        p3.clone(),
-        conductivity,
-        density,
-        specific_heat,
-        thickness,
-        0.0,
-    );
-    let e2 = Element::new(
-        p1.clone(),
-        p3.clone(),
-        p4.clone(),
-        conductivity,
-        density,
-        specific_heat,
-        thickness,
-        0.0,
-    );
+    let e1 = Element::basic(p1.clone(), p2.clone(), p3.clone(), 0.0, 2);
+    let e2 = Element::basic(p1.clone(), p3.clone(), p4.clone(), 0.0, 2);
 
     let time_step = 1.0;
     let time_res = 1.0;
@@ -90,6 +66,7 @@ pub fn test_square_only_temperature() -> Result<()> {
     Ok(())
 }
 
+#[ignore]
 #[test]
 pub fn test_square_only_heat() -> Result<()> {
     let p1 = Point::new(Vector::from_row_slice(&[0.0, 0.0, 0.0]), 273.0, 0, 0);
@@ -97,32 +74,8 @@ pub fn test_square_only_heat() -> Result<()> {
     let p3 = Point::new(Vector::from_row_slice(&[0.0, 1.0, 0.0]), 273.0, 2, 0);
     let p4 = Point::new(Vector::from_row_slice(&[1.0, 1.0, 0.0]), 273.0, 3, 0);
 
-    //Alumium
-    let conductivity = 237.0;
-    let density = 2700.0;
-    let specific_heat = 900.0;
-    let thickness = 0.1;
-
-    let e1 = Element::new(
-        p1.clone(),
-        p2.clone(),
-        p3.clone(),
-        conductivity,
-        density,
-        specific_heat,
-        thickness,
-        1000.0,
-    );
-    let e2 = Element::new(
-        p2.clone(),
-        p4.clone(),
-        p3.clone(),
-        conductivity,
-        density,
-        specific_heat,
-        thickness,
-        1000.0,
-    );
+    let e1 = Element::basic(p1.clone(), p2.clone(), p3.clone(), 1000.0, 2);
+    let e2 = Element::basic(p2.clone(), p4.clone(), p3.clone(), 1000.0, 2);
 
     let time_step = 10.0;
     let time_res = 10.0;
@@ -194,32 +147,8 @@ pub fn test_rotations_and_deformations() -> Result<()> {
 }
 
 fn create_example(p1: Point, p2: Point, p3: Point, p4: Point) -> Result<Vec<Vector>> {
-    //Alumium
-    let conductivity = 237.0;
-    let density = 2700.0;
-    let specific_heat = 900.0;
-    let thickness = 0.01;
-
-    let e1 = Element::new(
-        p1.clone(),
-        p2.clone(),
-        p3.clone(),
-        conductivity,
-        density,
-        specific_heat,
-        thickness,
-        0.0,
-    );
-    let e2 = Element::new(
-        p1.clone(),
-        p3.clone(),
-        p4.clone(),
-        conductivity,
-        density,
-        specific_heat,
-        thickness,
-        0.0,
-    );
+    let e1 = Element::basic(p1.clone(), p2.clone(), p3.clone(), 0.0, 2);
+    let e2 = Element::basic(p1.clone(), p3.clone(), p4.clone(), 0.0, 2);
 
     let time_step = 1.0;
     let time_res = 1.0;

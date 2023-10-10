@@ -43,14 +43,8 @@ pub fn test_square_only_temperature() -> Result<()> {
     let time_res = 1.0;
     let simulation_time = 5.0;
 
-    let solver = ExplicitSolver::new(&vec![e1, e2]);
-
-    let mut engine = FEMEngine::new(
-        simulation_time,
-        time_step,
-        time_res,
-        Solver::Explicit(solver),
-    );
+    let solver = Solver::Explicit(ExplicitSolver::new(&vec![e1, e2]));
+    let mut engine = FEMEngine::new(simulation_time, time_step, time_res, solver);
 
     let temp_results = engine.run()?;
 
@@ -133,14 +127,8 @@ pub fn test_square_only_heat() -> Result<()> {
     let time_step = 10.0;
     let time_res = 10.0;
     let simulation_time = 600.0;
-    let solver = ExplicitSolver::new(&vec![e1, e2]);
-
-    let mut engine = FEMEngine::new(
-        simulation_time,
-        time_step,
-        time_res,
-        Solver::Explicit(solver),
-    );
+    let solver = Solver::Explicit(ExplicitSolver::new(&vec![e1, e2]));
+    let mut engine = FEMEngine::new(simulation_time, time_step, time_res, solver);
 
     let temp_results = engine.run()?;
 
@@ -236,14 +224,9 @@ fn create_example(p1: Point, p2: Point, p3: Point, p4: Point) -> Result<Vec<Vect
     let time_step = 1.0;
     let time_res = 1.0;
     let simulation_time = 20.0;
-    let solver = ExplicitSolver::new(&vec![e1, e2]);
 
-    let mut engine = FEMEngine::new(
-        simulation_time,
-        time_step,
-        time_res,
-        Solver::Explicit(solver),
-    );
+    let solver = Solver::Explicit(ExplicitSolver::new(&vec![e1, e2]));
+    let mut engine = FEMEngine::new(simulation_time, time_step, time_res, solver);
 
     Ok(engine.run()?)
 }

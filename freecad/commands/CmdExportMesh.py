@@ -1,4 +1,5 @@
 import FreeCAD
+import os
 
 class CmdExportMesh:
     def Activated(self):
@@ -43,9 +44,11 @@ class CmdExportMesh:
         # this can be done by checking if there are solid repeated or faces
         # repeated (for the faces we should check if there are solid and faces combined
         # and check the faces in the solid)
+        # This is wrong, but user can set two materials to the same solid/face
 
         meshNodes = shapeMeshObject.Nodes
-        materialNodeDict = {}
+        nodesByMaterial = {}
+        trianglesByMaterial = {}
         materialPropsDict = {}
 
         FreeCAD.Console.PrintMessage("Getting elements with material\n")
@@ -61,11 +64,19 @@ class CmdExportMesh:
                 FreeCAD.Console.PrintError(f"No nodes found with material {materialObject.Label}\n")
                 return
             
+            trianglesWithMaterial = self.getTrianglesFromElements(elementsWithMaterial, femMeshObject)
+            if len(trianglesWithMaterial) == 0:
+                FreeCAD.Console.PrintError(f"No triangles found with material {materialObject.Label}\n")
+                return
+            
             # TODO: is better key to be the name, label, id or something else?
-            materialNodeDict[materialObject.Name] = nodesWithMaterial
+            nodesByMaterial[materialObject.Name] = nodesWithMaterial
+            trianglesByMaterial[materialObject.Name] = trianglesWithMaterial
             materialPropsDict[materialObject.Name] = materialObject.Material
 
-        FreeCAD.Console.PrintMessage("Writing to file\n")
+        # writing path
+        path = os.path.dirname(document.FileName)
+        FreeCAD.Console.PrintMessage(f"Writing to file {path}/mesh.txt\n")
         # Open file and write
         with open("mesh.txt", "w") as file:
             file.write("--Material properties--\n")
@@ -85,17 +96,17 @@ class CmdExportMesh:
                 file.write(f"N{node}: {[f'T{t}' for t in trianglesByNode[node]]}\n")
 
             file.write("\n--Nodes by material--\n")
-            for material in materialNodeDict:
-                file.write(f"{material}: {[f'N{n}' for n in materialNodeDict[material]]}\n")
+            for material in nodesByMaterial:
+                file.write(f"{material}: {[f'N{n}' for n in nodesByMaterial[material]]}\n")
 
             file.write("\n--Triangles by material--\n")
-            for material in materialNodeDict:
-                trianglesByMaterial = set()
-                for node in materialNodeDict[material]:
-                    trianglesByMaterial.update(trianglesByNode[node])
-                file.write(f"{material}: {[f'T{t}' for t in trianglesByMaterial]}\n")
+            for material in nodesByMaterial:
+                file.write(f"{material}: {[f'T{t}' for t in trianglesByMaterial[material]]}\n")
 
         FreeCAD.Console.PrintMessage("Exported mesh to mesh.txt\n")
+
+        FreeCAD.Console.PrintMessage(f"Writing to file {path}/mesh.vtk\n")
+        femMeshObject.FemMesh.write("mesh.vtk")
 
     def IsActive(self):
         return bool(FreeCAD.activeDocument())
@@ -161,3 +172,23 @@ class CmdExportMesh:
                 FreeCAD.Console.PrintError(f"This could be causing an error on the mesh generation\n")
 
         return nodes
+    
+    def getTrianglesFromElements(self, elements, femMeshObject):
+        """Returns a list of triangles from a list of elements"""
+        triangles = []
+        shape = femMeshObject.FemMesh
+
+        # In a FreeCAD Fem Mesh, a face is a triangle
+        # While a face in a FreeCAD solid is a face of the solid
+        for element in elements:
+            if element.ShapeType == "Solid":
+                faces = element.Faces
+                for face in faces:
+                    triangles.extend(shape.getFacesByFace(face))
+            elif element.ShapeType == "Face":
+                triangles.extend(shape.getFacesByFace(element))
+            else:
+                FreeCAD.Console.PrintError(f"Element {element.Name} is not a solid or face\n")
+                FreeCAD.Console.PrintError(f"This could be causing an error on the mesh generation\n")
+
+        return triangles

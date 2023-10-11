@@ -1,6 +1,7 @@
 import numpy as np
 import trimesh
 from collections import Counter
+from src import vtk_io
 
 def solar_view_factor(mesh):
 	solar_direction = np.array([0, 1, 1])
@@ -96,10 +97,17 @@ def surface_view_factor(mesh):
 	return view_factors;
 
 def trimesh_main():
+	
 	# test on a sphere primitive
-	mesh = trimesh.load("./models/three_squares.glb", force='mesh')
+	mesh = vtk_io.load_vtk("./models/cube.vtk")
+	#mesh = trimesh.load_mesh("./models/cube.vtk", force='mesh')
+	mesh.visual.face_colors = [255,255,255,255]
+	mesh.visual.face_colors[0] = [255, 0, 0, 255]
+	mesh.unmerge_vertices()
+	scene = trimesh.Scene([mesh])
+	scene.show()
 	#solar_view_factor(mesh)
-	print(surface_view_factor(mesh))
+	#print(surface_view_factor(mesh))
 
 
 

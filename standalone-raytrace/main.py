@@ -1,7 +1,7 @@
 import numpy as np
 import trimesh
 from collections import Counter
-from src import vtk_io, view_factors, visualization
+from src import vtk_io, view_factors, visualization, materials
 
 def main():
 	visualization.ENABLED = True
@@ -10,7 +10,10 @@ def main():
 	node_sun_view_factors = view_factors.node_sun(mesh, [1,0,0], 0.05)
 	print("Node-Sun view factors:", node_sun_view_factors)
 
-	mesh = trimesh.load("./models/three_squares.glb", force='mesh') 
+	mesh_materials = materials.MaterialAtlas('./models/cube_materials.csv')
+	visualization.view_material(mesh, mesh_materials)
+
+	mesh = trimesh.load("./models/three_squares.vtk", force='mesh')
 	surface_surface_view_factors = view_factors.surface_surface(mesh, 100)
 	print("Surface-Surface view factors:\n", surface_surface_view_factors)
 

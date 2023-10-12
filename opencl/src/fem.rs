@@ -2,6 +2,7 @@ pub mod element;
 pub mod engine;
 pub mod explicit_solver;
 pub mod implicit_solver;
+pub mod constants;
 pub mod parser;
 pub mod point;
 pub mod solver;

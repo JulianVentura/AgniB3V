@@ -174,12 +174,12 @@ pub fn test_plane_0_2() -> Result<()> {
 }
 
 pub fn run_example() -> Result<()> {
-    let (problem, results_path) = test_3_d_cube();
+    let (problem, results_path) = test_plane_medium();
 
     println!("{}", problem.elements.len());
 
-    let simulation_time = 7200.0;
-    let time_step = 1.0;
+    let simulation_time = 0.01;
+    let time_step = 1e-2;
 
     let solver = ExplicitSolver::new(&problem.elements);
 

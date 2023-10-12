@@ -17,7 +17,7 @@ impl ImplicitSolver {
         println!("Constructing global K matrix");
         let k = solver::construct_global_matrix(elements, n_points, |e: &Element| &e.k);
         println!("Constructing global flux vector");
-        let f = solver::construct_global_vector_f(elements, n_points);
+        let f = solver::construct_global_vector_f_const(elements, n_points);
         println!("Constructing points array");
         let points = solver::construct_points_array(elements, n_points);
         let temp = Vector::from_vec(points.iter().map(|p| p.temperature).collect::<Vec<f32>>());

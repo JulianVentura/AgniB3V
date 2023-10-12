@@ -4,9 +4,7 @@ use anyhow::Result;
 use log::error;
 
 fn run() -> Result<()> {
-    //examples::test_2d_plane()?;
-    //examples::test_non_tilted_3d_plane()?;
-    examples::test_plane_0_2()?;
+    examples::run_example()?;
 
     Ok(())
 }

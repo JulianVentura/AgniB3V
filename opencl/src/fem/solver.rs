@@ -70,7 +70,7 @@ pub fn construct_l_matrix(elements: &Vec<Element>, n_points: usize) -> Matrix {
 
     let n_elements = elements.len();
     let mut elems: Vec<HashSet<u32>> = vec![HashSet::default(); n_points];
-    let mut view_factors = vec![Vec::default(); n_elements];
+    let mut view_factors: Vec<Vec<f64>> = vec![Vec::default(); n_elements];
 
     for (i, element) in elements.iter().enumerate() {
         elems[element.p1.global_id as usize].insert(i as u32);
@@ -102,7 +102,7 @@ pub fn construct_l_matrix(elements: &Vec<Element>, n_points: usize) -> Matrix {
         v
     });
 
-    l * (BOLTZMANN / 3.0) as f32
+    l * BOLTZMANN / 3.0
 }
 
 pub fn construct_global_vector_f_const(elements: &Vec<Element>, n_points: usize) -> Vector {
@@ -137,7 +137,7 @@ mod tests {
     use crate::fem::solver;
     use crate::fem::structures::{Matrix, Vector};
 
-    fn assert_float_eq(value_1: f32, value_2: f32, precision: f32) {
+    fn assert_float_eq(value_1: f64, value_2: f64, precision: f64) {
         assert!(
             (value_1 - value_2).abs() < precision,
             "value1 {} != {}",
@@ -154,7 +154,7 @@ mod tests {
         solver::fourth_power(&mut v);
 
         for (x, e) in v.iter().zip(expected.iter()) {
-            assert_float_eq(*x, *e, 1e-5);
+            assert_float_eq(*x, *e, f64::EPSILON);
         }
     }
 
@@ -230,7 +230,7 @@ mod tests {
 
         let mut l = solver::construct_l_matrix(&vec![e1, e2], 4);
 
-        l /= BOLTZMANN as f32 / 3.0;
+        l /= BOLTZMANN / 3.0;
 
         let expected = Matrix::from_row_slice(
             4,
@@ -244,7 +244,7 @@ mod tests {
         );
 
         for (x, e) in l.iter().zip(expected.iter()) {
-            assert_float_eq(*x, *e, 1e-6);
+            assert_float_eq(*x, *e, f64::EPSILON);
         }
     }
 }

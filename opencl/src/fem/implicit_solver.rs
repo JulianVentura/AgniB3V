@@ -20,12 +20,12 @@ impl ImplicitSolver {
         let f = solver::construct_global_vector_f_const(elements, n_points);
         println!("Constructing points array");
         let points = solver::construct_points_array(elements, n_points);
-        let temp = Vector::from_vec(points.iter().map(|p| p.temperature).collect::<Vec<f32>>());
+        let temp = Vector::from_vec(points.iter().map(|p| p.temperature).collect::<Vec<f64>>());
 
         //Implicit matrixes
         let theta = 0.5;
-        let d = &m / (time_step as f32) - (1.0 - theta) * &k;
-        let a = &m / (time_step as f32) + theta * &k;
+        let d = &m / time_step - (1.0 - theta) * &k;
+        let a = &m / time_step + theta * &k;
         let a_lu = a.lu();
         println!("FEM Engine built successfully");
 

@@ -84,6 +84,22 @@ pub fn fem_results_to_vtk(
     Ok(())
 }
 
+pub fn fem_multiple_results_to_vtk(
+    directory_path: String,
+    file_name: String,
+    format: String,
+    points: &Vec<Point>,
+    elements: &Vec<Element>,
+    results: &Vec<Vector>,
+) -> Result<()> {
+    std::fs::create_dir_all(&directory_path)?;
+    for (i, result) in results.iter().enumerate() {
+        let file_path = format!("{}/{}_{}.{}", directory_path, file_name, i, format);
+        fem_results_to_vtk(file_path, points, elements, result)?;
+    }
+    Ok(())
+}
+
 pub fn fem_results_to_csv(results_path: String, results: &Vector) -> Result<()> {
     let r: Vec<FEMResult> = results
         .iter()

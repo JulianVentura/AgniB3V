@@ -1,3 +1,6 @@
+use std::collections::HashSet;
+
+use super::constants::BOLTZMANN;
 use super::structures::{Matrix, Vector};
 use super::{element::Element, point::Point};
 
@@ -57,7 +60,55 @@ pub fn construct_global_matrix(
     m
 }
 
-pub fn construct_global_vector_f(elements: &Vec<Element>, n_points: usize) -> Vector {
+pub fn construct_l_matrix(elements: &Vec<Element>, n_points: usize) -> Matrix {
+    //P[i][j] = F[i][j] * alpha_ir_i * alpha_ir_j * area_i
+    //
+    //L[i][j] = 0
+    //for k in elems(i)
+    //  for w in elems(j)
+    //    L[i][j] += P[w][k]
+
+    let n_elements = elements.len();
+    let mut elems: Vec<HashSet<u32>> = vec![HashSet::default(); n_points];
+    let mut view_factors = vec![Vec::default(); n_elements];
+
+    for (i, element) in elements.iter().enumerate() {
+        elems[element.p1.global_id as usize].insert(i as u32);
+        elems[element.p2.global_id as usize].insert(i as u32);
+        elems[element.p3.global_id as usize].insert(i as u32);
+
+        view_factors[i] = element.view_factors.clone();
+    }
+
+    let mut p = Matrix::from_vec(
+        n_elements,
+        n_elements,
+        view_factors.into_iter().flatten().collect(),
+    );
+
+    for i in 0..elements.len() {
+        for j in 0..elements.len() {
+            let emissivity = &elements[i].alpha_ir;
+            let absorptivity = &elements[j].alpha_ir;
+            let area = &elements[i].area;
+            p[(i, j)] *= emissivity * absorptivity * area;
+        }
+    }
+
+    let l = Matrix::from_fn(n_points, n_points, |i, j| {
+        let mut v = 0.0;
+        for k in &elems[i] {
+            for w in &elems[j] {
+                v += p[(*w as usize, *k as usize)];
+            }
+        }
+        v
+    });
+
+    l * (BOLTZMANN / 3.0) as f32
+}
+
+pub fn construct_global_vector_f_const(elements: &Vec<Element>, n_points: usize) -> Vector {
     let mut f = Vector::zeros(n_points);
 
     for e in elements {
@@ -72,4 +123,116 @@ pub fn construct_global_vector_f(elements: &Vec<Element>, n_points: usize) -> Ve
     }
 
     f
+}
+
+pub fn fourth_power(array: &mut Vector) {
+    for val in array.iter_mut() {
+        *val *= *val;
+        *val *= *val;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::fem::element::{Element, MaterialProperties, ViewFactors};
+    use crate::fem::point::Point;
+    use crate::fem::solver;
+    use crate::fem::structures::{Matrix, Vector};
+
+    fn assert_float_eq(value_1: f32, value_2: f32, precision: f32) {
+        assert!(
+            (value_1 - value_2).abs() < precision,
+            "value1 {} != {}",
+            value_1,
+            value_2
+        );
+    }
+
+    #[test]
+    fn test_fourth_power() {
+        let mut v = Vector::from_row_slice(&[1.0, 2.0, 3.0]);
+        let expected = Vector::from_row_slice(&[1.0, 16.0, 81.0]);
+
+        solver::fourth_power(&mut v);
+
+        for (x, e) in v.iter().zip(expected.iter()) {
+            assert_float_eq(*x, *e, 1e-5);
+        }
+    }
+
+    #[ignore]
+    #[test]
+    fn test_l_matrix_construction_base_2d_plane() {
+        let conductivity = 237.0;
+        let density = 2700.0;
+        let specific_heat = 900.0;
+        let thickness = 0.1;
+        let alpha_sun = 1.0;
+        let alpha_ir = 1.0;
+        let solar_intensity = 300.0;
+        let betha = 0.1;
+        let albedo_factor = 0.1;
+
+        let p1 = Point::new(Vector::from_row_slice(&[0.0, 0.0, 0.0]), 0.0, 0, 0);
+        let p2 = Point::new(Vector::from_row_slice(&[1.0, 0.0, 0.0]), 0.0, 1, 0);
+        let p3 = Point::new(Vector::from_row_slice(&[1.0, 1.0, 0.0]), 0.0, 2, 0);
+        let p4 = Point::new(Vector::from_row_slice(&[0.0, 1.0, 0.0]), 0.0, 3, 0);
+
+        let props = MaterialProperties {
+            conductivity,
+            density,
+            specific_heat,
+            thickness,
+            alpha_sun,
+            alpha_ir,
+        };
+
+        let factors = ViewFactors {
+            earth: 1.0,
+            sun: 1.0,
+            elements: vec![0.1f32; 2],
+        };
+
+        let e1 = Element::new(
+            p1.clone(),
+            p2.clone(),
+            p3.clone(),
+            props.clone(),
+            factors.clone(),
+            solar_intensity,
+            betha,
+            albedo_factor,
+            0.0,
+        );
+
+        let e2 = Element::new(
+            p2,
+            p4,
+            p3,
+            props,
+            factors,
+            solar_intensity,
+            betha,
+            albedo_factor,
+            0.0,
+        );
+
+        let l = solver::construct_l_matrix(&vec![e1, e2], 4);
+
+        //TODO: Theoretically resolve this matrix to compare
+        let expected = Matrix::from_row_slice(
+            4,
+            4,
+            &[
+                0.0, 0.0, 0.0, 0.0, //
+                0.0, 0.0, 0.0, 0.0, //
+                0.0, 0.0, 0.0, 0.0, //
+                0.0, 0.0, 0.0, 0.0, //
+            ],
+        );
+
+        for (x, e) in l.iter().zip(expected.iter()) {
+            assert_float_eq(*x, *e, 1e-5);
+        }
+    }
 }

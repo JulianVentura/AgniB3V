@@ -134,8 +134,8 @@ pub fn fem_problem_from_csv(
     let density = 2700.0;
     let specific_heat = 900.0;
     let thickness = 0.1;
-    let absorptivity = 1.0;
-    let emissivity = 1.0;
+    let alpha_sun = 1.0;
+    let alpha_ir = 1.0;
     let solar_intensity = 300.0;
     let betha = 0.1;
     let albedo_factor = 0.1;
@@ -186,8 +186,8 @@ pub fn fem_problem_from_csv(
             density,
             specific_heat,
             thickness,
-            emissivity,
-            absorptivity,
+            alpha_sun,
+            alpha_ir,
         };
 
         let factors = ViewFactors {

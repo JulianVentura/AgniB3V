@@ -1,7 +1,6 @@
+use super::constants::BOLTZMANN;
 use super::point::Point;
 use super::structures::{Matrix, Vector};
-
-const BOLTZMANN: f64 = 1.380649e-23;
 
 #[derive(Debug)]
 pub struct Element {
@@ -12,21 +11,23 @@ pub struct Element {
     pub m: Matrix,
     pub e: Matrix,
     pub f: Vector,
-    pub emissivity: f32,
-    pub absorptivity: f32,
+    pub alpha_sun: f32,
+    pub alpha_ir: f32,
     pub view_factors: Vec<f32>,
     pub area: f32,
 }
 
+#[derive(Clone, Debug)]
 pub struct MaterialProperties {
     pub conductivity: f32,
     pub density: f32,
     pub specific_heat: f32,
     pub thickness: f32,
-    pub emissivity: f32,
-    pub absorptivity: f32,
+    pub alpha_sun: f32,
+    pub alpha_ir: f32,
 }
 
+#[derive(Clone, Debug)]
 pub struct ViewFactors {
     pub earth: f32,
     pub sun: f32,
@@ -71,7 +72,7 @@ impl Element {
             properties.thickness,
         );
 
-        let e = Self::calculate_e(area, properties.emissivity);
+        let e = Self::calculate_e(area, properties.alpha_ir);
 
         let f = Self::calculate_f(
             area,
@@ -91,8 +92,8 @@ impl Element {
             m,
             e,
             f,
-            emissivity: properties.emissivity,
-            absorptivity: properties.absorptivity,
+            alpha_sun: properties.alpha_sun,
+            alpha_ir: properties.alpha_ir,
             view_factors: factors.elements,
             area,
         }
@@ -103,8 +104,8 @@ impl Element {
         let density = 2700.0;
         let specific_heat = 900.0;
         let thickness = 0.01;
-        let absorptivity = 1.0;
-        let emissivity = 1.0;
+        let alpha_sun = 1.0;
+        let alpha_ir = 1.0;
         let solar_intensity = 300.0;
         let betha = 0.1;
         let albedo_factor = 0.1;
@@ -114,8 +115,8 @@ impl Element {
             density,
             specific_heat,
             thickness,
-            emissivity,
-            absorptivity,
+            alpha_sun,
+            alpha_ir,
         };
 
         let factors = ViewFactors {
@@ -227,7 +228,7 @@ impl Element {
         m
     }
 
-    fn calculate_e(area: f32, emissivity: f32) -> Matrix {
+    fn calculate_e(area: f32, alpha: f32) -> Matrix {
         let e = Matrix::from_row_slice(
             3,
             3,
@@ -238,7 +239,7 @@ impl Element {
             ],
         );
 
-        ((BOLTZMANN as f32) * emissivity * area / 3.0) * e
+        ((BOLTZMANN as f32) * alpha * area / 3.0) * e
     }
 
     fn calculate_f(
@@ -258,12 +259,10 @@ impl Element {
         //TODO: Define constant value
         let constant = 1.0;
 
-        let solar = properties.absorptivity
-            * solar_intensity
-            * (f64::sin(betha.into()) as f32)
-            * factors.sun;
-        let ir = properties.absorptivity * constant * factors.earth;
-        let albedo = properties.absorptivity * solar_intensity * albedo_factor * factors.earth;
+        let solar =
+            properties.alpha_sun * solar_intensity * (f64::sin(betha.into()) as f32) * factors.sun;
+        let ir = properties.alpha_ir * constant * factors.earth;
+        let albedo = properties.alpha_sun * solar_intensity * albedo_factor * factors.earth;
 
         let magnitude = (generated_heat + solar + ir + albedo) * area / 3.0;
 

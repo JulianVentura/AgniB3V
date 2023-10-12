@@ -1,11 +1,12 @@
+use super::solver;
 use super::structures::{Matrix, Vector, LU};
 use super::{element::Element, point::Point};
-use super::solver;
 
 pub struct ExplicitSolver {
     pub m_lu: LU,
     pub k: Matrix,
-    f: Vector,
+    pub h: Matrix,
+    f_const: Vector,
     temp: Vector,
     points: Vec<Point>,
 }
@@ -26,12 +27,17 @@ impl ExplicitSolver {
         let m = solver::construct_global_matrix(elements, n_points, |e: &Element| &e.m);
         println!("Constructing global K matrix");
         let k = solver::construct_global_matrix(elements, n_points, |e: &Element| &e.k);
+        println!("Constructing global E matrix");
+        let e = solver::construct_global_matrix(elements, n_points, |e: &Element| &e.e);
+        println!("Constructing global L matrix");
+        let l = solver::construct_l_matrix(elements, n_points);
         println!("Constructing global flux vector");
-        let f = solver::construct_global_vector_f(elements, n_points);
+        let f_const = solver::construct_global_vector_f_const(elements, n_points);
         println!("Constructing points array");
         let points = solver::construct_points_array(elements, n_points);
-
         let temp = Vector::from_vec(points.iter().map(|p| p.temperature).collect::<Vec<f32>>());
+
+        let h = l - e;
 
         let m_lu = m.lu();
         println!("FEM Engine built successfully");
@@ -39,7 +45,8 @@ impl ExplicitSolver {
         ExplicitSolver {
             m_lu,
             k,
-            f,
+            h,
+            f_const,
             temp,
             points,
         }
@@ -54,7 +61,11 @@ impl ExplicitSolver {
     }
 
     pub fn step(&mut self, time_step: f32) {
-        let b = &self.f - &self.k * &self.temp;
+        let mut t_4 = self.temp.clone();
+        solver::fourth_power(&mut t_4);
+
+        let f = &self.f_const + &self.h * t_4;
+        let b = f - &self.k * &self.temp;
         let x = &self.m_lu.solve(&b).expect("Oh no...");
 
         self.temp = time_step * x + &self.temp;

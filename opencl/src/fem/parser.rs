@@ -20,15 +20,15 @@ pub struct ParserElement {
 #[derive(Debug, Deserialize)]
 pub struct ParserNode {
     id: u32,
-    x: f32,
-    y: f32,
-    z: f32,
+    x: f64,
+    y: f64,
+    z: f64,
 }
 
 #[derive(Serialize)]
 struct FEMResult {
     id: u32,
-    temp: f32,
+    temp: f64,
 }
 
 pub fn fem_results_to_vtk(
@@ -43,7 +43,7 @@ pub fn fem_results_to_vtk(
         byte_order: ByteOrder::BigEndian,
         file_path: None,
         data: DataSet::inline(UnstructuredGridPiece {
-            points: IOBuffer::F32(
+            points: IOBuffer::F64(
                 points
                     .iter()
                     .map(|point| [point.position[0], point.position[1], point.position[2]])
@@ -73,7 +73,7 @@ pub fn fem_results_to_vtk(
             },
             data: Attributes {
                 point: vec![Attribute::scalars("Temperatura", 1)
-                    .with_data(results.iter().map(|&x| x).collect::<Vec<f32>>())],
+                    .with_data(results.iter().map(|&x| x).collect::<Vec<f64>>())],
                 cell: vec![],
             },
         }),
@@ -143,7 +143,7 @@ pub fn fem_multiple_results_to_csv(
 pub fn fem_problem_from_csv(
     elements_path: String,
     nodes_path: String,
-    initial_temp: HashMap<u32, f32>,
+    initial_temp: HashMap<u32, f64>,
 ) -> FEMProblem {
     //Alumium
     let conductivity = 237.0;
@@ -165,7 +165,7 @@ pub fn fem_problem_from_csv(
 
     for result in reader.deserialize() {
         let pnode: ParserNode = result.unwrap();
-        let temp = initial_temp.get(&pnode.id).unwrap_or(&273f32);
+        let temp = initial_temp.get(&pnode.id).unwrap_or(&273f64);
         points.push(Point::new(
             Vector::from_row_slice(&[pnode.x, pnode.y, pnode.z]),
             *temp,
@@ -209,7 +209,7 @@ pub fn fem_problem_from_csv(
         let factors = ViewFactors {
             earth: 1.0,
             sun: 1.0,
-            elements: vec![0.1f32; elements_count],
+            elements: vec![0.1f64; elements_count],
         };
 
         elements.push(Element::new(

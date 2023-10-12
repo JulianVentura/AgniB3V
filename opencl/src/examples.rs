@@ -12,7 +12,7 @@ fn test_2_d_plane() -> (FEMProblem, String) {
     let nodes_path = "./models/2D_plane_verts.csv".to_string();
     let results_path = "./models/2D_plane_results".to_string();
 
-    let initial_temp_map: HashMap<u32, f32> = [(104, 473.0)].into_iter().collect();
+    let initial_temp_map: HashMap<u32, f64> = [(104, 473.0)].into_iter().collect();
 
     (
         parser::fem_problem_from_csv(elements_path, nodes_path, initial_temp_map),
@@ -26,7 +26,7 @@ fn test_monkey() -> (FEMProblem, String) {
     let nodes_path = "./models/monkey_mesh_verts.csv".to_string();
     let results_path = "./models/monkey_mesh_results".to_string();
 
-    let initial_temp_map: HashMap<u32, f32> = [(575, 573.0), (633, 573.0)].into_iter().collect();
+    let initial_temp_map: HashMap<u32, f64> = [(575, 573.0), (633, 573.0)].into_iter().collect();
 
     (
         parser::fem_problem_from_csv(elements_path, nodes_path, initial_temp_map),
@@ -41,7 +41,7 @@ fn test_3_d_plane_non_tilted() -> (FEMProblem, String) {
     let results_path = "./models/3D_plane_non_tilted_results".to_string();
 
     //TODO: Check
-    let initial_temp_map: HashMap<u32, f32> = [
+    let initial_temp_map: HashMap<u32, f64> = [
         (130, 473.0),
         (145, 473.0),
         (146, 473.0),
@@ -64,7 +64,7 @@ fn test_3_d_cube() -> (FEMProblem, String) {
     let nodes_path = "./models/Cube_verts.csv".to_string();
     let results_path = "./models/Cube_results".to_string();
 
-    let initial_temp_map: HashMap<u32, f32> = [(25, 600.0)].into_iter().collect();
+    let initial_temp_map: HashMap<u32, f64> = [(25, 600.0)].into_iter().collect();
 
     (
         parser::fem_problem_from_csv(elements_path, nodes_path, initial_temp_map),
@@ -78,7 +78,7 @@ fn test_cylinder() -> (FEMProblem, String) {
     let nodes_path = "./models/cylinder_verts.csv".to_string();
     let results_path = "./models/cylinder_results.csv".to_string();
 
-    let initial_temp_map: HashMap<u32, f32> = [(56, 473.0)].into_iter().collect();
+    let initial_temp_map: HashMap<u32, f64> = [(56, 473.0)].into_iter().collect();
 
     (
         parser::fem_problem_from_csv(elements_path, nodes_path, initial_temp_map),
@@ -92,7 +92,7 @@ fn test_plane_medium() -> (FEMProblem, String) {
     let nodes_path = "./models/plane_medium_verts.csv".to_string();
     let results_path = "./models/plane_medium_results.csv".to_string();
 
-    let initial_temp_map: HashMap<u32, f32> = [(265, 473.0), (252, 473.0)].into_iter().collect();
+    let initial_temp_map: HashMap<u32, f64> = [(265, 473.0), (252, 473.0)].into_iter().collect();
 
     (
         parser::fem_problem_from_csv(elements_path, nodes_path, initial_temp_map),
@@ -108,7 +108,7 @@ pub fn test_plane_0_2() -> Result<()> {
     let results_file = format!("{}_results", name);
     let results_format = "csv".to_string();
 
-    let initial_temp_map: HashMap<u32, f32> = [
+    let initial_temp_map: HashMap<u32, f64> = [
         (143, 573.0),
         (141, 573.0),
         (138, 573.0),
@@ -149,10 +149,10 @@ pub fn test_plane_0_2() -> Result<()> {
     let mut len = 0;
     let last = &temp_results.last();
     for temp in last {
-        sum += temp.iter().sum::<f32>();
+        sum += temp.iter().sum::<f64>();
         len += temp.len();
     }
-    let avg = sum / len as f32;
+    let avg = sum / len as f64;
 
     println!("Average temperature: {}", avg);
 

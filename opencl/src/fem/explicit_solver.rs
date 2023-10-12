@@ -35,7 +35,7 @@ impl ExplicitSolver {
         let f_const = solver::construct_global_vector_f_const(elements, n_points);
         println!("Constructing points array");
         let points = solver::construct_points_array(elements, n_points);
-        let temp = Vector::from_vec(points.iter().map(|p| p.temperature).collect::<Vec<f32>>());
+        let temp = Vector::from_vec(points.iter().map(|p| p.temperature).collect::<Vec<f64>>());
 
         let h = l - e;
 
@@ -60,7 +60,7 @@ impl ExplicitSolver {
         &self.points
     }
 
-    pub fn step(&mut self, time_step: f32) {
+    pub fn step(&mut self, time_step: f64) {
         let mut t_4 = self.temp.clone();
         solver::fourth_power(&mut t_4);
 

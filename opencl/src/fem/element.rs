@@ -11,27 +11,27 @@ pub struct Element {
     pub m: Matrix,
     pub e: Matrix,
     pub f: Vector,
-    pub alpha_sun: f32,
-    pub alpha_ir: f32,
-    pub view_factors: Vec<f32>,
-    pub area: f32,
+    pub alpha_sun: f64,
+    pub alpha_ir: f64,
+    pub view_factors: Vec<f64>,
+    pub area: f64,
 }
 
 #[derive(Clone, Debug)]
 pub struct MaterialProperties {
-    pub conductivity: f32,
-    pub density: f32,
-    pub specific_heat: f32,
-    pub thickness: f32,
-    pub alpha_sun: f32,
-    pub alpha_ir: f32,
+    pub conductivity: f64,
+    pub density: f64,
+    pub specific_heat: f64,
+    pub thickness: f64,
+    pub alpha_sun: f64,
+    pub alpha_ir: f64,
 }
 
 #[derive(Clone, Debug)]
 pub struct ViewFactors {
-    pub earth: f32,
-    pub sun: f32,
-    pub elements: Vec<f32>,
+    pub earth: f64,
+    pub sun: f64,
+    pub elements: Vec<f64>,
 }
 
 impl Element {
@@ -41,16 +41,16 @@ impl Element {
         mut p3: Point,
         properties: MaterialProperties,
         factors: ViewFactors,
-        solar_intensity: f32,
-        betha: f32,
-        albedo_factor: f32,
-        generated_heat: f32,
+        solar_intensity: f64,
+        betha: f64,
+        albedo_factor: f64,
+        generated_heat: f64,
     ) -> Self {
         Self::check_point_length(&p1);
         Self::check_point_length(&p2);
         Self::check_point_length(&p3);
 
-        let area: f32 = Self::calculate_area(&p1, &p2, &p3);
+        let area: f64 = Self::calculate_area(&p1, &p2, &p3);
 
         p1.set_local_id(1);
         p2.set_local_id(2);
@@ -99,7 +99,7 @@ impl Element {
         }
     }
 
-    pub fn basic(p1: Point, p2: Point, p3: Point, generated_heat: f32, n_elements: usize) -> Self {
+    pub fn basic(p1: Point, p2: Point, p3: Point, generated_heat: f64, n_elements: usize) -> Self {
         let conductivity = 237.0;
         let density = 2700.0;
         let specific_heat = 900.0;
@@ -122,7 +122,7 @@ impl Element {
         let factors = ViewFactors {
             earth: 1.0,
             sun: 1.0,
-            elements: vec![0.1f32; n_elements],
+            elements: vec![0.1f64; n_elements],
         };
 
         Self::new(
@@ -138,19 +138,19 @@ impl Element {
         )
     }
 
-    fn calculate_area(p1: &Point, p2: &Point, p3: &Point) -> f32 {
+    fn calculate_area(p1: &Point, p2: &Point, p3: &Point) -> f64 {
         let ab = &p2.position - &p1.position;
         let ac = &p3.position - &p1.position;
 
         //Cross product
-        let a: f32 = ab[1] * ac[2] - ab[2] * ac[1];
-        let b: f32 = ab[2] * ac[0] - ab[0] * ac[2];
-        let c: f32 = ab[0] * ac[1] - ab[1] * ac[0];
+        let a: f64 = ab[1] * ac[2] - ab[2] * ac[1];
+        let b: f64 = ab[2] * ac[0] - ab[0] * ac[2];
+        let c: f64 = ab[0] * ac[1] - ab[1] * ac[0];
 
         (a * a + b * b + c * c).sqrt() / 2.0
     }
 
-    fn calculate_sqr_distance(p1: &Point, p2: &Point) -> f32 {
+    fn calculate_sqr_distance(p1: &Point, p2: &Point) -> f64 {
         let mut distance = (p1.position[0] - p2.position[0]).powi(2);
         distance += (p1.position[1] - p2.position[1]).powi(2);
         distance += (p1.position[2] - p2.position[2]).powi(2);
@@ -158,7 +158,7 @@ impl Element {
         distance
     }
 
-    fn edges_dot_product(a: (&Point, &Point), b: (&Point, &Point)) -> f32 {
+    fn edges_dot_product(a: (&Point, &Point), b: (&Point, &Point)) -> f64 {
         //Calculate the dot product between two edges
         let edge1 = &a.1.position - &a.0.position;
         let edge2 = &b.1.position - &b.0.position;
@@ -177,9 +177,9 @@ impl Element {
         p1: &Point,
         p2: &Point,
         p3: &Point,
-        conductivity: f32,
-        area: f32,
-        thickness: f32,
+        conductivity: f64,
+        area: f64,
+        thickness: f64,
     ) -> Matrix {
         let k11 = Self::calculate_sqr_distance(&p2, &p3);
         let k22 = Self::calculate_sqr_distance(&p1, &p3);
@@ -211,7 +211,7 @@ impl Element {
         k
     }
 
-    fn calculate_m(area: f32, specific_heat: f32, density: f32, thickness: f32) -> Matrix {
+    fn calculate_m(area: f64, specific_heat: f64, density: f64, thickness: f64) -> Matrix {
         let mut m = Matrix::from_row_slice(
             3,
             3,
@@ -228,7 +228,7 @@ impl Element {
         m
     }
 
-    fn calculate_e(area: f32, alpha: f32) -> Matrix {
+    fn calculate_e(area: f64, alpha: f64) -> Matrix {
         let e = Matrix::from_row_slice(
             3,
             3,
@@ -239,17 +239,17 @@ impl Element {
             ],
         );
 
-        ((BOLTZMANN as f32) * alpha * area / 3.0) * e
+        (BOLTZMANN * alpha * area / 3.0) * e
     }
 
     fn calculate_f(
-        area: f32,
+        area: f64,
         properties: &MaterialProperties,
         factors: &ViewFactors,
-        solar_intensity: f32,
-        betha: f32,
-        albedo_factor: f32,
-        generated_heat: f32,
+        solar_intensity: f64,
+        betha: f64,
+        albedo_factor: f64,
+        generated_heat: f64,
     ) -> Vector {
         //TODO: Add single node heat source
         // f += [nodo1.heat_source, nodo2.heat_source, nodo3.heat_source]
@@ -259,8 +259,7 @@ impl Element {
         //TODO: Define constant value
         let constant = 1.0;
 
-        let solar =
-            properties.alpha_sun * solar_intensity * (f64::sin(betha.into()) as f32) * factors.sun;
+        let solar = properties.alpha_sun * solar_intensity * f64::sin(betha.into()) * factors.sun;
         let ir = properties.alpha_ir * constant * factors.earth;
         let albedo = properties.alpha_sun * solar_intensity * albedo_factor * factors.earth;
 
@@ -277,10 +276,10 @@ mod tests {
     use crate::fem::structures::Vector;
 
     fn calculate_area_default(
-        position1: [f32; 3],
-        position2: [f32; 3],
-        position3: [f32; 3],
-    ) -> f32 {
+        position1: [f64; 3],
+        position2: [f64; 3],
+        position3: [f64; 3],
+    ) -> f64 {
         let p1 = Point::new(Vector::from_row_slice(&position1), 0.0, 0, 0);
         let p2 = Point::new(Vector::from_row_slice(&position2), 0.0, 1, 0);
         let p3 = Point::new(Vector::from_row_slice(&position3), 0.0, 2, 0);
@@ -290,7 +289,7 @@ mod tests {
         area
     }
 
-    fn assert_float_eq(value_1: f32, value_2: f32, precision: f32) {
+    fn assert_float_eq(value_1: f64, value_2: f64, precision: f64) {
         assert!(
             (value_1 - value_2).abs() < precision,
             "value1 {} != {}",
@@ -299,7 +298,7 @@ mod tests {
         );
     }
 
-    fn calculate_distance_default(position1: [f32; 3], position2: [f32; 3]) -> f32 {
+    fn calculate_distance_default(position1: [f64; 3], position2: [f64; 3]) -> f64 {
         let p1 = Point::new(Vector::from_row_slice(&position1), 0.0, 0, 0);
         let p2 = Point::new(Vector::from_row_slice(&position2), 0.0, 1, 0);
 
@@ -309,11 +308,11 @@ mod tests {
     }
 
     fn calculate_edges_dot_product_default(
-        position1: [f32; 3],
-        position2: [f32; 3],
-        position3: [f32; 3],
-        position4: [f32; 3],
-    ) -> f32 {
+        position1: [f64; 3],
+        position2: [f64; 3],
+        position3: [f64; 3],
+        position4: [f64; 3],
+    ) -> f64 {
         let p1 = Point::new(Vector::from_row_slice(&position1), 0.0, 0, 0);
         let p2 = Point::new(Vector::from_row_slice(&position2), 0.0, 1, 0);
         let p3 = Point::new(Vector::from_row_slice(&position3), 0.0, 2, 0);

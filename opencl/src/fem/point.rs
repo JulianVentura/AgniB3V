@@ -5,11 +5,11 @@ pub struct Point {
     pub global_id: u32,
     pub local_id: u32,
     pub position: Vector,
-    pub temperature: f32,
+    pub temperature: f64,
 }
 
 impl Point {
-    pub fn new(position: Vector, temperature: f32, global_id: u32, local_id: u32) -> Self {
+    pub fn new(position: Vector, temperature: f64, global_id: u32, local_id: u32) -> Self {
         Point {
             position,
             temperature,

@@ -62,7 +62,7 @@ impl FEMEngine {
                 temp_results.push(temp);
             }
             match &mut self.solver {
-                Solver::Explicit(s) => s.step(self.time_step as f32),
+                Solver::Explicit(s) => s.step(self.time_step),
                 Solver::Implicit(s) => s.step(),
             };
         }

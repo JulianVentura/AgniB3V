@@ -80,18 +80,15 @@ pub fn construct_l_matrix(elements: &Vec<Element>, n_points: usize) -> Matrix {
         view_factors[i] = element.view_factors.clone();
     }
 
-    let mut p = Matrix::from_vec(
-        n_elements,
-        n_elements,
-        view_factors.into_iter().flatten().collect(),
-    );
+    let mut p =
+        Matrix::from_row_iterator(n_elements, n_elements, view_factors.into_iter().flatten());
 
     for i in 0..elements.len() {
         for j in 0..elements.len() {
-            let emissivity = &elements[i].alpha_ir;
-            let absorptivity = &elements[j].alpha_ir;
+            let alpha_i = &elements[i].alpha_ir;
+            let alpha_j = &elements[j].alpha_ir;
             let area = &elements[i].area;
-            p[(i, j)] *= emissivity * absorptivity * area;
+            p[(i, j)] *= alpha_i * alpha_j * area;
         }
     }
 
@@ -134,6 +131,7 @@ pub fn fourth_power(array: &mut Vector) {
 
 #[cfg(test)]
 mod tests {
+    use crate::fem::constants::BOLTZMANN;
     use crate::fem::element::{Element, MaterialProperties, ViewFactors};
     use crate::fem::point::Point;
     use crate::fem::solver;
@@ -160,7 +158,6 @@ mod tests {
         }
     }
 
-    #[ignore]
     #[test]
     fn test_l_matrix_construction_base_2d_plane() {
         let conductivity = 237.0;
@@ -168,7 +165,6 @@ mod tests {
         let specific_heat = 900.0;
         let thickness = 0.1;
         let alpha_sun = 1.0;
-        let alpha_ir = 1.0;
         let solar_intensity = 300.0;
         let betha = 0.1;
         let albedo_factor = 0.1;
@@ -178,27 +174,42 @@ mod tests {
         let p3 = Point::new(Vector::from_row_slice(&[1.0, 1.0, 0.0]), 0.0, 2, 0);
         let p4 = Point::new(Vector::from_row_slice(&[0.0, 1.0, 0.0]), 0.0, 3, 0);
 
-        let props = MaterialProperties {
+        let props1 = MaterialProperties {
             conductivity,
             density,
             specific_heat,
             thickness,
             alpha_sun,
-            alpha_ir,
+            alpha_ir: 0.7,
         };
 
-        let factors = ViewFactors {
+        let props2 = MaterialProperties {
+            conductivity,
+            density,
+            specific_heat,
+            thickness,
+            alpha_sun,
+            alpha_ir: 0.5,
+        };
+
+        let f1 = ViewFactors {
             earth: 1.0,
             sun: 1.0,
-            elements: vec![0.1f32; 2],
+            elements: vec![0.1, 0.3],
+        };
+
+        let f2 = ViewFactors {
+            earth: 1.0,
+            sun: 1.0,
+            elements: vec![0.2, 0.4],
         };
 
         let e1 = Element::new(
             p1.clone(),
             p2.clone(),
             p3.clone(),
-            props.clone(),
-            factors.clone(),
+            props1,
+            f1,
             solar_intensity,
             betha,
             albedo_factor,
@@ -209,30 +220,31 @@ mod tests {
             p2,
             p4,
             p3,
-            props,
-            factors,
+            props2,
+            f2,
             solar_intensity,
             betha,
             albedo_factor,
             0.0,
         );
 
-        let l = solver::construct_l_matrix(&vec![e1, e2], 4);
+        let mut l = solver::construct_l_matrix(&vec![e1, e2], 4);
 
-        //TODO: Theoretically resolve this matrix to compare
+        l /= BOLTZMANN as f32 / 3.0;
+
         let expected = Matrix::from_row_slice(
             4,
             4,
             &[
-                0.0, 0.0, 0.0, 0.0, //
-                0.0, 0.0, 0.0, 0.0, //
-                0.0, 0.0, 0.0, 0.0, //
-                0.0, 0.0, 0.0, 0.0, //
+                0.0245, 0.0595, 0.0595, 0.035, //
+                0.077, 0.162, 0.162, 0.085, //
+                0.077, 0.162, 0.162, 0.085, //
+                0.0525, 0.1025, 0.1025, 0.05, //
             ],
         );
 
         for (x, e) in l.iter().zip(expected.iter()) {
-            assert_float_eq(*x, *e, 1e-5);
+            assert_float_eq(*x, *e, 1e-6);
         }
     }
 }

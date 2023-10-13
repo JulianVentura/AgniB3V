@@ -33,6 +33,12 @@ class DialogGlobalProperties(QDialog):
                 f"{getattr(self.workbench, property[0])}",
             )
 
+        # create import button
+        importButton = QtGui.QPushButton('Import properties', self)
+        importButton.setDefault(False)
+        importButton.setAutoDefault(False)
+        importButton.clicked.connect(self.onImportProperties)
+        
         # create OK button
         okButton = QtGui.QPushButton('OK', self)
         okButton.setDefault(False)
@@ -59,41 +65,30 @@ class DialogGlobalProperties(QDialog):
         line = QHBoxLayout()
         line.addStretch()
         line.addWidget(okButton)
+        line.addWidget(importButton)
         layout.addLayout(line)
 
         self.setLayout(layout)
 
         # now make the window visible
-        self.show()    
+        self.show() 
 
-    def onInputChange(self, attribute_name, value):
-        getattr(self, attribute_name + "Input").setText(value)
-        try:
-            getattr(self.workbench, "set" + attribute_name[:1].upper() + attribute_name[1:])(float(value))
-        except ValueError:
-            pass
-
-    def validate_input(self, value):
-        # Deletes any non-numeric character except the dot (.)
-        cleaned_value = ''.join(c for c in value if c.isdigit() or c == '.')
-
-        # Replaces any dot (.) after the first one with an empty string
-        cleaned_value = cleaned_value.replace(',', '.')
-
-        return cleaned_value
+    def onImportProperties(self):
+        """Imports the global properties from the selected json file"""
+        file_path, _ = QtGui.QFileDialog.getOpenFileName(None, "Select a file to import", "", "JSON Files (*.json)")
+        if file_path:
+            self.workbench.importProperties(file_path)
+            # update inputs
+            for property in GLOBAL_PROPERTIES_INPUTS:
+                getattr(self, property[0] + "Input").setText(f"{getattr(self.workbench, property[0])}")
 
     def create_input(self, ui, attribute_name, label, unit, value):
         label = QtGui.QLabel(label + (f" ({unit})" if unit else ""), self)
-
-        input = ui.createWidget("Gui::InputField")
-        # input.unit = unit
-        input.setText(value)
-        input.textEdited.connect(
-            lambda value: self.onInputChange(attribute_name, self.validate_input(value))
-        )
+        input = QtGui.QLabel(value, self)
 
         setattr(self, attribute_name + "Label", label)
         setattr(self, attribute_name + "Input", input)
 
     def onOk(self):
+        """Closes the dialog"""
         self.close()

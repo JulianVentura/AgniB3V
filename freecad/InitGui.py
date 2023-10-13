@@ -65,4 +65,16 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         # Create setter with capitalized first letter
         setattr(self, f"set{property[0][:1].upper() + property[0][1:]}", lambda x: setattr(self, property[0], x))
 
+    def importProperties(self, path):
+        """
+        This function imports the properties from a json file
+        """
+        import json
+        from constants.global_properties import GLOBAL_PROPERTIES_INPUTS
+
+        with open(path) as json_file:
+            data = json.load(json_file)
+            for property in GLOBAL_PROPERTIES_INPUTS:
+                setattr(self, property[0], data[property[0]])
+
 FreeCAD.Gui.addWorkbench(ThermalWorkbench())

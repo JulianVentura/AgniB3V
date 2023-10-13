@@ -68,8 +68,8 @@ class CmdExportMesh:
         
     def GetResources(self):
         return {
-            'MenuText': ("Set Global Properties"),
-            'ToolTip': ("Set Global Properties"),
+            'MenuText': ("Export mesh"),
+            'ToolTip': ("Export mesh"),
             'Pixmap': "./public/icons/Export.svg",
         }
     

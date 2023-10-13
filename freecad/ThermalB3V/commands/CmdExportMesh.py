@@ -168,8 +168,10 @@ class CmdExportMesh:
         with open("mesh.json", "w") as file:
             json.dump(
                 {
-                    "materialProps": materialProperties,
-                    "trianglesByMaterial": trianglesByMaterial
+                    "materials": {
+                        "materialProps": materialProperties,
+                        "trianglesByMaterial": trianglesByMaterial
+                    }
                 },
                 file,
                 indent=4

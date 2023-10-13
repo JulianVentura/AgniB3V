@@ -6,6 +6,8 @@ use super::point::Point;
 use super::structures::Vector;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
+use serde_json;
+use std::fs::File;
 
 use vtkio::model::*;
 
@@ -29,6 +31,19 @@ pub struct ParserNode {
 struct FEMResult {
     id: u32,
     temp: f64,
+}
+
+#[derive(Serialize, Deserialize)]
+struct VTKSeriesContent {
+    name: String,
+    time: f64,
+}
+
+#[derive(Serialize, Deserialize)]
+struct VTKSeries {
+    #[serde(rename = "file-series-version")]
+    file_series_version: String,
+    files: Vec<VTKSeriesContent>,
 }
 
 pub fn fem_results_to_vtk(
@@ -87,16 +102,33 @@ pub fn fem_results_to_vtk(
 pub fn fem_multiple_results_to_vtk(
     directory_path: String,
     file_name: String,
-    format: String,
     points: &Vec<Point>,
     elements: &Vec<Element>,
     results: &Vec<Vector>,
+    snap_time: f64,
 ) -> Result<()> {
     std::fs::create_dir_all(&directory_path)?;
     for (i, result) in results.iter().enumerate() {
-        let file_path = format!("{}/{}_{}.{}", directory_path, file_name, i, format);
+        let file_path = format!("{}/{}_{}", directory_path, file_name, i);
         fem_results_to_vtk(file_path, points, elements, result)?;
     }
+    let mut files_data: Vec<VTKSeriesContent> = Vec::new();
+    for (i, _) in results.iter().enumerate() {
+        let file_name = format!("{}_{}.vtk", file_name, i);
+        files_data.push(VTKSeriesContent {
+            name: file_name,
+            time: snap_time * i as f64,
+        });
+    }
+    let data = VTKSeries {
+        file_series_version: String::from("1.0"),
+        files: files_data,
+    };
+
+    let vtk_series_path = format!("{}/{}.vtk.series", directory_path, file_name);
+    let file = File::create(vtk_series_path)?;
+    serde_json::to_writer(file, &data)?;
+
     Ok(())
 }
 

@@ -101,7 +101,7 @@ fn test_plane_medium() -> (FEMProblem, String) {
 }
 
 pub fn test_plane_0_2() -> Result<()> {
-    let name = "plano_metros_mesh2";
+    let name = "cilindro_mesh_prepo";
     let elements_path = format!("./models/{}_triangles.csv", name);
     let nodes_path = format!("./models/{}_verts.csv", name);
     let results_folder = format!("./models/{}_results", name);
@@ -109,22 +109,22 @@ pub fn test_plane_0_2() -> Result<()> {
     let results_format = "csv".to_string();
 
     let initial_temp_map: HashMap<u32, f64> = [
-        (143, 573.0),
-        (141, 573.0),
-        (138, 573.0),
-        (136, 573.0),
-        (133, 573.0),
-        (131, 573.0),
-        (128, 573.0),
+        (85, 573.0),
         (126, 573.0),
-        (120, 573.0),
+        (125, 573.0),
+        (83, 573.0),
+        (61, 573.0),
+        (77, 573.0),
+        (115, 573.0),
+        (86, 573.0),
+        (131, 573.0),
     ]
     .into_iter()
     .collect();
 
     let problem = parser::fem_problem_from_csv(elements_path, nodes_path, initial_temp_map);
     println!("{}", problem.elements.len());
-    let simulation_time = 500000.0;
+    let simulation_time = 5000.0;
     let time_step = 1.0;
     let snap_time = simulation_time / 10.0;
 
@@ -157,17 +157,19 @@ pub fn test_plane_0_2() -> Result<()> {
     println!("Average temperature: {}", avg);
 
     parser::fem_multiple_results_to_csv(
-        results_folder,
-        results_file,
+        results_folder.clone(),
+        results_file.clone(),
         results_format,
         &temp_results,
     )?;
 
-    parser::fem_results_to_vtk(
-        "./models/plano_metros_mesh2_results".to_string(),
+    parser::fem_multiple_results_to_vtk(
+        results_folder,
+        results_file,
         &points,
         &problem.elements,
-        &temp_results.last().ok_or(anyhow!("No result"))?.clone(),
+        &temp_results,
+        snap_time,
     )?;
 
     Ok(())

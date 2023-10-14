@@ -1,0 +1,9 @@
+{
+    "betaAngle": 35.0,
+    "orbitHeight": 350.0,
+    "albedo": 0.2569,
+    "earthIR": 220.0,
+    "solarConstant": 1360.0,
+    "spaceTemperature": 3.9886,
+    "initialTemperature": 243.27
+}

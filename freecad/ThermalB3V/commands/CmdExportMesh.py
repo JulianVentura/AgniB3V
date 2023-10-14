@@ -5,6 +5,9 @@ import re
 from public.utils import iconPath
 
 class CmdExportMesh:
+    def __init__(self, workbench):
+        self.workbench = workbench
+
     def Activated(self):
         FreeCAD.Console.PrintMessage("Getting document\n")
         document = FreeCAD.activeDocument()
@@ -169,6 +172,7 @@ class CmdExportMesh:
         with open("mesh.json", "w") as file:
             json.dump(
                 {
+                    "globalProperties": self.workbench.getGlobalProperties(),
                     "materials": {
                         "materialProps": materialProperties,
                         "trianglesByMaterial": trianglesByMaterial

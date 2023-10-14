@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use super::element::{Element, MaterialProperties, ViewFactors};
 use super::engine::FEMProblem;
 use super::point::Point;
@@ -7,16 +5,30 @@ use super::structures::Vector;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use serde_json;
+use std::collections::HashMap;
 use std::fs::File;
-
+use std::io::BufReader;
+use vtkio::model::DataSet;
 use vtkio::model::*;
 
+//Todo: Delete
+use std::path::PathBuf;
+
 #[derive(Debug, Deserialize)]
-pub struct ParserElement {
+pub struct ParserElementCsv {
     _id: u32,
     nodeidx1: u32,
     nodeidx2: u32,
     nodeidx3: u32,
+}
+
+#[derive(Debug)]
+pub struct ParserElement {
+    id: u32,
+    nodeidx1: u32,
+    nodeidx2: u32,
+    nodeidx3: u32,
+    material: MaterialProperties,
 }
 
 #[derive(Debug, Deserialize)]
@@ -25,6 +37,31 @@ pub struct ParserNode {
     x: f64,
     y: f64,
     z: f64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ParserPropertiesMaterialsDetails {
+    thermal_conductivity: f64,
+    density: f64,
+    specific_heat: f64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ParserPropertiesMaterials {
+    material_props: HashMap<String, ParserPropertiesMaterialsDetails>,
+    triangles_by_material: HashMap<String, Vec<u32>>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ParserPropertiesViewFactors {
+    sun: Vec<f64>,
+    elements: Vec<Vec<f64>>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ParserProperties {
+    materials: ParserPropertiesMaterials,
+    view_factors: ParserPropertiesViewFactors,
 }
 
 #[derive(Serialize)]
@@ -224,7 +261,7 @@ pub fn fem_problem_from_csv(
     let _ = reader.seek(csv::Position::new());
 
     for result in reader.deserialize() {
-        let pelement: ParserElement = result.unwrap();
+        let pelement: ParserElementCsv = result.unwrap();
         let p1 = points[pelement.nodeidx1 as usize].clone();
         let p2 = points[pelement.nodeidx2 as usize].clone();
         let p3 = points[pelement.nodeidx3 as usize].clone();
@@ -249,6 +286,118 @@ pub fn fem_problem_from_csv(
             p2,
             p3,
             props,
+            factors,
+            solar_intensity,
+            betha,
+            albedo_factor,
+            0.0,
+        ));
+    }
+
+    FEMProblem {
+        simulation_time: 0.0,
+        time_step: 0.0,
+        elements,
+        snapshot_period: 0.0,
+    }
+}
+
+pub fn fem_problem_from_vtk(
+    vtk_file_path: String,
+    properties_file_path: String,
+    initial_temp: HashMap<u32, f64>,
+) -> FEMProblem {
+    let thickness = 0.1;
+    let alpha_sun = 1.0;
+    let alpha_ir = 1.0;
+    let solar_intensity = 300.0;
+    let betha = 0.1;
+    let albedo_factor = 0.1;
+
+    let file_path = PathBuf::from(vtk_file_path);
+    let vtk_file = Vtk::import(&file_path).expect(&format!("Failed to load file: {:?}", file_path));
+
+    let mut points: Vec<Point> = Vec::new();
+    let mut parser_elements: Vec<ParserElement> = Vec::new();
+
+    if let DataSet::UnstructuredGrid { meta: _, pieces } = vtk_file.data {
+        if let Piece::Inline(vtk_piece) = &pieces[0] {
+            //Points
+            if let IOBuffer::F32(vtk_points) = &vtk_piece.points {
+                for (id, vtk_point) in vtk_points.chunks(3).enumerate() {
+                    assert!(vtk_point.len() == 3);
+                    let temp = initial_temp.get(&(id as u32)).unwrap_or(&273f64);
+                    points.push(Point::new(
+                        Vector::from_row_slice(&[
+                            vtk_point[0] as f64,
+                            vtk_point[1] as f64,
+                            vtk_point[2] as f64,
+                        ]),
+                        *temp,
+                        id as u32,
+                        0,
+                    ));
+                }
+            }
+
+            // Partial Elements
+            if let VertexNumbers::Legacy {
+                num_cells: _,
+                vertices,
+            } = &vtk_piece.cells.cell_verts
+            {
+                for (id, vtk_element) in vertices.chunks(3).enumerate() {
+                    assert!(vtk_element.len() == 3);
+                    parser_elements.push(ParserElement {
+                        id: id as u32,
+                        nodeidx1: vtk_element[0],
+                        nodeidx2: vtk_element[1],
+                        nodeidx3: vtk_element[2],
+                        material: MaterialProperties::default(),
+                    });
+                }
+            }
+        }
+    }
+
+    //Elements
+    let properties_reader =
+        BufReader::new(File::open(properties_file_path).expect("Couldn't read properties file"));
+    let properties_json: ParserProperties =
+        serde_json::from_reader(properties_reader).expect("Couldn't parse properties file");
+
+    for (material_name, material_elements) in properties_json.materials.triangles_by_material {
+        let file_material_properties = &properties_json.materials.material_props[&material_name];
+        let material_properties = MaterialProperties {
+            conductivity: file_material_properties.thermal_conductivity,
+            density: file_material_properties.density,
+            specific_heat: file_material_properties.specific_heat,
+            thickness: thickness,
+            alpha_sun: alpha_sun,
+            alpha_ir: alpha_ir,
+        };
+        for element_id in material_elements {
+            parser_elements[element_id as usize].material = material_properties.clone();
+        }
+    }
+
+    let mut elements: Vec<Element> = Vec::new();
+
+    for (parser_element_id, parser_element) in parser_elements.iter().enumerate() {
+        let p1 = points[parser_element.nodeidx1 as usize].clone();
+        let p2 = points[parser_element.nodeidx2 as usize].clone();
+        let p3 = points[parser_element.nodeidx3 as usize].clone();
+        let factors = ViewFactors {
+            earth: 1.0,
+            sun: properties_json.view_factors.sun[parser_element_id as usize],
+            elements: properties_json.view_factors.elements[parser_element_id as usize].clone(),
+        };
+
+        elements.push(Element::new(
+            p1,
+            p2,
+            p3,
+            parser_element.material.clone(),
             factors,
             solar_intensity,
             betha,

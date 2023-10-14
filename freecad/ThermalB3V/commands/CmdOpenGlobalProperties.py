@@ -1,5 +1,6 @@
 import FreeCAD
 from ui.DialogGlobalProperties import DialogGlobalProperties
+from public.utils import iconPath
 
 class CmdOpenGlobalProperties:
     def __init__(self, workbench):
@@ -17,5 +18,5 @@ class CmdOpenGlobalProperties:
         return {
             'MenuText': ("Set Global Properties"),
             'ToolTip': ("Set Global Properties"),
-            'Pixmap': "./public/icons/Settings.svg",
+            'Pixmap': iconPath("Settings.svg"),
         }

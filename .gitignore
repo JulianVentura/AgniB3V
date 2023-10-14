@@ -382,3 +382,6 @@ Cargo.lock
 # MSVC Windows builds of rustc generate these, which store debugging information
 
 # End of https://www.toptal.com/developers/gitignore/api/node,python,rust,c,blender
+
+# Ignore results in plotter
+plotter/results

@@ -79,5 +79,16 @@ class ThermalWorkbench(FreeCADGui.Workbench):
             data = json.load(json_file)
             for property in GLOBAL_PROPERTIES_INPUTS:
                 setattr(self, property[0], data[property[0]])
+    
+    def getGlobalProperties(self):
+        """
+        This function returns the global properties as a dictionary
+        """
+        from constants.global_properties import GLOBAL_PROPERTIES_INPUTS
+
+        globalProperties = {}
+        for property in GLOBAL_PROPERTIES_INPUTS:
+            globalProperties[property[0]] = getattr(self, property[0])
+        return globalProperties
 
 FreeCAD.Gui.addWorkbench(ThermalWorkbench())

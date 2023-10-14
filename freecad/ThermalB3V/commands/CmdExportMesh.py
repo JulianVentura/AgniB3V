@@ -2,6 +2,7 @@ import FreeCAD
 import os
 import json
 import re
+from public.utils import iconPath
 
 class CmdExportMesh:
     def Activated(self):
@@ -65,12 +66,12 @@ class CmdExportMesh:
 
     def IsActive(self):
         return bool(FreeCAD.activeDocument())
-        
+
     def GetResources(self):
         return {
             'MenuText': ("Export mesh"),
             'ToolTip': ("Export mesh"),
-            'Pixmap': "./public/icons/Export.svg",
+            'Pixmap': iconPath("Export.svg"),
         }
     
     def getAnalysisObject(self, document):

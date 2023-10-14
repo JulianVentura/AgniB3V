@@ -3,8 +3,11 @@ import FreeCAD, FreeCADGui
 class ThermalWorkbench(FreeCADGui.Workbench):
 
     MenuText = "Thermal B3V"
-    ToolTip = "A description of my workbench" # TODO: change description
-    Icon = "./public/icons/ThermalWorkbench.svg" # TODO: change icon
+    ToolTip = "A workbench designed to make satellite thermal analysis"
+
+    def __init__(self):
+        from public.utils import iconPath
+        self.__class__.Icon = iconPath("ThermalWorkbench.svg")
 
     def Initialize(self):
         """This function is executed when the workbench is first activated.

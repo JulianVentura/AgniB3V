@@ -27,6 +27,19 @@ pub struct MaterialProperties {
     pub alpha_ir: f64,
 }
 
+impl Default for MaterialProperties {
+    fn default() -> Self {
+        MaterialProperties {
+            conductivity: 0.0,
+            density: 0.0,
+            specific_heat: 0.0,
+            thickness: 0.0,
+            alpha_sun: 0.0,
+            alpha_ir: 0.0,
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct ViewFactors {
     pub earth: f64,

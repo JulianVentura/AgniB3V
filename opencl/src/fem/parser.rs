@@ -29,6 +29,8 @@ pub struct ParserElement {
     nodeidx2: u32,
     nodeidx3: u32,
     material: MaterialProperties,
+    initial_temperature: f64, //TODO: Remove in final version
+    flux: f64,                //TODO: Remove in final version
 }
 
 #[derive(Debug, Deserialize)]
@@ -44,6 +46,8 @@ pub struct ParserPropertiesMaterialsDetails {
     thermal_conductivity: f64,
     density: f64,
     specific_heat: f64,
+    initial_temperature: f64, //TODO: Remove in final version
+    flux: f64,                //TODO: Remove in final version
 }
 
 #[derive(Debug, Deserialize)]
@@ -354,6 +358,8 @@ pub fn fem_problem_from_vtk(
                         nodeidx2: vtk_element[1],
                         nodeidx3: vtk_element[2],
                         material: MaterialProperties::default(),
+                        initial_temperature: 0.0, //TODO: Remove in final version
+                        flux: 0.0,                //TODO: Remove in final version
                     });
                 }
             }
@@ -378,15 +384,32 @@ pub fn fem_problem_from_vtk(
         };
         for element_id in material_elements {
             parser_elements[element_id as usize].material = material_properties.clone();
+            parser_elements[element_id as usize].initial_temperature =
+                file_material_properties.initial_temperature; //TODO: Remove in final version
+            parser_elements[element_id as usize].flux = file_material_properties.flux;
+            //TODO: Remove in final version
         }
     }
 
     let mut elements: Vec<Element> = Vec::new();
 
+    //TODO: Remove in final version
+    let mut initial_temperatures: HashMap<u32, (f64, u32)> =
+        calculate_node_initial_temperatures(&parser_elements);
+
     for (parser_element_id, parser_element) in parser_elements.iter().enumerate() {
-        let p1 = points[parser_element.nodeidx1 as usize].clone();
-        let p2 = points[parser_element.nodeidx2 as usize].clone();
-        let p3 = points[parser_element.nodeidx3 as usize].clone();
+        let mut p1 = points[parser_element.nodeidx1 as usize].clone();
+        let mut p2 = points[parser_element.nodeidx2 as usize].clone();
+        let mut p3 = points[parser_element.nodeidx3 as usize].clone();
+
+        //TODO: Remove in final version
+        p1.temperature = initial_temperatures[&parser_element.nodeidx1].0
+            / initial_temperatures[&parser_element.nodeidx1].1 as f64;
+        p2.temperature = initial_temperatures[&parser_element.nodeidx2].0
+            / initial_temperatures[&parser_element.nodeidx2].1 as f64;
+        p3.temperature = initial_temperatures[&parser_element.nodeidx3].0
+            / initial_temperatures[&parser_element.nodeidx3].1 as f64;
+
         let factors = ViewFactors {
             earth: 1.0,
             sun: properties_json.view_factors.sun[parser_element_id as usize],
@@ -402,7 +425,7 @@ pub fn fem_problem_from_vtk(
             solar_intensity,
             betha,
             albedo_factor,
-            0.0,
+            parser_element.flux,
         ));
     }
 
@@ -412,4 +435,38 @@ pub fn fem_problem_from_vtk(
         elements,
         snapshot_period: 0.0,
     }
+}
+
+//TODO: Remove in final version
+fn calculate_node_initial_temperatures(
+    parser_elements: &Vec<ParserElement>,
+) -> HashMap<u32, (f64, u32)> {
+    let mut initial_temperatures: HashMap<u32, (f64, u32)> = HashMap::new();
+    for (parser_element_id, parser_element) in parser_elements.iter().enumerate() {
+        update_initial_temperatures(
+            &mut initial_temperatures,
+            parser_element.nodeidx1,
+            parser_element.initial_temperature,
+        );
+        update_initial_temperatures(
+            &mut initial_temperatures,
+            parser_element.nodeidx2,
+            parser_element.initial_temperature,
+        );
+        update_initial_temperatures(
+            &mut initial_temperatures,
+            parser_element.nodeidx3,
+            parser_element.initial_temperature,
+        );
+    }
+    initial_temperatures
+}
+
+fn update_initial_temperatures(
+    initial_temperatures: &mut HashMap<u32, (f64, u32)>,
+    node: u32,
+    temperature: f64,
+) {
+    let entry = initial_temperatures.entry(node).or_insert((0.0, 0));
+    *entry = (entry.0 + temperature, entry.1 + 1);
 }

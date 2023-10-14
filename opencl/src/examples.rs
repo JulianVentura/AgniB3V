@@ -1,3 +1,5 @@
+use crate::fem;
+
 use super::fem::{
     engine::{FEMEngine, FEMProblem, Solver},
     explicit_solver::ExplicitSolver,
@@ -210,5 +212,17 @@ pub fn run_example() -> Result<()> {
         &temp_results.last().ok_or(anyhow!("No result"))?.clone(),
     )?;
 
+    Ok(())
+}
+
+pub fn vtk_test() -> Result<()> {
+    let fem_problem = parser::fem_problem_from_vtk(
+        "mesh4.vtk".to_string(),
+        "mesh.json".to_string(),
+        [].into_iter().collect(),
+    );
+    for element in fem_problem.elements.iter() {
+        println!("{:#?}", element.f);
+    }
     Ok(())
 }

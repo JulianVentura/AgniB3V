@@ -7,7 +7,8 @@ use fem::parser::fem_problem_from_vtk;
 use log::error;
 
 fn run() -> Result<()> {
-    examples::run_example()?;
+    //examples::run_example()?;
+    examples::vtk_test()?;
 
     Ok(())
 }

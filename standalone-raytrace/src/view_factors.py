@@ -2,7 +2,7 @@ import numpy as np
 import trimesh
 from . import utils, visualization
 
-def node_sun(mesh, sun_direction, displacement=0.05, visualize=False):
+def point_sun(mesh, sun_direction, displacement=0.05, visualize=False):
 	sun_direction = np.array(sun_direction)
 	ray_origins = mesh.vertices - sun_direction*displacement
 	ray_directions = np.broadcast_to(-sun_direction, (len(ray_origins), 3))
@@ -12,7 +12,7 @@ def node_sun(mesh, sun_direction, displacement=0.05, visualize=False):
 	
 	return [1 if x else 0 for x in intersected]
 
-def surface_surface(mesh, ray_amount=1000, max_reflections_amount=3, displacement=0.1):
+def element_element(mesh, ray_amount=1000, max_reflections_amount=3, displacement=0.1):
 	center = np.array([0.5,0.5,0.5])
 	surface_normals = trimesh.triangles.normals(mesh.triangles)[0]
 	view_factors = np.zeros((len(mesh.triangles), len(mesh.triangles)))

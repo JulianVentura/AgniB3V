@@ -22,19 +22,16 @@ def view_raycast(mesh, emmiting_element_idx, ray_origins, ray_directions):
     scene.show()
 
 def view_view_factors(mesh, emmiting_element_idx, element_view_factors):
-    print(element_view_factors)
     mesh.unmerge_vertices()
     mesh.visual.vertex_colors = None
     mesh.visual.face_colors = [[int(255*element_view_factors[i]*10),0,0,255] if emmiting_element_idx != i else [0,255,0,255] for i in range(len(mesh.triangles))]
-    print(mesh.visual.face_colors)
     scene = trimesh.Scene([mesh])
     scene.show()
 	
-def view_invisible_points(mesh, sun_direction, node_invisibility):
-    invisible_nodes = np.arange(len(mesh.vertices))[node_invisibility]
+def view_invisible_points(mesh, sun_direction, invisible_nodes):
     sun_ray = trimesh.load_path([mesh.center_mass, mesh.center_mass -10*sun_direction])
     sun_ray.colors = [[255,233,92,255]]
-    point_cloud = trimesh.PointCloud(mesh.vertices[invisible_nodes])
+    point_cloud = trimesh.PointCloud(invisible_nodes)
     mesh.unmerge_vertices()
     scene = trimesh.Scene([mesh, point_cloud, sun_ray])
     scene.show()

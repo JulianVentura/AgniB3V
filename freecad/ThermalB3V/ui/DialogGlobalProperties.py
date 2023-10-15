@@ -3,7 +3,6 @@ import FreeCADGui
 
 from PySide import QtGui, QtCore
 from PySide2.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QGridLayout
-from constants.global_properties import GLOBAL_PROPERTIES_INPUTS
 
 class DialogGlobalProperties(QDialog):
     """
@@ -23,14 +22,16 @@ class DialogGlobalProperties(QDialog):
         self.setWindowTitle("Global Properties")
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
+        globalProperties = self.workbench.getGlobalPropertiesInfo()
+
         # create inputs
-        for property in GLOBAL_PROPERTIES_INPUTS:
+        for property in globalProperties:
             self.create_input(
                 ui,
-                property[0],
-                property[1],
-                property[2],
-                f"{getattr(self.workbench, property[0])}",
+                property,
+                globalProperties[property]['label'],
+                globalProperties[property]['unit'],
+                str(globalProperties[property]['value']),
             )
 
         # create import button
@@ -55,9 +56,9 @@ class DialogGlobalProperties(QDialog):
         # Add inputs to layout
         row = 0
 
-        for property in GLOBAL_PROPERTIES_INPUTS:
-            line.addWidget(getattr(self, property[0] + "Label"), row, 0)
-            line.addWidget(getattr(self, property[0] + "Input"), row, 1)
+        for property in globalProperties:
+            line.addWidget(getattr(self, property + "Label"), row, 0)
+            line.addWidget(getattr(self, property + "Input"), row, 1)
             row += 1
 
         layout.addLayout(line)
@@ -79,15 +80,16 @@ class DialogGlobalProperties(QDialog):
         if file_path:
             self.workbench.importProperties(file_path)
             # update inputs
-            for property in GLOBAL_PROPERTIES_INPUTS:
-                getattr(self, property[0] + "Input").setText(f"{getattr(self.workbench, property[0])}")
+            globalProperties = self.workbench.getGlobalPropertiesInfo()
+            for property in globalProperties:
+                getattr(self, property + "Input").setText(str(globalProperties[property]['value']))
 
     def create_input(self, ui, attribute_name, label, unit, value):
-        label = QtGui.QLabel(label + (f" ({unit})" if unit else ""), self)
-        input = QtGui.QLabel(value, self)
+        qtLabel = QtGui.QLabel(label + (f" ({unit})" if unit else ""), self)
+        qtInput = QtGui.QLabel(value, self)
 
-        setattr(self, attribute_name + "Label", label)
-        setattr(self, attribute_name + "Input", input)
+        setattr(self, attribute_name + "Label", qtLabel)
+        setattr(self, attribute_name + "Input", qtInput)
 
     def onOk(self):
         """Closes the dialog"""

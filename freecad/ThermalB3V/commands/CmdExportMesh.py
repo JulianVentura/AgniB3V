@@ -53,7 +53,6 @@ class CmdExportMesh:
             
             # TODO: is better key to be the name, label, id or something else?
             trianglesByMaterial[materialObject.Name] = trianglesWithMaterial
-            print(materialObject.Material)
             materialProperties[materialObject.Name] = self.getMaterialProperties(materialObject.Material)
             if not materialProperties[materialObject.Name]:
                 FreeCAD.Console.PrintError(f"Some of the material properties are missing in {materialObject.Label}\n")
@@ -172,7 +171,7 @@ class CmdExportMesh:
         with open("mesh.json", "w") as file:
             json.dump(
                 {
-                    "globalProperties": self.workbench.getGlobalProperties(),
+                    "globalProperties": self.workbench.getGlobalPropertiesValues(),
                     "materials": {
                         "materialProps": materialProperties,
                         "trianglesByMaterial": trianglesByMaterial

@@ -8,15 +8,18 @@ def op_process_view_factors(argv):
 
 	calle_name, op, mesh_file_path, properties_file_path, output_path, sun_direction = sys.argv
 	
-	mesh = vtk_io.load_vtk(mesh_file_path)	
+	mesh = vtk_io.load_vtk(mesh_file_path)
+
 	sun_direction = list(map(float, sun_direction.strip("[]").split(",")))
 	props = properties_atlas.PropertiesAtlas(len(mesh.triangles), properties_file_path)
 
 	element_sun_view_factors = view_factors.element_sun(mesh, sun_direction, 0.05)
-	element_element_view_factors = view_factors.element_element(mesh, 10000)
-    
+	element_element_view_factors = view_factors.element_element(mesh, 500)
+	element_earth_view_factors = view_factors.element_earth(mesh, list(map(lambda x: -x, sun_direction)), 200, 0.05)
+	
 	props.add_prop("view_factors", {
 		"sun": list(element_sun_view_factors),
+		"earth": list(element_earth_view_factors),
 		"elements": list(map(list, element_element_view_factors))
     })
 	props.dump(output_path)
@@ -32,8 +35,9 @@ def op_visualize_view_factors(argv):
 	element_id = int(element_id)
 	material_file = open(properties_file_path)
 	material_json = json.load(material_file)
-	props = properties_atlas.PropertiesAtlas(len(mesh.triangles), properties_file_path)
-	visualization.view_view_factors(mesh, element_id, material_json["view_factors"]["elements"][element_id])
+
+	#visualization.view_other_view_factors(mesh, material_json["view_factors"]["earth"])
+	visualization.view_element_view_factors(mesh, element_id, material_json["view_factors"]["earth"][element_id])
 
 	return True
 

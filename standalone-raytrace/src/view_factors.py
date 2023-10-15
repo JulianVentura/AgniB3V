@@ -11,7 +11,21 @@ def point_sun(mesh, sun_direction, displacement=0.05, visualize=False):
 	intersected = mesh.ray.intersects_any(ray_origins, ray_directions)
 	
 	if(DEBUG_VISUALIZATION_ENABLED):
-		visualization.view_invisible_points(mesh, sun_direction, intersected)
+		invisible_nodes = np.arange(len(mesh.vertices))[intersected]
+		visualization.view_invisible_points(mesh, sun_direction, mesh.vertices[invisible_nodes])
+	
+	return [1 if x else 0 for x in intersected]
+
+def element_sun(mesh, sun_direction, displacement=0.05, visualize=False):
+	sun_direction = np.array(sun_direction)
+	element_centers = np.array(list(map(lambda x: (x[0] + x[1] + x[2])/3, mesh.triangles)))
+	ray_origins =  element_centers - sun_direction*displacement
+	ray_directions = np.broadcast_to(-sun_direction, (len(ray_origins), 3))
+	intersected = mesh.ray.intersects_any(ray_origins, ray_directions)
+	
+	if(DEBUG_VISUALIZATION_ENABLED):
+		invisible_nodes = np.arange(len(element_centers))[intersected]
+		visualization.view_invisible_points(mesh, sun_direction, element_centers[invisible_nodes])
 	
 	return [1 if x else 0 for x in intersected]
 

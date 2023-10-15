@@ -12,11 +12,11 @@ def op_process_view_factors(argv):
 	sun_direction = list(map(float, sun_direction.strip("[]").split(",")))
 	props = properties_atlas.PropertiesAtlas(len(mesh.triangles), properties_file_path)
 
-	point_sun_view_factors = view_factors.point_sun(mesh, sun_direction, 0.05)
+	element_sun_view_factors = view_factors.element_sun(mesh, sun_direction, 0.05)
 	element_element_view_factors = view_factors.element_element(mesh, 10000)
     
 	props.add_prop("view_factors", {
-		"sun": list(point_sun_view_factors),
+		"sun": list(element_sun_view_factors),
 		"elements": list(map(list, element_element_view_factors))
     })
 	props.dump(output_path)

@@ -9,12 +9,8 @@ def view_material(mesh, materials):
     colors = []
     mesh.unmerge_vertices()
     for triangle_index in range(len(mesh.triangles)):
-        material = materials.get_material(triangle_index)
-        if material:
-            colors.append(material.color)
-        else:
-            print("Warning: No material for index", triangle_index)
-            colors.append([255,255,255,255])
+        material = materials.get_material_props(triangle_index)
+        colors.append(material["color"])
 
     mesh.visual.vertex_colors = None
     mesh.visual.face_colors = colors

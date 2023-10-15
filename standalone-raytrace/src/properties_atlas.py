@@ -21,8 +21,8 @@ class PropertiesAtlas():
             if (material_id < 0):
                 print(f"Warning: Element {element_id} does not have a material")
 
-    def get_material_props(self, surface_index):
-        return self.materials[self.material_by_element[surface_index]]
+    def get_material_props(self, element_index):
+        return self.materials[self.material_by_element[element_index]]
     
     def add_prop(self, key, data):
         self.material_json[key] = data;

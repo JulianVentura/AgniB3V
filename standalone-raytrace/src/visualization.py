@@ -1,11 +1,7 @@
 import trimesh
 import numpy as np
 
-ENABLED = True
-
 def view_material(mesh, materials):
-    if not ENABLED:
-        return
     colors = []
     mesh.unmerge_vertices()
     for triangle_index in range(len(mesh.triangles)):
@@ -17,19 +13,24 @@ def view_material(mesh, materials):
     scene = trimesh.Scene([mesh])
     scene.show()
 
-def view_raycast(mesh, emmiting_surface_idx, ray_origins, ray_directions):
-    if not ENABLED:
-        return
+def view_raycast(mesh, emmiting_element_idx, ray_origins, ray_directions):
     mesh.unmerge_vertices()
     mesh.visual.vertex_colors = None
-    mesh.visual.face_colors = [[255,0,0,255] if emmiting_surface_idx == i else [255,255,255,255] for i in range(len(mesh.triangles))]
+    mesh.visual.face_colors = [[255,0,0,255] if emmiting_element_idx == i else [255,255,255,255] for i in range(len(mesh.triangles))]
     rays = trimesh.load_path(np.hstack((ray_origins,ray_origins + ray_directions)).reshape(-1, 2, 3))
     scene = trimesh.Scene([mesh, rays])
     scene.show()
+
+def view_view_factors(mesh, emmiting_element_idx, element_view_factors):
+    print(element_view_factors)
+    mesh.unmerge_vertices()
+    mesh.visual.vertex_colors = None
+    mesh.visual.face_colors = [[int(255*element_view_factors[i]*10),0,0,255] if emmiting_element_idx != i else [0,255,0,255] for i in range(len(mesh.triangles))]
+    print(mesh.visual.face_colors)
+    scene = trimesh.Scene([mesh])
+    scene.show()
 	
-def view_invisible_nodes(mesh, sun_direction, node_invisibility):
-    if not ENABLED:
-        return
+def view_invisible_points(mesh, sun_direction, node_invisibility):
     invisible_nodes = np.arange(len(mesh.vertices))[node_invisibility]
     sun_ray = trimesh.load_path([mesh.center_mass, mesh.center_mass -10*sun_direction])
     sun_ray.colors = [[255,233,92,255]]

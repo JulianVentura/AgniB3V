@@ -385,3 +385,9 @@ Cargo.lock
 
 # Ignore results in plotter
 plotter/results
+
+plotter/cilinder_vtk_results
+
+plotter/vtk_cilinder_results_cond
+standalone-raytrace/mesh.json
+standalone-raytrace/mesh.vtk

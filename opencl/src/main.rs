@@ -8,7 +8,7 @@ use log::error;
 
 fn run() -> Result<()> {
     //examples::run_example()?;
-    examples::vtk_test()?;
+    examples::cilinder_vtk()?;
 
     Ok(())
 }

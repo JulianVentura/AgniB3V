@@ -175,10 +175,10 @@ def plot_3d_scatter(results_temperatures, results_positions):
 
 
 results_temperatures, results_positions = parse_results_vtk_series(
-    "results", "cilindro_mesh_prepo_results.vtk.series"
+    "vtk_cilinder_results_cond", "vtk_cilinder_results.vtk.series"
 )
-# plot_all_temperatures(results)
-# plot_temperature_by_id(0, results)
-# plot_average_temperature(results)
-# plot_std_temperature(results)
-plot_3d_scatter(results_temperatures, results_positions)
+plot_all_temperatures(results_temperatures)
+plot_temperature_by_id(0, results_temperatures)
+plot_average_temperature(results_temperatures)
+plot_std_temperature(results_temperatures)
+# plot_3d_scatter(results_temperatures, results_positions)

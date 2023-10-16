@@ -3,6 +3,7 @@ import os
 import json
 import re
 from public.utils import iconPath
+from utils.CustomJsonEncoder import CustomJsonEncoder
 
 class CmdExportMesh:
     def __init__(self, workbench):
@@ -139,7 +140,7 @@ class CmdExportMesh:
         return elementsWithMaterial
         
     def getTrianglesFromElements(self, elements, femMeshObject):
-        """Returns a stringify list of triangles from a list of elements"""
+        """Returns a list of triangles from a list of elements"""
         triangles = []
         shape = femMeshObject.FemMesh
 
@@ -156,7 +157,7 @@ class CmdExportMesh:
                 FreeCAD.Console.PrintError(f"Element {element.Name} is not a solid or face\n")
                 FreeCAD.Console.PrintError(f"This could be causing an error on the mesh generation\n")
 
-        return str(triangles)
+        return triangles
     
     def writeFemMeshAsVtk(self, femMeshObject, path):
         """Writes the mesh as a vtk file"""
@@ -171,14 +172,15 @@ class CmdExportMesh:
         with open("mesh.json", "w") as file:
             json.dump(
                 {
-                    "globalProperties": self.workbench.getGlobalPropertiesValues(),
+                    "global_properties": self.workbench.getGlobalPropertiesValues(),
                     "materials": {
-                        "materialProps": materialProperties,
-                        "trianglesByMaterial": trianglesByMaterial
+                        "props": materialProperties,
+                        "elements": trianglesByMaterial
                     }
                 },
                 file,
-                indent=4
+                indent=4,
+                cls=CustomJsonEncoder,
             )
 
         FreeCAD.Console.PrintMessage(f"Exported mesh to file {path}/mesh.json\n")

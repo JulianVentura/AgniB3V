@@ -3,6 +3,7 @@ import meshio
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.widgets import Slider
+import sys
 
 # We have to install pip and then meshio for it to work
 
@@ -174,11 +175,27 @@ def plot_3d_scatter(results_temperatures, results_positions):
     plt.show()
 
 
-results_temperatures, results_positions = parse_results_vtk_series(
-    "vtk_cilinder_results_cond", "vtk_cilinder_results.vtk.series"
-)
-plot_all_temperatures(results_temperatures)
-plot_temperature_by_id(0, results_temperatures)
-plot_average_temperature(results_temperatures)
-plot_std_temperature(results_temperatures)
-# plot_3d_scatter(results_temperatures, results_positions)
+def plot_all(results_temperatures):
+    plot_all_temperatures(results_temperatures)
+    plot_temperature_by_id(0, results_temperatures)
+    plot_average_temperature(results_temperatures)
+    plot_std_temperature(results_temperatures)
+
+
+def __main__():
+    if len(sys.argv) < 3:
+        print("Usage: python script.py [arg1] [arg2] ...")
+        sys.exit(1)
+
+    directory = sys.argv[1]
+    vtk_series_path = sys.argv[2]
+
+    results_temperatures, results_positions = parse_results_vtk_series(
+        directory, vtk_series_path
+    )
+    plot_all(results_temperatures)
+    # plot_3d_scatter(results_temperatures, results_positions)
+
+
+if __name__ == "__main__":
+    __main__()

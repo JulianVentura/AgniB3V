@@ -184,7 +184,7 @@ def plot_all(results_temperatures):
 
 def __main__():
     if len(sys.argv) < 3:
-        print("Usage: python script.py [arg1] [arg2] ...")
+        print("Usage: python script.py [directory] [file_name.vtk.series] ...")
         sys.exit(1)
 
     directory = sys.argv[1]

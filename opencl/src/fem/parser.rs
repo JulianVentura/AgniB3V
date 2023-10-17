@@ -303,6 +303,7 @@ pub fn fem_problem_from_csv(
         time_step: 0.0,
         elements,
         snapshot_period: 0.0,
+        betha: betha,
     }
 }
 
@@ -314,7 +315,7 @@ pub fn fem_problem_from_vtk(
     let thickness = 0.1;
     let alpha_sun = 1.0;
     let alpha_ir = 1.0;
-    let solar_intensity = 300.0;
+    let solar_intensity = 1361.0; //1322 to 1414
     let betha = 0.1;
     let albedo_factor = 0.1;
 
@@ -434,6 +435,7 @@ pub fn fem_problem_from_vtk(
         time_step: 0.0,
         elements,
         snapshot_period: 0.0,
+        betha: betha,
     }
 }
 

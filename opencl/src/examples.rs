@@ -7,7 +7,7 @@ use super::fem::{
 };
 use anyhow::{anyhow, Result};
 use std::collections::HashMap;
-
+/*
 #[allow(dead_code)]
 fn test_2_d_plane() -> (FEMProblem, String) {
     let elements_path = "./models/2D_plane_triangles.csv".to_string();
@@ -226,21 +226,25 @@ pub fn vtk_test() -> Result<()> {
     }
     Ok(())
 }
+*/
 
 pub fn cilinder_vtk() -> Result<()> {
-    let name = "cilinder_vtk";
+    let name = "cubo_vtk";
     let results_folder = format!("./models/{}_results", name);
     let results_file = format!("{}_results", name);
 
     let problem = parser::fem_problem_from_vtk(
-        "models/mesh.vtk".to_string(),
-        "models/mesh_res.json".to_string(),
+        "models/cubo.vtk".to_string(),
+        "models/cubo_res.json".to_string(),
         [].into_iter().collect(),
     );
 
     let simulation_time = 1000000.0;
-    let time_step = 1.0;
+    let time_step = 10.0;
     let snap_time = simulation_time / 5000.0;
+
+    let altitude = 2000.0; //km
+    let orbit_period = 100000.0; //s
 
     let solver = ExplicitSolver::new(&problem.elements);
 
@@ -250,6 +254,9 @@ pub fn cilinder_vtk() -> Result<()> {
         simulation_time,
         time_step,
         snap_time,
+        altitude,
+        orbit_period,
+        problem.betha,
         Solver::Explicit(solver),
     );
 

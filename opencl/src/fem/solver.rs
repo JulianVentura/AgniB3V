@@ -122,6 +122,23 @@ pub fn construct_global_vector_f_const(elements: &Vec<Element>, n_points: usize)
     f
 }
 
+pub fn construct_global_vector_f_const_eclipse(elements: &Vec<Element>, n_points: usize) -> Vector {
+    let mut f = Vector::zeros(n_points);
+
+    for e in elements {
+        let map = [e.p1.global_id, e.p2.global_id, e.p3.global_id];
+        let local_vector = &e.f_eclipse;
+
+        for i in 0..3 {
+            let v = local_vector[i];
+            let new_i = map[i] as usize;
+            f[new_i] += v;
+        }
+    }
+
+    f
+}
+
 pub fn fourth_power(array: &mut Vector) {
     for val in array.iter_mut() {
         *val *= *val;

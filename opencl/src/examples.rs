@@ -1,8 +1,7 @@
-use crate::fem;
-
 use super::fem::{
     engine::{FEMEngine, FEMProblem, Solver},
     explicit_solver::ExplicitSolver,
+    implicit_solver::ImplicitSolver,
     parser,
 };
 use anyhow::{anyhow, Result};
@@ -138,6 +137,7 @@ pub fn test_plane_0_2() -> Result<()> {
         simulation_time,
         time_step,
         snap_time,
+        problem.orbit_parameters,
         Solver::Explicit(solver),
     );
 
@@ -193,6 +193,7 @@ pub fn run_example() -> Result<()> {
         simulation_time,
         time_step,
         time_step,
+        problem.orbit_parameters,
         Solver::Explicit(solver),
     );
 
@@ -228,21 +229,21 @@ pub fn vtk_test() -> Result<()> {
 }
 
 pub fn cilinder_vtk() -> Result<()> {
-    let name = "cilinder_vtk";
+    let name = "cubo_vtk";
     let results_folder = format!("./models/{}_results", name);
     let results_file = format!("{}_results", name);
 
     let problem = parser::fem_problem_from_vtk(
-        "models/mesh.vtk".to_string(),
-        "models/mesh_res.json".to_string(),
+        "models/cubo.vtk".to_string(),
+        "models/cubo_res.json".to_string(),
         [].into_iter().collect(),
     );
 
     let simulation_time = 1000000.0;
-    let time_step = 1.0;
+    let time_step = 200.0;
     let snap_time = simulation_time / 5000.0;
 
-    let solver = ExplicitSolver::new(&problem.elements);
+    let solver = ImplicitSolver::new(&problem.elements, time_step);
 
     let points = solver.points().clone();
 
@@ -250,7 +251,8 @@ pub fn cilinder_vtk() -> Result<()> {
         simulation_time,
         time_step,
         snap_time,
-        Solver::Explicit(solver),
+        problem.orbit_parameters,
+        Solver::Implicit(solver),
     );
 
     let temp_results = engine.run()?;

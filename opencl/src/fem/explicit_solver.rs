@@ -7,6 +7,7 @@ pub struct ExplicitSolver {
     pub k: Matrix,
     pub h: Matrix,
     f_const: Vector,
+    f_const_eclipse: Vector,
     temp: Vector,
     points: Vec<Point>,
 }
@@ -33,6 +34,8 @@ impl ExplicitSolver {
         let l = solver::construct_l_matrix(elements, n_points);
         println!("Constructing global flux vector");
         let f_const = solver::construct_global_vector_f_const(elements, n_points);
+        println!("Constructing global flux vector eclipse");
+        let f_const_eclipse = solver::construct_global_vector_f_const_eclipse(elements, n_points);
         println!("Constructing points array");
         let points = solver::construct_points_array(elements, n_points);
         let temp = Vector::from_vec(points.iter().map(|p| p.temperature).collect::<Vec<f64>>());
@@ -47,6 +50,7 @@ impl ExplicitSolver {
             k,
             h,
             f_const,
+            f_const_eclipse,
             temp,
             points,
         }
@@ -60,11 +64,16 @@ impl ExplicitSolver {
         &self.points
     }
 
-    pub fn step(&mut self, time_step: f64) {
+    pub fn step(&mut self, time_step: f64, is_in_eclipse: bool) {
         let mut t_4 = self.temp.clone();
         solver::fourth_power(&mut t_4);
 
-        let f = &self.f_const + &self.h * t_4;
+        let mut f = &self.h * &t_4;
+        if is_in_eclipse {
+            f += &self.f_const_eclipse;
+        } else {
+            f += &self.f_const;
+        }
         let b = f - &self.k * &self.temp;
         let x = &self.m_lu.solve(&b).expect("Oh no...");
 

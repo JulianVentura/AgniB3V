@@ -3,18 +3,18 @@ import json
 from src import properties_atlas, vtk_io, view_factors, visualization
 
 def op_process_view_factors(argv):
-	if(argv[1] != 'process' or len(argv) != 6):
+	if(argv[1] != 'process' or len(argv) != 7):
 		return False
 
-	calle_name, op, mesh_file_path, properties_file_path, output_path, sun_direction = sys.argv
-	
+	calle_name, op, mesh_file_path, properties_file_path, output_path, sun_direction, internal_emission = sys.argv
+	internal_emission = internal_emission == "true"
 	mesh = vtk_io.load_vtk(mesh_file_path)
 
 	sun_direction = list(map(float, sun_direction.strip("[]").split(",")))
 	props = properties_atlas.PropertiesAtlas(len(mesh.triangles), properties_file_path)
 
-	element_sun_view_factors = view_factors.element_sun(mesh, sun_direction, 0.05)
-	element_element_view_factors = view_factors.element_element(mesh, 500)
+	element_sun_view_factors = view_factors.element_sun(mesh, sun_direction, 0.05),
+	element_element_view_factors = view_factors.element_element(mesh, 500,3,0.1,internal_emission)
 	element_earth_view_factors = view_factors.element_earth(mesh, list(map(lambda x: -x, sun_direction)), 200, 0.05)
 	
 	props.add_prop("view_factors", {

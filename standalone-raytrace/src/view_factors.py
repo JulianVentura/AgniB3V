@@ -62,7 +62,7 @@ def element_sun(mesh, sun_direction, displacement=0.05):
 	
 	return [1 if x else 0 for x in intersected]
 
-def element_element(mesh, ray_amount=1000, max_reflections_amount=3, displacement=0.1):
+def element_element(mesh, ray_amount=1000, max_reflections_amount=3, displacement=0.1, internal_emission=True):
 	center = np.array([0.5,0.5,0.5])
 	element_normals = trimesh.triangles.normals(mesh.triangles)[0]
 	view_factors = np.zeros((len(mesh.triangles), len(mesh.triangles)))
@@ -82,8 +82,11 @@ def element_element(mesh, ray_amount=1000, max_reflections_amount=3, displacemen
 
 			# Flip random rays that have a direction contrary to the element normal
 			random_direction = utils.normalize(random_verts[2*i + 1] - center)
-			oriented_towards_normal = np.dot(random_direction, element_normals[element_idx]) >= 0
-			ray_directions[i] = random_direction if oriented_towards_normal else -random_direction
+			if internal_emission:
+				ray_directions[i] = random_direction
+			else:
+				oriented_towards_normal = np.dot(random_direction, element_normals[element_idx]) >= 0
+				ray_directions[i] = random_direction if oriented_towards_normal else -random_direction
 
 		if(DEBUG_VISUALIZATION_ENABLED):
 			visualization.view_raycast(mesh, element_idx, ray_origins, ray_directions)

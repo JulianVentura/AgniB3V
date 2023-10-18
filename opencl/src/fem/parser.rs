@@ -63,7 +63,20 @@ pub struct ParserPropertiesViewFactors {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct ParserGlobalProperties {
+    beta_angle: f64,
+    orbit_height: f64,
+    orbital_period: f64,
+    albedo: f64,
+    earth_ir: f64,
+    solar_constant: f64,
+    space_temperature: f64,
+    initial_temperature: f64,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct ParserProperties {
+    global_properties: ParserGlobalProperties,
     materials: ParserPropertiesMaterials,
     view_factors: ParserPropertiesViewFactors,
 }
@@ -320,21 +333,6 @@ pub fn fem_problem_from_vtk(
     properties_file_path: String,
     initial_temp: HashMap<u32, f64>,
 ) -> FEMProblem {
-    let thickness = 0.1;
-    let alpha_sun = 1.0;
-    let alpha_ir = 1.0;
-    let solar_intensity = 1361.0; //1322 to 1414
-    let betha = 0.1;
-    let albedo_factor = 0.1;
-    let altitude = 2000.0; //km
-    let orbit_period = 100000.0; //s
-
-    let orbit_parameters = FEMOrbitParameters {
-        betha,
-        altitude,
-        orbit_period,
-    };
-
     let file_path = PathBuf::from(vtk_file_path);
     let vtk_file = Vtk::import(&file_path).expect(&format!("Failed to load file: {:?}", file_path));
 
@@ -389,6 +387,24 @@ pub fn fem_problem_from_vtk(
     let properties_json: ParserProperties =
         serde_json::from_reader(properties_reader).expect("Couldn't parse properties file");
 
+    let mut global_properties = properties_json.global_properties;
+    global_properties.beta_angle = global_properties.beta_angle.to_radians();
+
+    let thickness = 0.1; //Add to global properties
+    let alpha_sun = 1.0; //Add to global properties
+    let alpha_ir = 1.0; //Add to global properties
+
+    // Add to model
+    // global.properties.earth_ir
+    // global.properties.space_temperature
+    // global.properties.initial_temperature
+
+    let orbit_parameters = FEMOrbitParameters {
+        betha: global_properties.beta_angle,
+        altitude: global_properties.orbit_height,
+        orbit_period: global_properties.orbital_period,
+    };
+
     for (material_name, material_elements) in properties_json.materials.triangles_by_material {
         let file_material_properties = &properties_json.materials.material_props[&material_name];
         let material_properties = MaterialProperties {
@@ -439,9 +455,9 @@ pub fn fem_problem_from_vtk(
             p3,
             parser_element.material.clone(),
             factors,
-            solar_intensity,
-            betha,
-            albedo_factor,
+            global_properties.solar_constant,
+            global_properties.beta_angle,
+            global_properties.albedo,
             parser_element.flux,
         ));
     }

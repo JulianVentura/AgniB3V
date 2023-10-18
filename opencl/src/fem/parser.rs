@@ -1,5 +1,5 @@
 use super::element::{Element, MaterialProperties, ViewFactors};
-use super::engine::FEMProblem;
+use super::engine::{FEMOrbitParameters, FEMProblem};
 use super::point::Point;
 use super::structures::Vector;
 use anyhow::Result;
@@ -228,6 +228,14 @@ pub fn fem_problem_from_csv(
     let solar_intensity = 300.0;
     let betha = 0.1;
     let albedo_factor = 0.1;
+    let altitude = 2000.0; //km
+    let orbit_period = 100000.0; //s
+
+    let orbit_parameters = FEMOrbitParameters {
+        betha,
+        altitude,
+        orbit_period,
+    };
 
     let mut reader = csv::ReaderBuilder::new()
         .has_headers(false)
@@ -303,7 +311,7 @@ pub fn fem_problem_from_csv(
         time_step: 0.0,
         elements,
         snapshot_period: 0.0,
-        betha: betha,
+        orbit_parameters,
     }
 }
 
@@ -318,6 +326,14 @@ pub fn fem_problem_from_vtk(
     let solar_intensity = 1361.0; //1322 to 1414
     let betha = 0.1;
     let albedo_factor = 0.1;
+    let altitude = 2000.0; //km
+    let orbit_period = 100000.0; //s
+
+    let orbit_parameters = FEMOrbitParameters {
+        betha,
+        altitude,
+        orbit_period,
+    };
 
     let file_path = PathBuf::from(vtk_file_path);
     let vtk_file = Vtk::import(&file_path).expect(&format!("Failed to load file: {:?}", file_path));
@@ -395,7 +411,7 @@ pub fn fem_problem_from_vtk(
     let mut elements: Vec<Element> = Vec::new();
 
     //TODO: Remove in final version
-    let mut initial_temperatures: HashMap<u32, (f64, u32)> =
+    let initial_temperatures: HashMap<u32, (f64, u32)> =
         calculate_node_initial_temperatures(&parser_elements);
 
     for (parser_element_id, parser_element) in parser_elements.iter().enumerate() {
@@ -435,7 +451,7 @@ pub fn fem_problem_from_vtk(
         time_step: 0.0,
         elements,
         snapshot_period: 0.0,
-        betha: betha,
+        orbit_parameters,
     }
 }
 
@@ -444,7 +460,7 @@ fn calculate_node_initial_temperatures(
     parser_elements: &Vec<ParserElement>,
 ) -> HashMap<u32, (f64, u32)> {
     let mut initial_temperatures: HashMap<u32, (f64, u32)> = HashMap::new();
-    for (parser_element_id, parser_element) in parser_elements.iter().enumerate() {
+    for (_, parser_element) in parser_elements.iter().enumerate() {
         update_initial_temperatures(
             &mut initial_temperatures,
             parser_element.nodeidx1,

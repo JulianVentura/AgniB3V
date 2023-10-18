@@ -1,13 +1,12 @@
-use crate::fem;
-
 use super::fem::{
     engine::{FEMEngine, FEMProblem, Solver},
     explicit_solver::ExplicitSolver,
+    implicit_solver::ImplicitSolver,
     parser,
 };
 use anyhow::{anyhow, Result};
 use std::collections::HashMap;
-/*
+
 #[allow(dead_code)]
 fn test_2_d_plane() -> (FEMProblem, String) {
     let elements_path = "./models/2D_plane_triangles.csv".to_string();
@@ -138,6 +137,7 @@ pub fn test_plane_0_2() -> Result<()> {
         simulation_time,
         time_step,
         snap_time,
+        problem.orbit_parameters,
         Solver::Explicit(solver),
     );
 
@@ -193,6 +193,7 @@ pub fn run_example() -> Result<()> {
         simulation_time,
         time_step,
         time_step,
+        problem.orbit_parameters,
         Solver::Explicit(solver),
     );
 
@@ -226,7 +227,6 @@ pub fn vtk_test() -> Result<()> {
     }
     Ok(())
 }
-*/
 
 pub fn cilinder_vtk() -> Result<()> {
     let name = "cubo_vtk";
@@ -240,13 +240,10 @@ pub fn cilinder_vtk() -> Result<()> {
     );
 
     let simulation_time = 1000000.0;
-    let time_step = 10.0;
+    let time_step = 200.0;
     let snap_time = simulation_time / 5000.0;
 
-    let altitude = 2000.0; //km
-    let orbit_period = 100000.0; //s
-
-    let solver = ExplicitSolver::new(&problem.elements);
+    let solver = ImplicitSolver::new(&problem.elements, time_step);
 
     let points = solver.points().clone();
 
@@ -254,10 +251,8 @@ pub fn cilinder_vtk() -> Result<()> {
         simulation_time,
         time_step,
         snap_time,
-        altitude,
-        orbit_period,
-        problem.betha,
-        Solver::Explicit(solver),
+        problem.orbit_parameters,
+        Solver::Implicit(solver),
     );
 
     let temp_results = engine.run()?;

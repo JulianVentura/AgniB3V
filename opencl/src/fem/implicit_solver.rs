@@ -5,6 +5,7 @@ use super::structures::{Matrix, Vector, LU};
 
 pub struct ImplicitSolver {
     f_const: Vector,
+    f_const_eclipse: Vector,
     pub a_lu: LU,
     pub d: Matrix,
     pub h: Matrix,
@@ -25,6 +26,8 @@ impl ImplicitSolver {
         let l = solver::construct_l_matrix(elements, n_points);
         println!("Constructing global flux vector");
         let f_const = solver::construct_global_vector_f_const(elements, n_points);
+        println!("Constructing global flux vector eclipse");
+        let f_const_eclipse = solver::construct_global_vector_f_const_eclipse(elements, n_points);
         println!("Constructing points array");
         let points = solver::construct_points_array(elements, n_points);
         let temp = Vector::from_vec(points.iter().map(|p| p.temperature).collect::<Vec<f64>>());
@@ -40,6 +43,7 @@ impl ImplicitSolver {
 
         ImplicitSolver {
             f_const,
+            f_const_eclipse,
             a_lu,
             d,
             h,
@@ -48,7 +52,7 @@ impl ImplicitSolver {
         }
     }
 
-    pub fn step(&mut self) {
+    pub fn step(&mut self, is_in_eclipse: bool) {
         //System:
         // A * Tn+1 = D * Tn + (1 - theta) * Fn + theta * Fn+1
         // Since Fn+1 == Fn, then the system is simplified
@@ -56,7 +60,13 @@ impl ImplicitSolver {
         let mut t_4 = self.temp.clone();
         solver::fourth_power(&mut t_4);
 
-        let f = &self.f_const + &self.h * t_4;
+        let mut f = &self.h * t_4;
+        if is_in_eclipse {
+            f += &self.f_const_eclipse;
+        } else {
+            f += &self.f_const;
+        }
+
         let b = &self.d * &self.temp + f;
 
         self.temp = self.a_lu.solve(&b).expect("Oh no...");

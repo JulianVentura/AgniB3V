@@ -68,9 +68,11 @@ impl ExplicitSolver {
         let mut t_4 = self.temp.clone();
         solver::fourth_power(&mut t_4);
 
-        let mut f = &self.f_const + &self.h * &t_4;
+        let mut f = &self.h * &t_4;
         if is_in_eclipse {
-            f = &self.f_const_eclipse + &self.h * &t_4;
+            f += &self.f_const_eclipse;
+        } else {
+            f += &self.f_const;
         }
         let b = f - &self.k * &self.temp;
         let x = &self.m_lu.solve(&b).expect("Oh no...");

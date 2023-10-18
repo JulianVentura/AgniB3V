@@ -20,6 +20,13 @@ pub struct FEMEngine {
     solver: Solver,
 }
 
+#[derive(Debug)]
+pub struct FEMOrbitParameters {
+    pub betha: f64,
+    pub altitude: f64,
+    pub orbit_period: f64,
+}
+
 #[allow(dead_code)]
 #[derive(Debug)]
 pub struct FEMProblem {
@@ -27,7 +34,7 @@ pub struct FEMProblem {
     pub simulation_time: f64,
     pub time_step: f64,
     pub snapshot_period: f64,
-    pub betha: f64,
+    pub orbit_parameters: FEMOrbitParameters,
 }
 
 impl FEMEngine {
@@ -35,9 +42,7 @@ impl FEMEngine {
         simulation_time: f64,
         time_step: f64,
         snapshot_period: f64,
-        altitude: f64,
-        orbit_period: f64,
-        betha: f64,
+        orbit_parameters: FEMOrbitParameters,
         solver: Solver,
     ) -> Self {
         //TODO add error handling
@@ -49,7 +54,8 @@ impl FEMEngine {
             panic!("Snapshot period must be multiple of simulation time");
         }
 
-        let eclipse_fraction = Self::calculate_eclipse_fraction(altitude, betha);
+        let eclipse_fraction =
+            Self::calculate_eclipse_fraction(orbit_parameters.altitude, orbit_parameters.betha);
 
         println!("Eclipse fraction: {}", eclipse_fraction);
 
@@ -58,7 +64,7 @@ impl FEMEngine {
             time_step,
             snapshot_period,
             eclipse_fraction,
-            orbit_period,
+            orbit_period: orbit_parameters.orbit_period,
             solver,
         }
     }
@@ -79,12 +85,14 @@ impl FEMEngine {
                 };
                 temp_results.push(temp);
             }
+
             let time = step as f64 * self.time_step;
-            let is_in_eclipse = time as u32 % (self.orbit_period as u32)
-                < (self.orbit_period * self.eclipse_fraction) as u32;
+            let is_in_eclipse =
+                time % (self.orbit_period) > (self.orbit_period * (1.0 - self.eclipse_fraction));
+
             match &mut self.solver {
                 Solver::Explicit(s) => s.step(self.time_step, is_in_eclipse),
-                Solver::Implicit(s) => s.step(),
+                Solver::Implicit(s) => s.step(is_in_eclipse),
             };
         }
 
@@ -107,12 +115,90 @@ impl FEMEngine {
 
         let betha_eclipse_begin = f64::asin(EARTH_RADIOUS / (EARTH_RADIOUS + altitude));
 
-        if betha.to_radians() < betha_eclipse_begin {
+        if betha < betha_eclipse_begin {
             let upper = f64::sqrt(altitude * altitude + 2.0 * EARTH_RADIOUS * altitude);
-            let lower = (EARTH_RADIOUS + altitude) * f64::cos(betha.to_radians());
+            let lower = (EARTH_RADIOUS + altitude) * f64::cos(betha);
             eclipse_fraction = 1.0 / 180.0_f64.to_radians() * f64::acos(upper / lower);
         }
 
         eclipse_fraction
+    }
+}
+
+mod tests {
+    use crate::fem::engine::FEMEngine;
+
+    fn assert_float_eq(value_1: f64, value_2: f64, precision: f64) {
+        assert!(
+            (value_1 - value_2).abs() < precision,
+            "value1 {} != {}",
+            value_1,
+            value_2
+        );
+    }
+
+    #[test]
+    fn test_calculate_eclipse_fraction_1() {
+        let altitude = 2000.0;
+        let betha = 0.1;
+
+        let eclipse_fraction = FEMEngine::calculate_eclipse_fraction(altitude, betha);
+
+        let actual_eclipse_fraction = 0.27;
+        let precision = 0.01;
+
+        assert_float_eq(eclipse_fraction, actual_eclipse_fraction, precision);
+    }
+
+    #[test]
+    fn test_calculate_eclipse_fraction_2() {
+        let altitude = 2000.0;
+        let betha = 0.9;
+
+        let eclipse_fraction = FEMEngine::calculate_eclipse_fraction(altitude, betha);
+
+        let actual_eclipse_fraction = 0.0;
+        let precision = 0.01;
+
+        assert_float_eq(eclipse_fraction, actual_eclipse_fraction, precision);
+    }
+
+    #[test]
+    fn test_calculate_eclipse_fraction_3() {
+        let altitude = 1000.0;
+        let betha = 0.9;
+
+        let eclipse_fraction = FEMEngine::calculate_eclipse_fraction(altitude, betha);
+
+        let actual_eclipse_fraction = 0.2;
+        let precision = 0.01;
+
+        assert_float_eq(eclipse_fraction, actual_eclipse_fraction, precision);
+    }
+
+    #[test]
+    fn test_calculate_eclipse_fraction_4() {
+        let altitude = 10000.0;
+        let betha = 0.3;
+
+        let eclipse_fraction = FEMEngine::calculate_eclipse_fraction(altitude, betha);
+
+        let actual_eclipse_fraction = 0.09;
+        let precision = 0.01;
+
+        assert_float_eq(eclipse_fraction, actual_eclipse_fraction, precision);
+    }
+
+    #[test]
+    fn test_calculate_eclipse_fraction_5() {
+        let altitude = 1.0;
+        let betha = 0.1;
+
+        let eclipse_fraction = FEMEngine::calculate_eclipse_fraction(altitude, betha);
+
+        let actual_eclipse_fraction = 0.49;
+        let precision = 0.01;
+
+        assert_float_eq(eclipse_fraction, actual_eclipse_fraction, precision);
     }
 }

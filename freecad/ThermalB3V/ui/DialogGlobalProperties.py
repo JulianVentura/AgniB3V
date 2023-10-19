@@ -1,6 +1,3 @@
-import FreeCAD
-import FreeCADGui
-
 from PySide import QtGui, QtCore
 from PySide2.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QGridLayout
 
@@ -16,8 +13,6 @@ class DialogGlobalProperties(QDialog):
         self.initUI()
 
     def initUI(self):
-        ui = FreeCADGui.UiLoader()
-
         # create our window
         self.setWindowTitle("Global Properties")
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
@@ -27,7 +22,6 @@ class DialogGlobalProperties(QDialog):
         # create inputs
         for property in globalProperties:
             self.create_input(
-                ui,
                 property,
                 globalProperties[property]['label'],
                 globalProperties[property]['unit'],
@@ -68,11 +62,9 @@ class DialogGlobalProperties(QDialog):
         line.addWidget(okButton)
         line.addWidget(importButton)
         layout.addLayout(line)
-
         self.setLayout(layout)
 
-        # now make the window visible
-        self.show() 
+        self.show()
 
     def onImportProperties(self):
         """Imports the global properties from the selected json file"""
@@ -84,7 +76,7 @@ class DialogGlobalProperties(QDialog):
             for property in globalProperties:
                 getattr(self, property + "Input").setText(str(globalProperties[property]['value']))
 
-    def create_input(self, ui, attribute_name, label, unit, value):
+    def create_input(self, attribute_name, label, unit, value):
         qtLabel = QtGui.QLabel(label + (f" ({unit})" if unit else ""), self)
         qtInput = QtGui.QLabel(value, self)
 

@@ -4,12 +4,27 @@ import json
 import re
 from public.utils import iconPath
 from utils.CustomJsonEncoder import CustomJsonEncoder
+from ui.DialogExport import DialogExport
 
 class CmdExportMesh:
     def __init__(self, workbench):
         self.workbench = workbench
 
     def Activated(self):
+        form = DialogExport(self.workbench, self.onExport)
+        form.exec_()
+
+    def IsActive(self):
+        return bool(FreeCAD.activeDocument())
+
+    def GetResources(self):
+        return {
+            'MenuText': ("Export mesh"),
+            'ToolTip': ("Export mesh"),
+            'Pixmap': iconPath("Export.svg"),
+        }
+    
+    def onExport(self):
         FreeCAD.Console.PrintMessage("Getting document\n")
         document = FreeCAD.activeDocument()
 
@@ -66,16 +81,6 @@ class CmdExportMesh:
         # Open file and write
         self.writeMaterialAsJson(properties, elements, path)
         self.writeFemMeshAsVtk(femMeshObject, path)
-
-    def IsActive(self):
-        return bool(FreeCAD.activeDocument())
-
-    def GetResources(self):
-        return {
-            'MenuText': ("Export mesh"),
-            'ToolTip': ("Export mesh"),
-            'Pixmap': iconPath("Export.svg"),
-        }
     
     def getAnalysisObject(self, document):
         """Returns the Analysis object or None if it does not exist"""

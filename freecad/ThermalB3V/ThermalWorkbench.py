@@ -70,14 +70,16 @@ class ThermalWorkbench(FreeCADGui.Workbench):
     def importProperties(self, path):
         """
         This function imports the properties from a json file
+        It only updates the properties defined in the json file
         """
         import json
-        from constants.global_properties import GLOBAL_PROPERTIES_INr5PUTS
+        from constants.global_properties import GLOBAL_PROPERTIES_INPUTS
 
         with open(path) as json_file:
             data = json.load(json_file)
             for property in GLOBAL_PROPERTIES_INPUTS:
-                setattr(self, property[0], data[property[0]])
+                if property[0] in data:
+                    setattr(self, property[0], data[property[0]])
     
     def getGlobalPropertiesValues(self):
         """

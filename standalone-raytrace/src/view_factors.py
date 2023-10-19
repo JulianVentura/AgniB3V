@@ -104,9 +104,7 @@ def element_element(mesh, ray_amount=1000, max_reflections_amount=3, displacemen
 			last_ray_directions = ray_directions
 			
 			#reflected_ray_direction = ray_direction - 2*(ray_direction*normal)*normal
-			normal_dir_dot = np.zeros((len(locations),3))
-			for i in range(len(locations)):
-				normal_dir_dot[i] = np.dot(element_normals[index_tri[i]], ray_directions[index_ray[i]])
+			normal_dir_dot = np.einsum('ij,ij->i',element_normals[index_tri],ray_directions[index_ray])[:,np.newaxis]
 			ray_directions = last_ray_directions[index_ray] - 2*normal_dir_dot*element_normals[index_tri]
 
 			if(DEBUG_VISUALIZATION_ENABLED):
@@ -116,7 +114,7 @@ def element_element(mesh, ray_amount=1000, max_reflections_amount=3, displacemen
 			locations, index_ray, index_tri = mesh.ray.intersects_location(ray_origins, ray_directions)
 			for index in index_tri:
 				view_factors_row[index] += 1
-
 		view_factors_row /= ray_amount
 		view_factors[element_idx] = (view_factors_row)
+	
 	return view_factors

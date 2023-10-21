@@ -62,10 +62,15 @@ def element_sun(mesh, sun_direction, displacement=0.05):
 	
 	return [1 if x else 0 for x in intersected]
 
-def element_element(mesh, ray_amount=1000, max_reflections_amount=3, displacement=0.1, internal_emission=True):
+def element_element(mesh, properties, ray_amount=1000, max_reflections_amount=3, displacement=0.1, internal_emission=True):
 	center = np.array([0.5,0.5,0.5])
 	element_normals = trimesh.triangles.normals(mesh.triangles)[0]
 	view_factors = np.zeros((len(mesh.triangles), len(mesh.triangles)))
+	
+	absorptance = np.zeros(len(mesh.triangles))
+	for element_idx in range(len(mesh.triangles)):
+		element_material = properties.get_material_props(element_idx)
+		absorptance[element_idx] = element_material['absorptance']
 
 	for element_idx in range(len(mesh.triangles)):
 		triangle = mesh.triangles[element_idx]
@@ -93,27 +98,34 @@ def element_element(mesh, ray_amount=1000, max_reflections_amount=3, displacemen
 
 		locations, index_ray, index_tri = mesh.ray.intersects_location(ray_origins, ray_directions)
 		view_factors_row = np.zeros(len(mesh.triangles))
-		for index in index_tri:
-			view_factors_row[index] += 1
 
 		#Reflexions
 		for j in range(max_reflections_amount):
 			if len(locations) == 0:
 				break
-			ray_origins = locations
-			last_ray_directions = ray_directions
+
+			random_values = np.random.rand(index_tri.size)
+			absorbed_rays = random_values < absorptance[index_tri]
+			for index in index_tri[absorbed_rays]:
+				view_factors_row[index] += 1
+
+			reflected_rays = random_values >= absorptance[index_tri]
+			if(reflected_rays.size == 0):
+				break
+
+			ray_origins = locations[reflected_rays]
+			index_ray = index_ray[reflected_rays]
+			index_tri = index_tri[reflected_rays]
 			
 			#reflected_ray_direction = ray_direction - 2*(ray_direction*normal)*normal
 			normal_dir_dot = np.einsum('ij,ij->i',element_normals[index_tri],ray_directions[index_ray])[:,np.newaxis]
-			ray_directions = last_ray_directions[index_ray] - 2*normal_dir_dot*element_normals[index_tri]
+			ray_directions = ray_directions[index_ray] - 2*normal_dir_dot*element_normals[index_tri]
 
 			if(DEBUG_VISUALIZATION_ENABLED):
 				visualization.view_raycast(mesh, element_idx, ray_origins, ray_directions)
 
-			#TODO: ¿Increment ray_amount? ¿What if a reflected ray hits the original element or another element two times? 
 			locations, index_ray, index_tri = mesh.ray.intersects_location(ray_origins, ray_directions)
-			for index in index_tri:
-				view_factors_row[index] += 1
+		
 		view_factors_row /= ray_amount
 		view_factors[element_idx] = (view_factors_row)
 	

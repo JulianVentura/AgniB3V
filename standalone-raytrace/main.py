@@ -14,7 +14,7 @@ def op_process_view_factors(argv):
 	props = properties_atlas.PropertiesAtlas(len(mesh.triangles), properties_file_path)
 
 	element_sun_view_factors = view_factors.element_sun(mesh, sun_direction, 0.05),
-	element_element_view_factors = view_factors.element_element(mesh, 500,3,0.1,internal_emission)
+	element_element_view_factors = view_factors.element_element(mesh, props, 500,3,0.1,internal_emission)
 	element_earth_view_factors = view_factors.element_earth(mesh, list(map(lambda x: -x, sun_direction)), 200, 0.05)
 	
 	props.add_prop("view_factors", {
@@ -37,7 +37,7 @@ def op_visualize_view_factors(argv):
 	material_json = json.load(material_file)
 
 	#visualization.view_other_view_factors(mesh, material_json["view_factors"]["earth"])
-	visualization.view_element_view_factors(mesh, element_id, material_json["view_factors"]["earth"][element_id])
+	visualization.view_element_view_factors(mesh, element_id, material_json["view_factors"]["elements"][element_id])
 
 	return True
 

@@ -58,6 +58,7 @@ pub struct ParserPropertiesMaterials {
 
 #[derive(Debug, Deserialize)]
 pub struct ParserPropertiesViewFactors {
+    earth: Vec<f64>,
     sun: Vec<f64>,
     elements: Vec<Vec<f64>>,
 }
@@ -444,7 +445,7 @@ pub fn fem_problem_from_vtk(
             / initial_temperatures[&parser_element.nodeidx3].1 as f64;
 
         let factors = ViewFactors {
-            earth: 1.0,
+            earth: properties_json.view_factors.earth[parser_element_id as usize],
             sun: properties_json.view_factors.sun[parser_element_id as usize],
             elements: properties_json.view_factors.elements[parser_element_id as usize].clone(),
         };

@@ -28,8 +28,8 @@ def is_point_in_element(element, point):
 
 def generate_random_points_in_element(element, amount):
 	random_weights = np.random.rand(amount,3)
-	random_weights /=np.sum(random_weights, axis=1).reshape(-1,1)
-	return random_weights @ element
+	random_weights /= np.sum(random_weights, axis=1).reshape(-1,1)
+	return (random_weights[:,np.newaxis] @ element).reshape((amount,3))
 
 def generate_random_unit_vectors(amount):
 	random_vectors = np.random.rand(amount,3) - RAND_VECTOR_CENTER
@@ -38,6 +38,7 @@ def generate_random_unit_vectors(amount):
 #TODO: If vector equals normal it will be multiplied by zero
 def orient_vector_towards_normal(vectors, normal):
 	vectors *= (np.sign(vectors @ normal[:,np.newaxis]))
+
 
 def reflected_rays(ray_directions, element_normals):
 	ray_direction_element_normal_dot_product = np.einsum('ij,ij->i',element_normals, ray_directions)[:,np.newaxis]

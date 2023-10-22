@@ -29,10 +29,10 @@ def test_property_dump():
     mesh = vtk_io.load_vtk(ICOSPHERE_GEOMETRY_PATH)
     properties = properties_atlas.PropertiesAtlas(len(mesh.triangles), ICOSPHERE_PROPERTIES_PATH)
     properties.add_prop("test", test_property)
-    properties.dump(OUTPUT_PROPERTIES_PATH)
+    properties.dump(ICOSPHERE_OUTPUT_PROPERTIES_PATH)
     
-    output_properties_file = open(OUTPUT_PROPERTIES_PATH)
-    expected_output_properties_file = open(EXPECTED_OUTPUT_PROPERTIES_PATH)
+    output_properties_file = open(ICOSPHERE_OUTPUT_PROPERTIES_PATH)
+    expected_output_properties_file = open(ICOSPHERE_EXPECTED_OUTPUT_PROPERTIES_PATH)
     output_properties = json.load(output_properties_file)
     expected_output_properties = json.load(expected_output_properties_file)
     assert json.dumps(output_properties, sort_keys=True) == json.dumps(expected_output_properties, sort_keys=True)

@@ -1,0 +1,12 @@
+{
+    "materials": {
+        "material_props": {
+            "MaterialA": {
+                "absorptance": 0.0
+            }
+        },
+        "triangles_by_material": {
+            "MaterialA": [0, 1, 2, 3]
+        }
+    }
+}

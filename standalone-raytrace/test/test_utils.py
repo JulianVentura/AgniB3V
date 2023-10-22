@@ -30,10 +30,9 @@ def test_point_in_element_outside():
 	assert utils.is_point_in_element(element0, np.array([0,1,0])) == False
 	
 def test_generate_random_points_in_elements():
-    points = utils.generate_random_points_in_element(element0, 3)
-    assert utils.is_point_in_element(element0, points[0]) == True
-    assert utils.is_point_in_element(element0, points[1]) == True
-    assert utils.is_point_in_element(element0, points[2]) == True
+    points = utils.generate_random_points_in_element(element0, 10000)
+    for point in points:
+          assert utils.is_point_in_element(element0, point) == True
 
 def test_generate_random_unit_vectors():
     unit_vectors = utils.generate_random_unit_vectors(10)

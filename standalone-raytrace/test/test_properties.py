@@ -8,7 +8,7 @@ def test_properties_loading():
     mesh = vtk_io.load_vtk(ICOSPHERE_GEOMETRY_PATH)
     properties = properties_atlas.PropertiesAtlas(len(mesh.triangles), ICOSPHERE_PROPERTIES_PATH)
     
-    for element_id in range(utils.elements_amount(mesh.triangles)):
+    for element_id in range(utils.element_amount(mesh.triangles)):
         material = properties.get_material_props(element_id)
         if element_id <= 9:
             assert material["test_id"] == 0

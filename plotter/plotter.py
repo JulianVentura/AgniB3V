@@ -9,7 +9,7 @@ import sys
 
 
 def parse_vtk(vtk_path):
-    print("Parsing ", vtk_path)
+    # print("Parsing ", vtk_path)
     temperatures = {}
     meshio_mesh = meshio.read(vtk_path, file_format="vtk")
     for i, temp in enumerate(meshio_mesh.point_data["Temperatura"]):
@@ -26,13 +26,17 @@ def get_positions(vtk_path):
     return positions
 
 
-def parse_results_vtk_series(directory, vtk_series_path):
+def parse_results_vtk_series(directory, vtk_series_path, progress):
     results_temperatures = {}
     results_positions = {}
     with open(directory + "/" + vtk_series_path) as file:
         vtk_series = json.load(file)
     print("Loaded VTK Series")
-    for vtk in vtk_series["files"]:
+
+    files_length = len(vtk_series["files"])
+    for i, vtk in enumerate(vtk_series["files"]):
+        progress((i / files_length) * 100)
+
         time = vtk["time"]
         name = vtk["name"]
         temperatures = parse_vtk(directory + "/" + name)

@@ -92,12 +92,18 @@ class MainWindow(QWidget):
         )
         if file_name:
             self.results = parse_results_vtk_series(
-                os.path.dirname(file_name), os.path.basename(file_name)
+                os.path.dirname(file_name), os.path.basename(file_name), self.progress
             )[0]
             self.file_label.setText("File Choosen: " + file_name)
             self.file_label.show()
             self.button.show()
         self.loader_label.hide()
+
+    def progress(self, percentage):
+        percentage = int(percentage)
+        self.loader_label.setText(f"Loading... {percentage} %")
+        self.loader_label.show()
+        QApplication.processEvents()
 
 
 if __name__ == "__main__":

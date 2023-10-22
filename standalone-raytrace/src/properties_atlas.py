@@ -29,4 +29,4 @@ class PropertiesAtlas():
 
     def dump(self, output_path):
 	    with open(output_path, 'w', encoding='utf-8') as f:
-	        json.dump(self.material_json, f, ensure_ascii=False, indent=4)
+	        json.dump(self.material_json, f, ensure_ascii=True)

@@ -207,6 +207,7 @@ dist
 __pycache__/
 *.py[cod]
 *$py.class
+.python-version
 
 # C extensions
 

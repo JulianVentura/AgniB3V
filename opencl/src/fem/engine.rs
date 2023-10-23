@@ -17,6 +17,7 @@ pub struct FEMEngine {
     snapshot_period: f64,
     eclipse_fraction: f64,
     orbit_period: f64,
+    orbit_divisions: u32,
     solver: Solver,
 }
 
@@ -25,6 +26,7 @@ pub struct FEMOrbitParameters {
     pub betha: f64,
     pub altitude: f64,
     pub orbit_period: f64,
+    pub orbit_divisions: u32,
 }
 
 #[allow(dead_code)]
@@ -65,6 +67,7 @@ impl FEMEngine {
             snapshot_period,
             eclipse_fraction,
             orbit_period: orbit_parameters.orbit_period,
+            orbit_divisions: orbit_parameters.orbit_divisions,
             solver,
         }
     }
@@ -87,12 +90,15 @@ impl FEMEngine {
             }
 
             let time = step as f64 * self.time_step;
-            let is_in_eclipse =
-                time % (self.orbit_period) > (self.orbit_period * (1.0 - self.eclipse_fraction));
+            let orbit_time = time % (self.orbit_period);
+            let is_in_eclipse = orbit_time > (self.orbit_period * (1.0 - self.eclipse_fraction));
+
+            let f_index =
+                Self::calculate_f_index(orbit_time, self.orbit_period, self.orbit_divisions);
 
             match &mut self.solver {
-                Solver::Explicit(s) => s.step(self.time_step, is_in_eclipse),
-                Solver::Implicit(s) => s.step(is_in_eclipse),
+                Solver::Explicit(s) => s.step(self.time_step, is_in_eclipse, f_index),
+                Solver::Implicit(s) => s.step(is_in_eclipse, f_index),
             };
         }
 
@@ -122,6 +128,12 @@ impl FEMEngine {
         }
 
         eclipse_fraction
+    }
+
+    fn calculate_f_index(orbit_time: f64, orbit_period: f64, orbit_divisions: u32) -> usize {
+        let orbit_division_time = orbit_period / orbit_divisions as f64;
+
+        (orbit_time / orbit_division_time) as usize
     }
 }
 
@@ -200,5 +212,57 @@ mod tests {
         let precision = 0.01;
 
         assert_float_eq(eclipse_fraction, actual_eclipse_fraction, precision);
+    }
+
+    #[test]
+    fn test_calculate_f_index_1() {
+        let orbit_time = 0.0;
+        let orbit_period = 100.0;
+        let orbit_divisions = 10;
+
+        let f_index = FEMEngine::calculate_f_index(orbit_time, orbit_period, orbit_divisions);
+
+        let actual_f_index = 0;
+
+        assert_eq!(f_index, actual_f_index);
+    }
+
+    #[test]
+    fn test_calculate_f_index_2() {
+        let orbit_time = 11.0;
+        let orbit_period = 100.0;
+        let orbit_divisions = 10;
+
+        let f_index = FEMEngine::calculate_f_index(orbit_time, orbit_period, orbit_divisions);
+
+        let actual_f_index = 1;
+
+        assert_eq!(f_index, actual_f_index);
+    }
+
+    #[test]
+    fn test_calculate_f_index_3() {
+        let orbit_time = 25.0;
+        let orbit_period = 100.0;
+        let orbit_divisions = 10;
+
+        let f_index = FEMEngine::calculate_f_index(orbit_time, orbit_period, orbit_divisions);
+
+        let actual_f_index = 2;
+
+        assert_eq!(f_index, actual_f_index);
+    }
+
+    #[test]
+    fn test_calculate_f_index_4() {
+        let orbit_time = 20.0;
+        let orbit_period = 30.0;
+        let orbit_divisions = 5;
+
+        let f_index = FEMEngine::calculate_f_index(orbit_time, orbit_period, orbit_divisions);
+
+        let actual_f_index = 4;
+
+        assert_eq!(f_index, actual_f_index);
     }
 }

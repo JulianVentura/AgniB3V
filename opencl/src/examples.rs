@@ -229,18 +229,18 @@ pub fn vtk_test() -> Result<()> {
 }
 
 pub fn cilinder_vtk() -> Result<()> {
-    let name = "cubo_vtk";
+    let name = "mesh_vtk";
     let results_folder = format!("./models/{}_results", name);
     let results_file = format!("{}_results", name);
 
     let problem = parser::fem_problem_from_vtk(
-        "models/cubo.vtk".to_string(),
-        "models/cubo_res.json".to_string(),
+        "models/mesh.vtk".to_string(),
+        "models/mesh_res.json".to_string(),
         [].into_iter().collect(),
     );
 
-    let simulation_time = 1000000.0;
-    let time_step = 200.0;
+    let simulation_time = 30000.0;
+    let time_step = 1.0;
     let snap_time = simulation_time / 5000.0;
 
     let solver = ImplicitSolver::new(&problem.elements, time_step);

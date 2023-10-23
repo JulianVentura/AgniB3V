@@ -4,9 +4,8 @@ class WidgetMaterials(QWidget):
     """
     Class that represents the "Materials" section
     """
-    def __init__(self):
-        super().__init__()
-        self.InitUI()
+    def __init__(self, parent):
+        super().__init__(parent)
     
     def InitUI(self):
         self.materials = QWidget()

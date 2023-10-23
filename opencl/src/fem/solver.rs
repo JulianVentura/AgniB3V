@@ -105,12 +105,40 @@ pub fn construct_l_matrix(elements: &Vec<Element>, n_points: usize) -> Matrix {
     l * BOLTZMANN / 3.0
 }
 
-pub fn construct_global_vector_f_const(elements: &Vec<Element>, n_points: usize) -> Vector {
+pub fn construct_global_vector_f_const_multiple_earth(
+    elements: &Vec<Element>,
+    n_points: usize,
+) -> Vec<Vector> {
+    let mut f_vec: Vec<Vector> = vec![];
+    for i in 0..elements[0].f.len() {
+        let f = construct_global_vector_f_const(elements, n_points, i);
+        f_vec.push(f);
+    }
+    f_vec
+}
+
+pub fn construct_global_vector_f_const_eclipse_multiple_earth(
+    elements: &Vec<Element>,
+    n_points: usize,
+) -> Vec<Vector> {
+    let mut f_vec: Vec<Vector> = vec![];
+    for i in 0..elements[0].f_eclipse.len() {
+        let f = construct_global_vector_f_const_eclipse(elements, n_points, i);
+        f_vec.push(f);
+    }
+    f_vec
+}
+
+pub fn construct_global_vector_f_const(
+    elements: &Vec<Element>,
+    n_points: usize,
+    i: usize,
+) -> Vector {
     let mut f = Vector::zeros(n_points);
 
     for e in elements {
         let map = [e.p1.global_id, e.p2.global_id, e.p3.global_id];
-        let local_vector = &e.f;
+        let local_vector = &e.f[i];
 
         for i in 0..3 {
             let v = local_vector[i];
@@ -122,12 +150,16 @@ pub fn construct_global_vector_f_const(elements: &Vec<Element>, n_points: usize)
     f
 }
 
-pub fn construct_global_vector_f_const_eclipse(elements: &Vec<Element>, n_points: usize) -> Vector {
+pub fn construct_global_vector_f_const_eclipse(
+    elements: &Vec<Element>,
+    n_points: usize,
+    i: usize,
+) -> Vector {
     let mut f = Vector::zeros(n_points);
 
     for e in elements {
         let map = [e.p1.global_id, e.p2.global_id, e.p3.global_id];
-        let local_vector = &e.f_eclipse;
+        let local_vector = &e.f_eclipse[i];
 
         for i in 0..3 {
             let v = local_vector[i];

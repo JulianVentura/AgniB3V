@@ -58,7 +58,7 @@ pub struct ParserPropertiesMaterials {
 
 #[derive(Debug, Deserialize)]
 pub struct ParserPropertiesViewFactors {
-    earth: Vec<f64>,
+    earth: Vec<Vec<f64>>,
     sun: Vec<f64>,
     elements: Vec<Vec<f64>>,
 }
@@ -249,6 +249,7 @@ pub fn fem_problem_from_csv(
         betha,
         altitude,
         orbit_period,
+        orbit_divisions: 1,
     };
 
     let mut reader = csv::ReaderBuilder::new()
@@ -302,7 +303,7 @@ pub fn fem_problem_from_csv(
         };
 
         let factors = ViewFactors {
-            earth: 1.0,
+            earth: vec![1.0],
             sun: 1.0,
             elements: vec![0.1f64; elements_count],
         };
@@ -404,6 +405,7 @@ pub fn fem_problem_from_vtk(
         betha: global_properties.beta_angle,
         altitude: global_properties.orbit_height,
         orbit_period: global_properties.orbital_period,
+        orbit_divisions: properties_json.view_factors.earth.len() as u32,
     };
 
     for (material_name, material_elements) in properties_json.materials.triangles_by_material {
@@ -445,7 +447,12 @@ pub fn fem_problem_from_vtk(
             / initial_temperatures[&parser_element.nodeidx3].1 as f64;
 
         let factors = ViewFactors {
-            earth: properties_json.view_factors.earth[parser_element_id as usize],
+            earth: properties_json
+                .view_factors
+                .earth
+                .iter()
+                .map(|vec| vec[parser_element_id as usize])
+                .collect(),
             sun: properties_json.view_factors.sun[parser_element_id as usize],
             elements: properties_json.view_factors.elements[parser_element_id as usize].clone(),
         };

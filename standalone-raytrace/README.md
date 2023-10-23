@@ -2,7 +2,7 @@
 
 ### Installation
 
-Install python 3.8.17 and run the following command.
+Install python 3.10.12 and run the following command.
 
 ```sh
 pip install -r requirements.txt

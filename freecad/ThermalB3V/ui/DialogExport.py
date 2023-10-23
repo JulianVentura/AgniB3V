@@ -41,10 +41,20 @@ class DialogExport(QDialog):
         self.setWindowFlags(Qt.WindowStaysOnTopHint)
 
         # Create sections
-        exportableSection = WidgetExportable(self.onCancel, self.onExport)
-        globalPropertiesSection = WidgetGlobalProperties(self, self.workbench, self.onCancel)
-        viewFactorsSection = WidgetViewFactors()
-        materialsSection = WidgetMaterials()
+        exportableSection = WidgetExportable(
+            self,
+            self.workbench.getExportPath(),
+            self.workbench.setExportPath,
+            self.onCancel,
+            self.onExport,
+        )
+        globalPropertiesSection = WidgetGlobalProperties(
+            self,
+            self.workbench,
+            self.onCancel
+        )
+        viewFactorsSection = WidgetViewFactors(self)
+        materialsSection = WidgetMaterials(self)
 
         self.horizontalLayout = QHBoxLayout(self)
         self.frame = QFrame(self)

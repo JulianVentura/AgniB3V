@@ -24,6 +24,7 @@ class CmdExportMesh:
             'Pixmap': iconPath("Export.svg"),
         }
     
+    # TODO: ¿move to dialog?
     def onExport(self):
         FreeCAD.Console.PrintMessage("Getting document\n")
         document = FreeCAD.activeDocument()
@@ -76,7 +77,7 @@ class CmdExportMesh:
                 return
 
         # Writing path
-        path = os.path.dirname(document.FileName)
+        path = self.workbench.getExportPath()
         
         # Open file and write
         self.writeMaterialAsJson(properties, elements, path)
@@ -169,15 +170,18 @@ class CmdExportMesh:
     
     def writeFemMeshAsVtk(self, femMeshObject, path):
         """Writes the mesh as a vtk file"""
-        FreeCAD.Console.PrintMessage(f"Writing to file {path}/mesh.vtk\n")
-        femMeshObject.FemMesh.write("mesh.vtk")
-        FreeCAD.Console.PrintMessage(f"Exported mesh to file {path}/mesh.vtk\n")
+        meshPath = os.path.join(path, "/mesh.json")
+        
+        FreeCAD.Console.PrintMessage(f"Writing to file {meshPath}\n")
+        femMeshObject.FemMesh.write(meshPath)
+        FreeCAD.Console.PrintMessage(f"Exported mesh to file {meshPath}\n")
 
     def writeMaterialAsJson(self, properties, elements, path):
         """Writes the material as a json file"""
-        FreeCAD.Console.PrintMessage(f"Writing to file {path}/mesh.json\n")
+        materialPath = os.path.join(path, "/mesh.json")
 
-        with open("mesh.json", "w") as file:
+        FreeCAD.Console.PrintMessage(f"Writing to file {materialPath}\n")
+        with open(materialPath, "w") as file:
             json.dump(
                 {
                     "global_properties": self.workbench.getGlobalPropertiesValues(),
@@ -191,5 +195,5 @@ class CmdExportMesh:
                 cls=CustomJsonEncoder,
             )
 
-        FreeCAD.Console.PrintMessage(f"Exported mesh to file {path}/mesh.json\n")
+        FreeCAD.Console.PrintMessage(f"Exported mesh to file {materialPath}\n")
 

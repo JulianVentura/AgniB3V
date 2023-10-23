@@ -2,9 +2,29 @@ import FreeCAD
 import os
 import json
 import re
+from public.utils import iconPath
+from utils.CustomJsonEncoder import CustomJsonEncoder
+from ui.DialogExport import DialogExport
 
 class CmdExportMesh:
+    def __init__(self, workbench):
+        self.workbench = workbench
+
     def Activated(self):
+        form = DialogExport(self.workbench, self.onExport)
+        form.exec_()
+
+    def IsActive(self):
+        return bool(FreeCAD.activeDocument())
+
+    def GetResources(self):
+        return {
+            'MenuText': ("Export mesh"),
+            'ToolTip': ("Export mesh"),
+            'Pixmap': iconPath("Export.svg"),
+        }
+    
+    def onExport(self):
         FreeCAD.Console.PrintMessage("Getting document\n")
         document = FreeCAD.activeDocument()
 
@@ -32,8 +52,8 @@ class CmdExportMesh:
         # and check the faces in the solid)
         # This is wrong, but user can set two materials to the same solid/face
 
-        trianglesByMaterial = {}
-        materialProperties = {}
+        elements = {}
+        properties = {}
 
         FreeCAD.Console.PrintMessage("Getting elements with material\n")
         for materialObject in materialObjects:
@@ -48,10 +68,9 @@ class CmdExportMesh:
                 return
             
             # TODO: is better key to be the name, label, id or something else?
-            trianglesByMaterial[materialObject.Name] = trianglesWithMaterial
-            print(materialObject.Material)
-            materialProperties[materialObject.Name] = self.getMaterialProperties(materialObject.Material)
-            if not materialProperties[materialObject.Name]:
+            elements[materialObject.Name] = trianglesWithMaterial
+            properties[materialObject.Name] = self.getProperties(materialObject.Material)
+            if not properties[materialObject.Name]:
                 FreeCAD.Console.PrintError(f"Some of the material properties are missing in {materialObject.Label}\n")
                 FreeCAD.Console.PrintError("The expected properties are: ThermalConductivity, SpecificHeat, Density, InitialTemperature\n")
                 return
@@ -60,18 +79,8 @@ class CmdExportMesh:
         path = os.path.dirname(document.FileName)
         
         # Open file and write
-        self.writeMaterialAsJson(materialProperties, trianglesByMaterial, path)
+        self.writeMaterialAsJson(properties, elements, path)
         self.writeFemMeshAsVtk(femMeshObject, path)
-
-    def IsActive(self):
-        return bool(FreeCAD.activeDocument())
-        
-    def GetResources(self):
-        return {
-            'MenuText': ("Export mesh"),
-            'ToolTip': ("Export mesh"),
-            'Pixmap': "./public/icons/Export.svg",
-        }
     
     def getAnalysisObject(self, document):
         """Returns the Analysis object or None if it does not exist"""
@@ -98,7 +107,7 @@ class CmdExportMesh:
                 materialObjects.append(object)
         return materialObjects
     
-    def getMaterialProperties(self, material):
+    def getProperties(self, material):
         """Returns a dictionary of the neccessary properties of the material"""
         # TODO: move to constants file
         MATERIAL_PROPERTIES = [
@@ -136,9 +145,12 @@ class CmdExportMesh:
         return elementsWithMaterial
         
     def getTrianglesFromElements(self, elements, femMeshObject):
-        """Returns a stringify list of triangles from a list of elements"""
+        """Returns a list of triangles from a list of elements"""
         triangles = []
         shape = femMeshObject.FemMesh
+        # The first n IDs are the edges of the shape
+        # It start with ID 1, so we sum 1 to start in 0
+        idOffset = shape.EdgeCount + 1
 
         # In a FreeCAD Fem Mesh, a face is a triangle
         # While a face in a FreeCAD solid is a face of the solid
@@ -146,14 +158,14 @@ class CmdExportMesh:
             if element.ShapeType == "Solid":
                 faces = element.Faces
                 for face in faces:
-                    triangles.extend(shape.getFacesByFace(face))
+                    triangles.extend([ id - idOffset for id in shape.getFacesByFace(face) ])
             elif element.ShapeType == "Face":
-                triangles.extend(shape.getFacesByFace(element))
+                triangles.extend([ id - idOffset for id in shape.getFacesByFace(element) ])
             else:
                 FreeCAD.Console.PrintError(f"Element {element.Name} is not a solid or face\n")
                 FreeCAD.Console.PrintError(f"This could be causing an error on the mesh generation\n")
 
-        return str(triangles)
+        return triangles
     
     def writeFemMeshAsVtk(self, femMeshObject, path):
         """Writes the mesh as a vtk file"""
@@ -161,20 +173,22 @@ class CmdExportMesh:
         femMeshObject.FemMesh.write("mesh.vtk")
         FreeCAD.Console.PrintMessage(f"Exported mesh to file {path}/mesh.vtk\n")
 
-    def writeMaterialAsJson(self, materialProperties, trianglesByMaterial, path):
+    def writeMaterialAsJson(self, properties, elements, path):
         """Writes the material as a json file"""
         FreeCAD.Console.PrintMessage(f"Writing to file {path}/mesh.json\n")
 
         with open("mesh.json", "w") as file:
             json.dump(
                 {
+                    "global_properties": self.workbench.getGlobalPropertiesValues(),
                     "materials": {
-                        "materialProps": materialProperties,
-                        "trianglesByMaterial": trianglesByMaterial
+                        "properties": properties,
+                        "elements": elements
                     }
                 },
                 file,
-                indent=4
+                indent=4,
+                cls=CustomJsonEncoder,
             )
 
         FreeCAD.Console.PrintMessage(f"Exported mesh to file {path}/mesh.json\n")

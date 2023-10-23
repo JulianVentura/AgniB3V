@@ -80,6 +80,7 @@ class CmdExportMesh:
         path = self.workbench.getExportPath()
         
         # Open file and write
+        FreeCAD.Console.PrintMessage(f"Starting exporting to {path}\n")
         self.writeMaterialAsJson(properties, elements, path)
         self.writeFemMeshAsVtk(femMeshObject, path)
     
@@ -170,7 +171,7 @@ class CmdExportMesh:
     
     def writeFemMeshAsVtk(self, femMeshObject, path):
         """Writes the mesh as a vtk file"""
-        meshPath = os.path.join(path, "/mesh.json")
+        meshPath = os.path.join(path, "mesh.vtk")
         
         FreeCAD.Console.PrintMessage(f"Writing to file {meshPath}\n")
         femMeshObject.FemMesh.write(meshPath)
@@ -178,7 +179,7 @@ class CmdExportMesh:
 
     def writeMaterialAsJson(self, properties, elements, path):
         """Writes the material as a json file"""
-        materialPath = os.path.join(path, "/mesh.json")
+        materialPath = os.path.join(path, "mesh.json")
 
         FreeCAD.Console.PrintMessage(f"Writing to file {materialPath}\n")
         with open(materialPath, "w") as file:

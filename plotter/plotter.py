@@ -2,28 +2,56 @@ import json
 import meshio
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.widgets import Slider
+import sys
 
 # We have to install pip and then meshio for it to work
 
 
 def parse_vtk(vtk_path):
+    # print("Parsing ", vtk_path)
     temperatures = {}
-    meshio_mesh = meshio.read(vtk_path, file_format="vtk")
+    try:
+        meshio_mesh = meshio.read(vtk_path, file_format="vtk")
+    except:
+        raise Exception("Invalid vtk file")
     for i, temp in enumerate(meshio_mesh.point_data["Temperatura"]):
         temperatures[i] = temp[0]
     return temperatures
 
 
-def parse_results_vtk_series(directory, vtk_series_path):
-    results = {}
+def get_positions(vtk_path):
+    print("Getting positions")
+    positions = {}
+    meshio_mesh = meshio.read(vtk_path, file_format="vtk")
+    for i, position in enumerate(meshio_mesh.points):
+        positions[i] = position
+    return positions
+
+
+def parse_results_vtk_series(directory, vtk_series_path, progress):
+    results_temperatures = {}
+    results_positions = {}
     with open(directory + "/" + vtk_series_path) as file:
-        vtk_series = json.load(file)
-    for vtk in vtk_series["files"]:
+        try:
+            vtk_series = json.load(file)
+        except:
+            raise Exception("Invalid vtk.series file")
+    print("Loaded VTK Series")
+
+    files_length = len(vtk_series["files"])
+    for i, vtk in enumerate(vtk_series["files"]):
+        progress((i / files_length) * 100)
+
         time = vtk["time"]
         name = vtk["name"]
         temperatures = parse_vtk(directory + "/" + name)
-        results[time] = temperatures
-    return results
+        results_temperatures[time] = temperatures
+    if len(vtk_series["files"]) > 0:
+        results_positions = get_positions(
+            directory + "/" + vtk_series["files"][0]["name"]
+        )
+    return results_temperatures, results_positions
 
 
 plt.style.use("ggplot")
@@ -106,8 +134,87 @@ def plot_std_temperature(results):
     plt.show()
 
 
-results = parse_results_vtk_series("results", "cilindro_mesh_prepo_results.vtk.series")
-plot_all_temperatures(results)
-plot_temperature_by_id(0, results)
-plot_average_temperature(results)
-plot_std_temperature(results)
+def plot_3d_scatter(results_temperatures, results_positions):
+    nodes = list(results_positions.keys())
+    current_time = list(results_temperatures.keys())[0]
+
+    # Create initial plot
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection="3d")
+    scatter = ax.scatter(
+        [results_positions[node][0] for node in nodes],
+        [results_positions[node][1] for node in nodes],
+        [results_positions[node][2] for node in nodes],
+        c=[results_temperatures[current_time][node] for node in nodes],
+        cmap="viridis",
+        s=100,
+    )
+
+    # Add a color bar which maps values to colors
+    plt.grid(False)
+    cbar = plt.colorbar(scatter)
+    cbar.set_label("Temperature")
+
+    # Set labels and title
+    ax.set_xlabel("X Label")
+    ax.set_ylabel("Y Label")
+    ax.set_zlabel("Z Label")
+    ax.set_title("3D Scatter Plot with Temperature")
+
+    # Slider
+    ax_time = plt.axes([0.15, 0.02, 0.65, 0.03], facecolor="lightgoldenrodyellow")
+    slider_time = Slider(
+        ax_time,
+        "Time",
+        1,
+        len(list(results_temperatures.keys())) - 1,
+        valinit=1,
+        valstep=1,
+    )
+
+    def update(val):
+        global current_time, scatter
+        current_time = list(results_temperatures.keys())[(int(slider_time.val))]
+        ax.clear()
+        scatter = ax.scatter(
+            [results_positions[node][0] for node in nodes],
+            [results_positions[node][1] for node in nodes],
+            [results_positions[node][2] for node in nodes],
+            c=[results_temperatures[current_time][node] for node in nodes],
+            cmap="viridis",
+            s=100,
+        )
+        ax.set_xlabel("X Label")
+        ax.set_ylabel("Y Label")
+        ax.set_zlabel("Z Label")
+        ax.set_title("3D Scatter Plot with Temperature")
+        fig.canvas.draw_idle()
+
+    slider_time.on_changed(update)
+    plt.show()
+
+
+def plot_all(results_temperatures):
+    plot_all_temperatures(results_temperatures)
+    plot_temperature_by_id(0, results_temperatures)
+    plot_average_temperature(results_temperatures)
+    plot_std_temperature(results_temperatures)
+
+
+def __main__():
+    if len(sys.argv) < 3:
+        print("Usage: python script.py [directory] [file_name.vtk.series] ...")
+        sys.exit(1)
+
+    directory = sys.argv[1]
+    vtk_series_path = sys.argv[2]
+
+    results_temperatures, results_positions = parse_results_vtk_series(
+        directory, vtk_series_path
+    )
+    plot_all(results_temperatures)
+    # plot_3d_scatter(results_temperatures, results_positions)
+
+
+if __name__ == "__main__":
+    __main__()

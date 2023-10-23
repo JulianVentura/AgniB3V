@@ -11,6 +11,7 @@ pub struct Element {
     pub m: Matrix,
     pub e: Matrix,
     pub f: Vector,
+    pub f_eclipse: Vector,
     pub alpha_sun: f64,
     pub alpha_ir: f64,
     pub view_factors: Vec<f64>,
@@ -97,6 +98,8 @@ impl Element {
             generated_heat,
         );
 
+        let f_eclipse = Self::calculate_f_eclipse(area, &properties, &factors, generated_heat);
+
         Element {
             p1,
             p2,
@@ -105,6 +108,7 @@ impl Element {
             m,
             e,
             f,
+            f_eclipse,
             alpha_sun: properties.alpha_sun,
             alpha_ir: properties.alpha_ir,
             view_factors: factors.elements,
@@ -277,6 +281,27 @@ impl Element {
         let albedo = properties.alpha_sun * solar_intensity * albedo_factor * factors.earth;
 
         let magnitude = (generated_heat + solar + ir + albedo) * area / 3.0;
+
+        magnitude * f
+    }
+
+    fn calculate_f_eclipse(
+        area: f64,
+        properties: &MaterialProperties,
+        factors: &ViewFactors,
+        generated_heat: f64,
+    ) -> Vector {
+        //TODO: Add single node heat source
+        // f += [nodo1.heat_source, nodo2.heat_source, nodo3.heat_source]
+        //Note: probably that would make each element where that node is part add its heat source, so it would be duplicated
+        let f = Vector::from_row_slice(&[1.0, 1.0, 1.0]);
+
+        //TODO: Define constant value
+        let constant = 1.0;
+
+        let ir = properties.alpha_ir * constant * factors.earth;
+
+        let magnitude = (generated_heat + ir) * area / 3.0;
 
         magnitude * f
     }

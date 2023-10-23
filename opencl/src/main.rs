@@ -1,14 +1,12 @@
 pub mod examples;
 pub mod fem;
-use std::collections::HashMap;
 
 use anyhow::Result;
-use fem::parser::fem_problem_from_vtk;
 use log::error;
 
 fn run() -> Result<()> {
     //examples::run_example()?;
-    examples::vtk_test()?;
+    examples::cilinder_vtk()?;
 
     Ok(())
 }

@@ -11,7 +11,10 @@ import sys
 def parse_vtk(vtk_path):
     # print("Parsing ", vtk_path)
     temperatures = {}
-    meshio_mesh = meshio.read(vtk_path, file_format="vtk")
+    try:
+        meshio_mesh = meshio.read(vtk_path, file_format="vtk")
+    except:
+        raise Exception("Invalid vtk file")
     for i, temp in enumerate(meshio_mesh.point_data["Temperatura"]):
         temperatures[i] = temp[0]
     return temperatures
@@ -30,7 +33,10 @@ def parse_results_vtk_series(directory, vtk_series_path, progress):
     results_temperatures = {}
     results_positions = {}
     with open(directory + "/" + vtk_series_path) as file:
-        vtk_series = json.load(file)
+        try:
+            vtk_series = json.load(file)
+        except:
+            raise Exception("Invalid vtk.series file")
     print("Loaded VTK Series")
 
     files_length = len(vtk_series["files"])

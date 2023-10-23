@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import (
     QComboBox,
     QFileDialog,
     QInputDialog,
+    QMessageBox,
 )
 from PyQt5.QtCore import Qt, QTimer
 from plotter import (
@@ -91,12 +92,22 @@ class MainWindow(QWidget):
             options=options,
         )
         if file_name:
-            self.results = parse_results_vtk_series(
-                os.path.dirname(file_name), os.path.basename(file_name), self.progress
-            )[0]
-            self.file_label.setText("File Choosen: " + file_name)
-            self.file_label.show()
-            self.button.show()
+            try:
+                self.results = parse_results_vtk_series(
+                    os.path.dirname(file_name),
+                    os.path.basename(file_name),
+                    self.progress,
+                )[0]
+                self.file_label.setText("File Choosen: " + file_name)
+                self.file_label.show()
+                self.button.show()
+            except Exception as e:
+                QMessageBox.critical(
+                    self,
+                    "Error",
+                    e.args[0],
+                )
+
         self.loader_label.hide()
 
     def progress(self, percentage):

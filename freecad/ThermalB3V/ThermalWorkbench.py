@@ -1,4 +1,4 @@
-import FreeCAD, FreeCADGui
+import FreeCADGui
 
 class ThermalWorkbench(FreeCADGui.Workbench):
 
@@ -16,16 +16,21 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         import commands.Commander as Commander
         import femcommands.commands
         from constants.global_properties import GLOBAL_PROPERTIES_INPUTS
+        from public.utils import workbenchPath
 
         # Attributes
         for property in GLOBAL_PROPERTIES_INPUTS:
             self.createAttributes(property)
+
+        # Initial export path is Freecad path
+        self.exportPath = workbenchPath()
 
         # List of tools in the workbench toolbar
         thermalList = [
             "THM_Global_Properties",
             "THM_Export_Mesh"
         ]
+        # TODO: implement FEM tools
         femList = [
             "FEM_Analysis",
             "FEM_MaterialSolid",
@@ -106,3 +111,15 @@ class ThermalWorkbench(FreeCADGui.Workbench):
                 "value": getattr(self, property[0])
             }
         return globalProperties
+
+    def getExportPath(self):
+        """
+        This function returns the export path
+        """
+        return self.exportPath
+
+    def setExportPath(self, path):
+        """
+        This function sets the export path
+        """
+        self.exportPath = path

@@ -1,6 +1,7 @@
 pub mod constants;
 pub mod element;
 pub mod engine;
+pub mod executor;
 pub mod explicit_solver;
 pub mod implicit_solver;
 pub mod parser;

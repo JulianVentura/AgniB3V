@@ -9,8 +9,8 @@ class PropertiesAtlas():
         material_file = open(material_file_path)
         self.material_json = json.load(material_file)
 
-        material_json_props = self.material_json["materials"]["material_props"]
-        material_json_elements = self.material_json["materials"]["triangles_by_material"]
+        material_json_props = self.material_json["materials"]["properties"]
+        material_json_elements = self.material_json["materials"]["elements"]
         for material_name, material_elements in material_json_elements.items():
             material_idx = len(self.materials)
             self.materials.append(material_json_props[material_name])

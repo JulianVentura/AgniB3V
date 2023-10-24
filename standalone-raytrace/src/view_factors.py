@@ -119,7 +119,6 @@ def element_element(mesh, properties, ray_amount=1000, max_reflections_amount=3,
 			for absorbed_element_id in absorbed_element_ids:
 				view_factors_row[absorbed_element_id] += 1
 
-		print(view_factors_row)
 		view_factors_row /= ray_amount
 		view_factors[element_idx] = (view_factors_row)
 	

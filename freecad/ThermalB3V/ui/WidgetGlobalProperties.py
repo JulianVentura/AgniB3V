@@ -79,14 +79,18 @@ class WidgetGlobalProperties(QWidget):
             # update inputs
             globalProperties = self.workbench.getGlobalPropertiesInfo()
             for property in globalProperties:
-                getattr(self, property + "Input").setText(str(globalProperties[property]['value']))
+                getattr(self, property + "Input").setValue(float(globalProperties[property]['value']))
 
     def createLabel(self, attributeName, label, unit, value):
         """
         Creates a label and it value from the attribute name, label, unit and value
         """
         qtLabel = QLabel(label + (f" ({unit})" if unit else ""), self)
-        qtInput = QLabel(value, self)
+        qtInput = QDoubleSpinBox(self)
+        # TODO: configurable?
+        qtInput.setDecimals(5)
+        qtInput.setMaximum(999999999)
+        qtInput.setValue(float(value))
 
         setattr(self, attributeName + "Label", qtLabel)
         setattr(self, attributeName + "Input", qtInput)

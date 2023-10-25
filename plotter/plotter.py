@@ -15,7 +15,7 @@ def parse_vtk(vtk_path):
         meshio_mesh = meshio.read(vtk_path, file_format="vtk")
     except:
         raise Exception("Invalid vtk file")
-    for i, temp in enumerate(meshio_mesh.point_data["Temperatura"]):
+    for i, temp in enumerate(meshio_mesh.point_data["Temperature"]):
         temperatures[i] = temp[0]
     return temperatures
 

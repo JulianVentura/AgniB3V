@@ -1,5 +1,4 @@
 use super::constants::EARTH_RADIOUS;
-use super::element::Element;
 use super::structures::Vector;
 use super::{explicit_solver::ExplicitSolver, implicit_solver::ImplicitSolver};
 use anyhow::Result;
@@ -29,42 +28,35 @@ pub struct FEMOrbitParameters {
 
 #[allow(dead_code)]
 #[derive(Debug)]
-pub struct FEMProblem {
-    pub elements: Vec<Element>,
+pub struct FEMParameters {
     pub simulation_time: f64,
     pub time_step: f64,
     pub snapshot_period: f64,
-    pub orbit_parameters: FEMOrbitParameters,
+    pub orbit: FEMOrbitParameters,
 }
 
 impl FEMEngine {
-    pub fn new(
-        simulation_time: f64,
-        time_step: f64,
-        snapshot_period: f64,
-        orbit_parameters: FEMOrbitParameters,
-        solver: Solver,
-    ) -> Self {
+    pub fn new(params: FEMParameters, solver: Solver) -> Self {
         //TODO add error handling
-        if time_step > snapshot_period {
+        if params.time_step > params.snapshot_period {
             panic!("Snapshot period cannot be smaller than time step");
         }
 
-        if !Self::is_multiple(simulation_time, snapshot_period) {
+        if !Self::is_multiple(params.simulation_time, params.snapshot_period) {
             panic!("Snapshot period must be multiple of simulation time");
         }
 
         let eclipse_fraction =
-            Self::calculate_eclipse_fraction(orbit_parameters.altitude, orbit_parameters.betha);
+            Self::calculate_eclipse_fraction(params.orbit.altitude, params.orbit.betha);
 
         println!("Eclipse fraction: {}", eclipse_fraction);
 
         FEMEngine {
-            simulation_time,
-            time_step,
-            snapshot_period,
+            simulation_time: params.simulation_time,
+            time_step: params.time_step,
+            snapshot_period: params.snapshot_period,
             eclipse_fraction,
-            orbit_period: orbit_parameters.orbit_period,
+            orbit_period: params.orbit.orbit_period,
             solver,
         }
     }
@@ -125,6 +117,7 @@ impl FEMEngine {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use crate::fem::engine::FEMEngine;
 

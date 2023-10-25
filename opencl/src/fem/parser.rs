@@ -1,5 +1,5 @@
 use super::element::{Element, MaterialProperties, ViewFactors};
-use super::engine::{FEMOrbitParameters, FEMProblem};
+use super::engine::{FEMOrbitParameters, FEMParameters};
 use super::point::Point;
 use super::structures::Vector;
 use anyhow::Result;
@@ -14,14 +14,14 @@ use vtkio::model::*;
 //Todo: Delete
 use std::path::PathBuf;
 
-#[derive(Debug, Deserialize)]
-pub struct ParserElementCsv {
-    _id: u32,
-    nodeidx1: u32,
-    nodeidx2: u32,
-    nodeidx3: u32,
+#[allow(dead_code)]
+#[derive(Debug)]
+pub struct FEMProblem {
+    pub elements: Vec<Element>,
+    pub parameters: FEMParameters,
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct ParserElement {
     id: u32,
@@ -31,14 +31,6 @@ pub struct ParserElement {
     material: MaterialProperties,
     initial_temperature: f64, //TODO: Remove in final version
     flux: f64,                //TODO: Remove in final version
-}
-
-#[derive(Debug, Deserialize)]
-pub struct ParserNode {
-    id: u32,
-    x: f64,
-    y: f64,
-    z: f64,
 }
 
 #[derive(Debug, Deserialize)]
@@ -63,6 +55,7 @@ pub struct ParserPropertiesViewFactors {
     elements: Vec<Vec<f64>>,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub struct ParserGlobalProperties {
     beta_angle: f64,
@@ -101,11 +94,11 @@ struct VTKSeries {
     files: Vec<VTKSeriesContent>,
 }
 
-pub fn fem_results_to_vtk(
+fn result_to_vtk(
     results_path: String,
     points: &Vec<Point>,
     elements: &Vec<Element>,
-    results: &Vector,
+    result: &Vector,
 ) -> Result<()> {
     let vtk_data = Vtk {
         version: Version { major: 4, minor: 2 },
@@ -143,7 +136,7 @@ pub fn fem_results_to_vtk(
             },
             data: Attributes {
                 point: vec![Attribute::scalars("Temperature", 1)
-                    .with_data(results.iter().map(|&x| x).collect::<Vec<f64>>())],
+                    .with_data(result.iter().map(|&x| x).collect::<Vec<f64>>())],
                 cell: vec![],
             },
         }),
@@ -154,7 +147,7 @@ pub fn fem_results_to_vtk(
     Ok(())
 }
 
-pub fn fem_multiple_results_to_vtk(
+pub fn fem_result_to_vtk(
     directory_path: String,
     file_name: String,
     points: &Vec<Point>,
@@ -165,7 +158,7 @@ pub fn fem_multiple_results_to_vtk(
     std::fs::create_dir_all(&directory_path)?;
     for (i, result) in results.iter().enumerate() {
         let file_path = format!("{}/{}_{}", directory_path, file_name, i);
-        fem_results_to_vtk(file_path, points, elements, result)?;
+        result_to_vtk(file_path, points, elements, result)?;
     }
     let mut files_data: Vec<VTKSeriesContent> = Vec::new();
     for (i, _) in results.iter().enumerate() {
@@ -185,148 +178,6 @@ pub fn fem_multiple_results_to_vtk(
     serde_json::to_writer(file, &data)?;
 
     Ok(())
-}
-
-pub fn fem_results_to_csv(results_path: String, results: &Vector) -> Result<()> {
-    let r: Vec<FEMResult> = results
-        .iter()
-        .enumerate()
-        .map(|(i, &x)| FEMResult {
-            id: i as u32,
-            temp: x,
-        })
-        .collect();
-
-    // Serialize the data to CSV
-    let mut writer = csv::WriterBuilder::new()
-        .has_headers(false)
-        .from_path(results_path + ".csv")?;
-
-    // Serialize and write each Result struct
-    for result in r.iter() {
-        writer.serialize(result)?;
-    }
-
-    // Finish writing and flush the file
-    writer.flush()?;
-
-    Ok(())
-}
-
-pub fn fem_multiple_results_to_csv(
-    directory_path: String,
-    file_name: String,
-    format: String,
-    results: &Vec<Vector>,
-) -> Result<()> {
-    std::fs::create_dir_all(&directory_path)?;
-    for (i, result) in results.iter().enumerate() {
-        let file_path = format!("{}/{}_{}.{}", directory_path, file_name, i, format);
-        fem_results_to_csv(file_path, result)?;
-    }
-    Ok(())
-}
-
-pub fn fem_problem_from_csv(
-    elements_path: String,
-    nodes_path: String,
-    initial_temp: HashMap<u32, f64>,
-) -> FEMProblem {
-    //Alumium
-    let conductivity = 237.0;
-    let density = 2700.0;
-    let specific_heat = 900.0;
-    let thickness = 0.1;
-    let alpha_sun = 1.0;
-    let alpha_ir = 1.0;
-    let solar_intensity = 300.0;
-    let betha = 0.1;
-    let albedo_factor = 0.1;
-    let altitude = 2000.0; //km
-    let orbit_period = 100000.0; //s
-
-    let orbit_parameters = FEMOrbitParameters {
-        betha,
-        altitude,
-        orbit_period,
-    };
-
-    let mut reader = csv::ReaderBuilder::new()
-        .has_headers(false)
-        .from_path(nodes_path)
-        .unwrap();
-
-    let mut points: Vec<Point> = Vec::new();
-
-    for result in reader.deserialize() {
-        let pnode: ParserNode = result.unwrap();
-        let temp = initial_temp.get(&pnode.id).unwrap_or(&273f64);
-        points.push(Point::new(
-            Vector::from_row_slice(&[pnode.x, pnode.y, pnode.z]),
-            *temp,
-            pnode.id,
-            0,
-        ));
-    }
-
-    points.sort_by_key(|p| p.global_id);
-
-    let mut elements: Vec<Element> = Vec::new();
-
-    let mut reader = csv::ReaderBuilder::new()
-        .has_headers(false)
-        .from_path(elements_path)
-        .unwrap();
-
-    let mut elements_count = 0;
-    for result in reader.deserialize() {
-        let _: ParserNode = result.unwrap();
-        elements_count += 1;
-    }
-
-    let _ = reader.seek(csv::Position::new());
-
-    for result in reader.deserialize() {
-        let pelement: ParserElementCsv = result.unwrap();
-        let p1 = points[pelement.nodeidx1 as usize].clone();
-        let p2 = points[pelement.nodeidx2 as usize].clone();
-        let p3 = points[pelement.nodeidx3 as usize].clone();
-
-        let props = MaterialProperties {
-            conductivity,
-            density,
-            specific_heat,
-            thickness,
-            alpha_sun,
-            alpha_ir,
-        };
-
-        let factors = ViewFactors {
-            earth: 1.0,
-            sun: 1.0,
-            elements: vec![0.1f64; elements_count],
-        };
-
-        elements.push(Element::new(
-            p1,
-            p2,
-            p3,
-            props,
-            factors,
-            solar_intensity,
-            betha,
-            albedo_factor,
-            0.0,
-        ));
-    }
-
-    FEMProblem {
-        simulation_time: 0.0,
-        time_step: 0.0,
-        elements,
-        snapshot_period: 0.0,
-        orbit_parameters,
-    }
 }
 
 pub fn fem_problem_from_vtk(
@@ -464,11 +315,13 @@ pub fn fem_problem_from_vtk(
     }
 
     FEMProblem {
-        simulation_time: 0.0,
-        time_step: 0.0,
+        parameters: FEMParameters {
+            simulation_time: 0.0,
+            time_step: 0.0,
+            snapshot_period: 0.0,
+            orbit: orbit_parameters,
+        },
         elements,
-        snapshot_period: 0.0,
-        orbit_parameters,
     }
 }
 

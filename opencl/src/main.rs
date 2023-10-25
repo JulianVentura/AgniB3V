@@ -1,4 +1,3 @@
-pub mod examples;
 pub mod fem;
 use std::env;
 

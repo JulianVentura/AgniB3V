@@ -81,7 +81,11 @@ class CmdExportMesh:
             properties[materialObject.Name] = self.getProperties(materialObject.Material)
             if not properties[materialObject.Name]:
                 FreeCAD.Console.PrintError(f"Some of the material properties are missing in {materialObject.Label}\n")
-                FreeCAD.Console.PrintError("The expected properties are: ThermalConductivity, SpecificHeat, Density, InitialTemperature\n")
+                FreeCAD.Console.PrintError(f"The expected properties are: {MATERIAL_PROPERTIES}\n")
+                # console the missing properties
+                for property in MATERIAL_PROPERTIES:
+                    if property not in materialObject.Material:
+                        FreeCAD.Console.PrintError(f"Missing property: {property}\n")
                 return
 
         # Writing path
@@ -180,12 +184,14 @@ class CmdExportMesh:
     def writeMaterialAsJson(self, properties, elements, path):
         """Writes the material as a json file"""
         materialPath = os.path.join(path, "mesh.json")
+        globalProperties = self.workbench.getGlobalPropertiesValues()
+        globalProperties = { key: globalProperties[key]["value"] for key in globalProperties }
 
         FreeCAD.Console.PrintMessage(f"Writing to file {materialPath}\n")
         with open(materialPath, "w") as file:
             json.dump(
                 {
-                    "global_properties": self.workbench.getGlobalPropertiesValues(),
+                    "global_properties": globalProperties,
                     "materials": {
                         "properties": properties,
                         "elements": elements

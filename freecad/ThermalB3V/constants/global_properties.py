@@ -11,4 +11,9 @@ GLOBAL_PROPERTIES_INPUTS = [
     ("solarConstant", "Solar constant", "W/m2", 1361.0),
     ("spaceTemperature", "Space temperature", "K", 4.0),
     ("initialTemperature", "Initial temperature", "K", 200.0),
+    ("sunDirection", "Sun direction", "", "0,0,1"),
+    ("earthDirection", "Earth direction", "", "0,0,-1"),
+    ("internalEmission", "Internal emission", "W/m2", 0.0),
+    ("timeStep", "Time step", "s", 60.0),
+    ("snapTime", "Snap time", "s", 3600.0),
 ]

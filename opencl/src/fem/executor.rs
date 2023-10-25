@@ -1,4 +1,4 @@
-use super::engine::{FEMEngine, Solver};
+use super::engine::{FEMEngine, FEMParameters, Solver};
 use super::implicit_solver::ImplicitSolver;
 use super::parser;
 
@@ -14,33 +14,35 @@ pub fn run_solver(vtk_path: &String, json_path: &String, results_name: &String) 
         [].into_iter().collect(),
     );
 
-    let simulation_time = 30000.0; //TODO: Add to json or where applicable
+    //TODO: Change this hardcoded parameters
+    let simulation_time = 30000.0;
     let time_step = 1.0;
-    let snap_time = simulation_time / 5000.0;
+    let snapshot_period = simulation_time / 5000.0;
+
+    let p = FEMParameters {
+        simulation_time,
+        time_step,
+        snapshot_period,
+        orbit: problem.parameters.orbit,
+    };
 
     let solver = ImplicitSolver::new(&problem.elements, time_step); //TODO: add option to choose solver
 
     let points = solver.points().clone();
 
-    let mut engine = FEMEngine::new(
-        simulation_time,
-        time_step,
-        snap_time,
-        problem.orbit_parameters,
-        Solver::Implicit(solver),
-    );
+    let mut engine = FEMEngine::new(p, Solver::Implicit(solver));
 
     let temp_results = engine.run()?;
 
     println!("{:#?}", &temp_results.last());
 
-    parser::fem_multiple_results_to_vtk(
+    parser::fem_result_to_vtk(
         results_folder,
         results_file,
         &points,
         &problem.elements,
         &temp_results,
-        snap_time,
+        snapshot_period,
     )?;
 
     Ok(())

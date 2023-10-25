@@ -2,7 +2,7 @@ use anyhow::Result;
 use opencl::fem::{
     element::Element,
     engine::Solver,
-    engine::{FEMEngine, FEMOrbitParameters},
+    engine::{FEMEngine, FEMOrbitParameters, FEMParameters},
     explicit_solver::ExplicitSolver,
     point::Point,
     structures::Vector,
@@ -20,21 +20,21 @@ pub fn test_square_only_temperature() -> Result<()> {
     let e2 = Element::basic(p1.clone(), p3.clone(), p4.clone(), 0.0, 2);
 
     let time_step = 1.0;
-    let time_res = 1.0;
+    let snapshot_period = 1.0;
     let simulation_time = 5.0;
-
-    let orbit_parameters = FEMOrbitParameters {
-        betha: 0.1,
-        altitude: 2000.0,
-        orbit_period: 100.0,
-    };
 
     let solver = Solver::Explicit(ExplicitSolver::new(&vec![e1, e2]));
     let mut engine = FEMEngine::new(
-        simulation_time,
-        time_step,
-        time_res,
-        orbit_parameters,
+        FEMParameters {
+            simulation_time,
+            time_step,
+            snapshot_period,
+            orbit: FEMOrbitParameters {
+                betha: 0.1,
+                altitude: 2000.0,
+                orbit_period: 100.0,
+            },
+        },
         solver,
     );
 
@@ -94,20 +94,21 @@ pub fn test_square_only_heat() -> Result<()> {
     let e2 = Element::basic(p2.clone(), p4.clone(), p3.clone(), 1000.0, 2);
 
     let time_step = 10.0;
-    let time_res = 10.0;
+    let snapshot_period = 10.0;
     let simulation_time = 600.0;
-    let orbit_parameters = FEMOrbitParameters {
-        betha: 0.1,
-        altitude: 2000.0,
-        orbit_period: 100.0,
-    };
 
     let solver = Solver::Explicit(ExplicitSolver::new(&vec![e1, e2]));
     let mut engine = FEMEngine::new(
-        simulation_time,
-        time_step,
-        time_res,
-        orbit_parameters,
+        FEMParameters {
+            simulation_time,
+            time_step,
+            snapshot_period,
+            orbit: FEMOrbitParameters {
+                betha: 0.1,
+                altitude: 2000.0,
+                orbit_period: 100.0,
+            },
+        },
         solver,
     );
 
@@ -179,21 +180,21 @@ fn create_example(p1: Point, p2: Point, p3: Point, p4: Point) -> Result<Vec<Vect
     let e2 = Element::basic(p1.clone(), p3.clone(), p4.clone(), 0.0, 2);
 
     let time_step = 1.0;
-    let time_res = 1.0;
+    let snapshot_period = 1.0;
     let simulation_time = 20.0;
-
-    let orbit_parameters = FEMOrbitParameters {
-        betha: 0.1,
-        altitude: 2000.0,
-        orbit_period: 100.0,
-    };
 
     let solver = Solver::Explicit(ExplicitSolver::new(&vec![e1, e2]));
     let mut engine = FEMEngine::new(
-        simulation_time,
-        time_step,
-        time_res,
-        orbit_parameters,
+        FEMParameters {
+            simulation_time,
+            time_step,
+            snapshot_period,
+            orbit: FEMOrbitParameters {
+                betha: 0.1,
+                altitude: 2000.0,
+                orbit_period: 100.0,
+            },
+        },
         solver,
     );
 

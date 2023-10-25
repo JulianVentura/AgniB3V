@@ -1,3 +1,4 @@
+# List of material properties
 MATERIAL_PROPERTIES = [
     "ThermalConductivity",
     "SpecificHeat",

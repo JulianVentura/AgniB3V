@@ -23,8 +23,8 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         from constants.global_properties import GLOBAL_PROPERTIES_INPUTS
 
         # Attributes
-        for property in GLOBAL_PROPERTIES_INPUTS:
-            self.createAttributes(property)
+        for propertyName, props in GLOBAL_PROPERTIES_INPUTS.items():
+            self.createAttributes(propertyName, props)
 
         # Initialize export and document path
         # Will be set on Activated
@@ -53,15 +53,9 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         """
         This function is executed whenever the workbench is activated
         """
-        # if not active document, open DialogSelectDocument
-        if bool(FreeCAD.activeDocument()) == False:
-            # TODO: try to move imports to the top
-            from ui.DialogSelectDocument import DialogSelectDocument
-            form = DialogSelectDocument(self)
-            form.open()
+        if bool(FreeCAD.activeDocument()) and bool(FreeCAD.activeDocument().FileName):
+            # TODO: load state
             return
-        # if active document but not saved, open DialogSaveDocument
-        return
 
     def Deactivated(self):
         """
@@ -81,17 +75,24 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         # This is not a template, the returned string should be exactly "Gui::PythonWorkbench"
         return "Gui::PythonWorkbench"
     
-    def createAttributes(self, property):
+    def createAttributes(self, propertyName, props):
         """
         This functions creates the attributes of the workbench
         It creates the setters and getters for each attribute
         """
-        # Create attribute for property[0]
-        setattr(self, property[0], property[3])
+        # Create attribute for propertyName
+        setattr(self, propertyName, props)
         # Create getter with capitalized first letter
-        setattr(self, f"get{property[0][:1].upper() + property[0][1:]}", lambda: getattr(self, property[0]))
+        setattr(self, f"get{propertyName[:1].upper() + propertyName[1:]}", lambda: getattr(self, propertyName))
         # Create setter with capitalized first letter
-        setattr(self, f"set{property[0][:1].upper() + property[0][1:]}", lambda x: setattr(self, property[0], x))
+        setattr(self, f"set{propertyName[:1].upper() + propertyName[1:]}", lambda x: setattr(self, propertyName, x))
+
+    def setGlobalPropertieValue(self, propertyName, x):
+        """
+        This function sets the global property value
+        """
+        props = getattr(self, propertyName)
+        props['value'] = x
 
     def importProperties(self, path):
         """
@@ -103,34 +104,21 @@ class ThermalWorkbench(FreeCADGui.Workbench):
 
         with open(path) as json_file:
             data = json.load(json_file)
-            for property in GLOBAL_PROPERTIES_INPUTS:
-                if property[0] in data:
-                    setattr(self, property[0], data[property[0]])
+            for propertyName in GLOBAL_PROPERTIES_INPUTS:
+                if propertyName in data:
+                    props = getattr(self, propertyName)
+                    props['value'] = data[propertyName]
     
     def getGlobalPropertiesValues(self):
         """
-        This function returns the global properties as a dictionary of numbers
+        This function returns the global properties as a dictionary of dictionaries
+        { propName: { label, unit, value }, ... }
         """
         from constants.global_properties import GLOBAL_PROPERTIES_INPUTS
 
         globalProperties = {}
-        for property in GLOBAL_PROPERTIES_INPUTS:
-            globalProperties[property[0]] = getattr(self, property[0])
-        return globalProperties
-    
-    def getGlobalPropertiesInfo(self):
-        """
-        This function returns the global properties info as a dictionary of dictionaries
-        """
-        from constants.global_properties import GLOBAL_PROPERTIES_INPUTS
-
-        globalProperties = {}
-        for property in GLOBAL_PROPERTIES_INPUTS:
-            globalProperties[property[0]] = {
-                "label": property[1],
-                "unit": property[2],
-                "value": getattr(self, property[0])
-            }
+        for propertyName in GLOBAL_PROPERTIES_INPUTS:
+            globalProperties[propertyName] = getattr(self, propertyName)
         return globalProperties
 
     def getExportPath(self):

@@ -21,7 +21,7 @@ class WidgetGlobalProperties(QWidget):
         """
         Initialize the UI
         """
-        globalProperties = self.workbench.getGlobalPropertiesInfo()
+        globalProperties = self.workbench.getGlobalPropertiesValues()
 
         # create inputs
         for property in globalProperties:
@@ -29,7 +29,7 @@ class WidgetGlobalProperties(QWidget):
                 property,
                 globalProperties[property]['label'],
                 globalProperties[property]['unit'],
-                str(globalProperties[property]['value']),
+                globalProperties[property]['value'],
             )
 
         # create import button
@@ -77,20 +77,29 @@ class WidgetGlobalProperties(QWidget):
         if file_path:
             self.workbench.importProperties(file_path)
             # update inputs
-            globalProperties = self.workbench.getGlobalPropertiesInfo()
+            globalProperties = self.workbench.getGlobalPropertiesValues()
             for property in globalProperties:
-                getattr(self, property + "Input").setValue(float(globalProperties[property]['value']))
+                # TODO: improve
+                try:
+                    getattr(self, property + "Input").setValue(float(globalProperties[property]['value']))
+                except AttributeError:
+                    getattr(self, property + "Input").setText(globalProperties[property]['value'])
 
     def createLabel(self, attributeName, label, unit, value):
         """
         Creates a label and it value from the attribute name, label, unit and value
         """
         qtLabel = QLabel(label + (f" ({unit})" if unit else ""), self)
-        qtInput = QDoubleSpinBox(self)
-        # TODO: configurable?
-        qtInput.setDecimals(5)
-        qtInput.setMaximum(999999999)
-        qtInput.setValue(float(value))
+        if type(value) == int or type(value) == float:
+            qtInput = QDoubleSpinBox(self)
+            qtInput.setDecimals(5)
+            qtInput.setMaximum(999999999)
+            qtInput.setValue(value)
+            qtInput.valueChanged.connect(lambda x: self.workbench.setGlobalPropertieValue(attributeName, x))
+        else:
+            qtInput = QLineEdit(self)
+            qtInput.setText(value)
+            qtInput.textChanged.connect(lambda x: self.workbench.setGlobalPropertieValue(attributeName, x))
 
         setattr(self, attributeName + "Label", qtLabel)
         setattr(self, attributeName + "Input", qtInput)

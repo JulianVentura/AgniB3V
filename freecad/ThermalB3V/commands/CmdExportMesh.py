@@ -12,11 +12,18 @@ class CmdExportMesh:
         self.workbench = workbench
 
     def Activated(self):
+        """
+        Executed when the command is activated
+        """
         form = DialogExport(self.workbench, self.onExport)
         form.exec_()
 
     def IsActive(self):
-        return bool(FreeCAD.activeDocument())
+        """
+        Show command as active if there is an active document
+        and the document is saved (i.e. has FileName)
+        """
+        return bool(FreeCAD.activeDocument()) and bool(FreeCAD.activeDocument().FileName)
 
     def GetResources(self):
         return {
@@ -25,7 +32,7 @@ class CmdExportMesh:
             'Pixmap': iconPath("Export.svg"),
         }
     
-    # TODO: ¿move to dialog?
+    # TODO: ¿move to DialogExport?
     def onExport(self):
         FreeCAD.Console.PrintMessage("Getting document\n")
         document = FreeCAD.activeDocument()

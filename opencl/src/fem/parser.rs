@@ -47,13 +47,13 @@ pub struct ParserPropertiesMaterialsDetails {
     density: f64,
     specific_heat: f64,
     initial_temperature: f64, //TODO: Remove in final version
-    flux: f64,                //TODO: Remove in final version
+                              //flux: f64,                //TODO: Remove in final version
 }
 
 #[derive(Debug, Deserialize)]
 pub struct ParserPropertiesMaterials {
-    material_props: HashMap<String, ParserPropertiesMaterialsDetails>,
-    triangles_by_material: HashMap<String, Vec<u32>>,
+    properties: HashMap<String, ParserPropertiesMaterialsDetails>,
+    elements: HashMap<String, Vec<u32>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -142,7 +142,7 @@ pub fn fem_results_to_vtk(
                 types: vec![CellType::Triangle; elements.len()],
             },
             data: Attributes {
-                point: vec![Attribute::scalars("Temperatura", 1)
+                point: vec![Attribute::scalars("Temperature", 1)
                     .with_data(results.iter().map(|&x| x).collect::<Vec<f64>>())],
                 cell: vec![],
             },
@@ -406,22 +406,22 @@ pub fn fem_problem_from_vtk(
         orbit_period: global_properties.orbital_period,
     };
 
-    for (material_name, material_elements) in properties_json.materials.triangles_by_material {
-        let file_material_properties = &properties_json.materials.material_props[&material_name];
+    for (material_name, material_elements) in properties_json.materials.elements {
+        let file_material_properties = &properties_json.materials.properties[&material_name];
         let material_properties = MaterialProperties {
             conductivity: file_material_properties.thermal_conductivity,
             density: file_material_properties.density,
             specific_heat: file_material_properties.specific_heat,
-            thickness: thickness,
-            alpha_sun: alpha_sun,
-            alpha_ir: alpha_ir,
+            thickness,
+            alpha_sun,
+            alpha_ir,
         };
         for element_id in material_elements {
             parser_elements[element_id as usize].material = material_properties.clone();
             parser_elements[element_id as usize].initial_temperature =
                 file_material_properties.initial_temperature; //TODO: Remove in final version
-            parser_elements[element_id as usize].flux = file_material_properties.flux;
-            //TODO: Remove in final version
+                                                              //parser_elements[element_id as usize].flux = file_material_properties.flux;
+                                                              //TODO: Remove in final version
         }
     }
 

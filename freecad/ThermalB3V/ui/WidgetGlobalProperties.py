@@ -36,7 +36,7 @@ class WidgetGlobalProperties(QWidget):
         importButton = QPushButton('Import properties', self)
         importButton.setDefault(False)
         importButton.setAutoDefault(False)
-        importButton.clicked.connect(self.onImportProperties)
+        importButton.clicked.connect(self.onImportGlobalProperties)
         
         # create close button
         closeButton = QPushButton('Close', self)
@@ -69,13 +69,13 @@ class WidgetGlobalProperties(QWidget):
 
         self.setLayout(layout)
 
-    def onImportProperties(self):
+    def onImportGlobalProperties(self):
         """
         Imports the global properties from the selected json file
         """
         file_path, _ = QFileDialog.getOpenFileName(None, "Select a file to import", "", "JSON Files (*.json)")
         if file_path:
-            self.workbench.importProperties(file_path)
+            self.workbench.importGlobalProperties(file_path)
             # update inputs
             globalProperties = self.workbench.getGlobalPropertiesValues()
             for property in globalProperties:

@@ -5,6 +5,7 @@ import re
 from public.utils import iconPath
 from utils.CustomJsonEncoder import CustomJsonEncoder
 from ui.DialogExport import DialogExport
+from constants.material_properties import MATERIAL_PROPERTIES
 
 class CmdExportMesh:
     def __init__(self, workbench):
@@ -111,14 +112,6 @@ class CmdExportMesh:
     
     def getProperties(self, material):
         """Returns a dictionary of the neccessary properties of the material"""
-        # TODO: move to constants file
-        MATERIAL_PROPERTIES = [
-            "ThermalConductivity",
-            "SpecificHeat",
-            "Density",
-            "InitialTemperature" # TODO: move initial temperature to another place
-        ]
-
         # Check if every material property exists in the material
         for property in MATERIAL_PROPERTIES:
             if property not in material:

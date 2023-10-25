@@ -1,32 +1,39 @@
+import FreeCAD
 import FreeCADGui
 
 class ThermalWorkbench(FreeCADGui.Workbench):
-
-    MenuText = "Thermal B3V"
-    ToolTip = "A workbench designed to make satellite thermal analysis"
+    """
+    Main workbench class.
+    It is instantiated when the FreeCAD is started.
+    """
 
     def __init__(self):
         from public.utils import iconPath
         self.__class__.Icon = iconPath("ThermalWorkbench.svg")
+        self.__class__.MenuText = "Thermal B3V"
+        self.__class__.ToolTip = "A workbench designed to make satellite thermal analysis"
 
     def Initialize(self):
-        """This function is executed when the workbench is first activated.
+        """
+        This function is executed when the workbench is first activated.
         It is executed once in a FreeCAD session followed by the Activated function.
         """
         import commands.Commander as Commander
         import femcommands.commands
         from constants.global_properties import GLOBAL_PROPERTIES_INPUTS
-        from public.utils import workbenchPath
 
         # Attributes
         for property in GLOBAL_PROPERTIES_INPUTS:
             self.createAttributes(property)
 
-        # Initial export path is Freecad path
-        self.exportPath = workbenchPath()
+        # Initialize export and document path
+        # Will be set on Activated
+        self.exportPath = ""
+        self.documentPath = ""
 
         # List of tools in the workbench toolbar
         thermalList = [
+            "THM_Select_Document",
             "THM_Global_Properties",
             "THM_Export_Mesh"
         ]
@@ -43,15 +50,29 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         Commander.addCommands(self)
 
     def Activated(self):
-        """This function is executed whenever the workbench is activated"""
+        """
+        This function is executed whenever the workbench is activated
+        """
+        # if not active document, open DialogSelectDocument
+        if bool(FreeCAD.activeDocument()) == False:
+            # TODO: try to move imports to the top
+            from ui.DialogSelectDocument import DialogSelectDocument
+            form = DialogSelectDocument(self)
+            form.open()
+            return
+        # if active document but not saved, open DialogSaveDocument
         return
 
     def Deactivated(self):
-        """This function is executed whenever the workbench is deactivated"""
+        """
+        This function is executed whenever the workbench is deactivated
+        """
         return
 
     def ContextMenu(self, recipient):
-        """This function is executed whenever the user right-clicks on screen"""
+        """
+        This function is executed whenever the user right-clicks on screen
+        """
         # "recipient" will be either "view" or "tree"
         self.appendContextMenu("My commands", self.list) # add commands to the context menu
 
@@ -123,3 +144,9 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         This function sets the export path
         """
         self.exportPath = path
+
+    def setDocumentPath(self, path):
+        """
+        This functions set the document path
+        """
+        self.documentPath = path

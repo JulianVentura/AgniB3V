@@ -5,17 +5,25 @@ import re
 from public.utils import iconPath
 from utils.CustomJsonEncoder import CustomJsonEncoder
 from ui.DialogExport import DialogExport
+from constants.material_properties import MATERIAL_PROPERTIES
 
 class CmdExportMesh:
     def __init__(self, workbench):
         self.workbench = workbench
 
     def Activated(self):
+        """
+        Executed when the command is activated
+        """
         form = DialogExport(self.workbench, self.onExport)
         form.exec_()
 
     def IsActive(self):
-        return bool(FreeCAD.activeDocument())
+        """
+        Show command as active if there is an active document
+        and the document is saved (i.e. has FileName)
+        """
+        return bool(FreeCAD.activeDocument()) and bool(FreeCAD.activeDocument().FileName)
 
     def GetResources(self):
         return {
@@ -24,7 +32,7 @@ class CmdExportMesh:
             'Pixmap': iconPath("Export.svg"),
         }
     
-    # TODO: ¿move to dialog?
+    # TODO: ¿move to DialogExport?
     def onExport(self):
         FreeCAD.Console.PrintMessage("Getting document\n")
         document = FreeCAD.activeDocument()
@@ -111,14 +119,6 @@ class CmdExportMesh:
     
     def getProperties(self, material):
         """Returns a dictionary of the neccessary properties of the material"""
-        # TODO: move to constants file
-        MATERIAL_PROPERTIES = [
-            "ThermalConductivity",
-            "SpecificHeat",
-            "Density",
-            "InitialTemperature" # TODO: move initial temperature to another place
-        ]
-
         # Check if every material property exists in the material
         for property in MATERIAL_PROPERTIES:
             if property not in material:

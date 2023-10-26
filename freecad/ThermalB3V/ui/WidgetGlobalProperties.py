@@ -33,16 +33,16 @@ class WidgetGlobalProperties(QWidget):
             )
 
         # create import button
-        importButton = QPushButton('Import properties', self)
+        importButton = QPushButton('Importar propiedades', self)
         importButton.setDefault(False)
         importButton.setAutoDefault(False)
         importButton.clicked.connect(self.onImportGlobalProperties)
         
-        # create close button
-        closeButton = QPushButton('Close', self)
-        closeButton.setDefault(False)
-        closeButton.setAutoDefault(False)
-        closeButton.clicked.connect(self.onClose)
+        # create ok button
+        okButton = QPushButton('Aceptar', self)
+        okButton.setDefault(False)
+        okButton.setAutoDefault(False)
+        okButton.clicked.connect(self.onClose)
 
         layout = QVBoxLayout()
 
@@ -62,9 +62,9 @@ class WidgetGlobalProperties(QWidget):
         layout.addLayout(line)
 
         line = QHBoxLayout()
-        line.addStretch()
-        line.addWidget(closeButton)
         line.addWidget(importButton)
+        line.addStretch()
+        line.addWidget(okButton)
         layout.addLayout(line)
 
         self.setLayout(layout)

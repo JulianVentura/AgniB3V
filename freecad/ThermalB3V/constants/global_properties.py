@@ -55,6 +55,11 @@ GLOBAL_PROPERTIES_INPUTS = {
         "unit": "W/m2",
         "value": 0.0,
     },
+    "simulationTime": {
+        "label": "Simulation time",
+        "unit": "s",
+        "value": 86400.0,
+    },
     "timeStep": {
         "label": "Time step",
         "unit": "s",

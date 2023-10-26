@@ -12,4 +12,8 @@ BACKWARDS_PYRAMID_PROPERTIES_PATH_HALF_REFLECTIONS = "./test/models/backwards_py
 BACKWARDS_PYRAMID_PROPERTIES_PATH_HALF_REFLECTIONS_HALF_ABSORTANCE = "./test/models/backwards_pyramid_half_reflection_half_absortance.json"
 BACKWARDS_PYRAMID_PROPERTIES_PATH_FULL_REFLECTIONS = "./test/models/backwards_pyramid_full_reflections.json"
 
+BACKWARDS_DIAMOND_GEOMETRY_PATH = "./test/models/backwards_diamond.vtk"
+BACKWARDS_DIAMOND_PROPERTIES_PATH = "./test/models/backwards_diamond.json"
+BACKWARDS_DIAMOND_INTERNAL_ELEMENT_ID = 1
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))

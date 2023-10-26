@@ -60,8 +60,8 @@ GLOBAL_PROPERTIES_INPUTS = {
         "unit": "s",
         "value": 60.0,
     },
-    "snapTime": {
-        "label": "Snap time",
+    "snapPeriod": {
+        "label": "Snap period",
         "unit": "s",
         "value": 3600.0,
     },

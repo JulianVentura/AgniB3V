@@ -1,5 +1,7 @@
 import FreeCAD
 import FreeCADGui
+import json
+import os
 
 class ThermalWorkbench(FreeCADGui.Workbench):
     """
@@ -22,14 +24,14 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         import femcommands.commands
         from constants.global_properties import GLOBAL_PROPERTIES_INPUTS
 
-        # Attributes
+        # Initialize global properties
         for propertyName, props in GLOBAL_PROPERTIES_INPUTS.items():
             self.createAttributes(propertyName, props)
 
         # Initialize export and document path
         # Will be set on Activated
-        self.exportPath = ""
-        self.documentPath = ""
+        self.createAttributes("exportPath", "")
+        self.createAttributes("documentPath", "")
 
         # List of tools in the workbench toolbar
         thermalList = [
@@ -54,8 +56,9 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         This function is executed whenever the workbench is activated
         """
         if bool(FreeCAD.activeDocument()) and bool(FreeCAD.activeDocument().FileName):
-            # TODO: load state
-            return
+            directoryWithName = FreeCAD.activeDocument().FileName
+            self.documentPath = directoryWithName[:directoryWithName.rfind("/")]
+            self.loadWorkbenchSettings()
 
     def Deactivated(self):
         """
@@ -68,47 +71,27 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         This function is executed whenever the user right-clicks on screen
         """
         # "recipient" will be either "view" or "tree"
-        self.appendContextMenu("My commands", self.list) # add commands to the context menu
+        # add commands to the context menu
+        # self.appendContextMenu("My commands", self.list)
+        return
 
     def GetClassName(self): 
         # This function is mandatory if this is a full Python workbench
         # This is not a template, the returned string should be exactly "Gui::PythonWorkbench"
         return "Gui::PythonWorkbench"
     
-    def createAttributes(self, propertyName, props):
+    def createAttributes(self, propertyName, value):
         """
         This functions creates the attributes of the workbench
         It creates the setters and getters for each attribute
         """
         # Create attribute for propertyName
-        setattr(self, propertyName, props)
+        setattr(self, propertyName, value)
         # Create getter with capitalized first letter
         setattr(self, f"get{propertyName[:1].upper() + propertyName[1:]}", lambda: getattr(self, propertyName))
         # Create setter with capitalized first letter
         setattr(self, f"set{propertyName[:1].upper() + propertyName[1:]}", lambda x: setattr(self, propertyName, x))
 
-    def setGlobalPropertieValue(self, propertyName, x):
-        """
-        This function sets the global property value
-        """
-        props = getattr(self, propertyName)
-        props['value'] = x
-
-    def importProperties(self, path):
-        """
-        This function imports the properties from a json file
-        It only updates the properties defined in the json file
-        """
-        import json
-        from constants.global_properties import GLOBAL_PROPERTIES_INPUTS
-
-        with open(path) as json_file:
-            data = json.load(json_file)
-            for propertyName in GLOBAL_PROPERTIES_INPUTS:
-                if propertyName in data:
-                    props = getattr(self, propertyName)
-                    props['value'] = data[propertyName]
-    
     def getGlobalPropertiesValues(self):
         """
         This function returns the global properties as a dictionary of dictionaries
@@ -121,20 +104,61 @@ class ThermalWorkbench(FreeCADGui.Workbench):
             globalProperties[propertyName] = getattr(self, propertyName)
         return globalProperties
 
-    def getExportPath(self):
+    def setGlobalPropertieValue(self, propertyName, value):
         """
-        This function returns the export path
+        This function sets the global property value
         """
-        return self.exportPath
+        props = getattr(self, propertyName)
+        props['value'] = value
 
-    def setExportPath(self, path):
+    def importGlobalProperties(self, path):
         """
-        This function sets the export path
+        This function imports the properties from a json file
+        It only updates the properties defined in the json file
         """
-        self.exportPath = path
+        with open(path) as json_file:
+            data = json.load(json_file)
+            for propertyName in self.getGlobalPropertiesValues():
+                if propertyName in data:
+                    self.setGlobalPropertieValue(propertyName, data[propertyName])
+    
+    def loadWorkbenchSettings(self):
+        """
+        It reads from documentPath and loads the workbench settings
+        """
+        from public.utils import getWorkbenchSettingsPath
 
-    def setDocumentPath(self, path):
+        workbenchSettingsPath = getWorkbenchSettingsPath(self.documentPath)
+
+        # If file exists, load settings
+        if os.path.isfile(workbenchSettingsPath):
+            FreeCAD.Console.PrintMessage("Workbench settings file found. Loading settings.\n")
+            with open(workbenchSettingsPath) as json_file:
+                data = json.load(json_file)
+
+                for propertyName in self.getGlobalPropertiesValues():
+                    if propertyName in data:
+                        self.setGlobalPropertieValue(propertyName, data[propertyName]["value"])
+
+                if "exportPath" in data:
+                    self.setExportPath(data["exportPath"])
+        # If file does not exist, create it
+        else:
+            FreeCAD.Console.PrintMessage("Workbench settings file not found. Creating new one.\n")
+            self.saveWorkbenchSettings()
+
+    def saveWorkbenchSettings(self):
         """
-        This functions set the document path
+        It saves the workbench settings in documentPath
         """
-        self.documentPath = path
+        from public.utils import getWorkbenchSettingsPath
+
+        workbenchSettingsPath = getWorkbenchSettingsPath(self.documentPath)
+        
+        with open(workbenchSettingsPath, 'w') as outfile:
+            # global properties and export path
+            workbenchSettings = self.getGlobalPropertiesValues()
+            workbenchSettings["exportPath"] = self.getExportPath()
+            json.dump(workbenchSettings, outfile)
+
+

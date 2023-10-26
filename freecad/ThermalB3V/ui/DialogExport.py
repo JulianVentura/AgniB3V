@@ -74,4 +74,5 @@ class DialogExport(QDialog):
         """
         Close the dialog
         """
+        self.workbench.saveWorkbenchSettings()
         self.close()

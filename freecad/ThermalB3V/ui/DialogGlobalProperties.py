@@ -29,4 +29,5 @@ class DialogGlobalProperties(QDialog):
 
     def onClose(self):
         """Closes the dialog"""
+        self.workbench.saveWorkbenchSettings()
         self.close()

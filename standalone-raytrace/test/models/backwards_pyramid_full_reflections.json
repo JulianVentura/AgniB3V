@@ -1,11 +1,11 @@
 {
     "materials": {
-        "material_props": {
+        "properties": {
             "MaterialA": {
                 "absorptance": 0.0
             }
         },
-        "triangles_by_material": {
+        "elements": {
             "MaterialA": [0, 1, 2, 3]
         }
     }

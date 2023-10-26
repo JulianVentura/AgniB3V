@@ -38,8 +38,11 @@ pub struct ParserPropertiesMaterialsDetails {
     thermal_conductivity: f64,
     density: f64,
     specific_heat: f64,
+    thickness: f64,
+    alpha_sun: f64,
+    alpha_ir: f64,
     initial_temperature: f64, //TODO: Remove in final version
-                              //flux: f64,                //TODO: Remove in final version
+    flux: f64,                //TODO: Remove in final version
 }
 
 #[derive(Debug, Deserialize)]
@@ -66,6 +69,9 @@ pub struct ParserGlobalProperties {
     solar_constant: f64,
     space_temperature: f64,
     initial_temperature: f64,
+    time_step: f64,
+    snap_period: f64,
+    simulation_time: f64,
 }
 
 #[derive(Debug, Deserialize)]
@@ -242,10 +248,6 @@ pub fn fem_problem_from_vtk(
     let mut global_properties = properties_json.global_properties;
     global_properties.beta_angle = global_properties.beta_angle.to_radians();
 
-    let thickness = 0.1; //Add to global properties
-    let alpha_sun = 1.0; //Add to global properties
-    let alpha_ir = 1.0; //Add to global properties
-
     // Add to model
     // global.properties.earth_ir
     // global.properties.space_temperature
@@ -263,16 +265,16 @@ pub fn fem_problem_from_vtk(
             conductivity: file_material_properties.thermal_conductivity,
             density: file_material_properties.density,
             specific_heat: file_material_properties.specific_heat,
-            thickness,
-            alpha_sun,
-            alpha_ir,
+            thickness: file_material_properties.thickness,
+            alpha_sun: file_material_properties.alpha_sun,
+            alpha_ir: file_material_properties.alpha_ir,
         };
         for element_id in material_elements {
             parser_elements[element_id as usize].material = material_properties.clone();
             parser_elements[element_id as usize].initial_temperature =
                 file_material_properties.initial_temperature; //TODO: Remove in final version
-                                                              //parser_elements[element_id as usize].flux = file_material_properties.flux;
-                                                              //TODO: Remove in final version
+            parser_elements[element_id as usize].flux = file_material_properties.flux;
+            //TODO: Remove in final version
         }
     }
 
@@ -316,9 +318,9 @@ pub fn fem_problem_from_vtk(
 
     FEMProblem {
         parameters: FEMParameters {
-            simulation_time: 0.0,
-            time_step: 0.0,
-            snapshot_period: 0.0,
+            simulation_time: global_properties.simulation_time,
+            time_step: global_properties.time_step,
+            snapshot_period: global_properties.snap_period,
             orbit: orbit_parameters,
         },
         elements,

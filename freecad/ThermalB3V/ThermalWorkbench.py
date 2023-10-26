@@ -1,6 +1,7 @@
 import FreeCAD
 import FreeCADGui
 import json
+import os
 
 class ThermalWorkbench(FreeCADGui.Workbench):
     """
@@ -55,8 +56,9 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         This function is executed whenever the workbench is activated
         """
         if bool(FreeCAD.activeDocument()) and bool(FreeCAD.activeDocument().FileName):
-            # TODO: load state
-            return
+            directoryWithName = FreeCAD.activeDocument().FileName
+            self.documentPath = directoryWithName[:directoryWithName.rfind("/")]
+            self.loadWorkbenchSettings()
 
     def Deactivated(self):
         """
@@ -69,7 +71,9 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         This function is executed whenever the user right-clicks on screen
         """
         # "recipient" will be either "view" or "tree"
-        self.appendContextMenu("My commands", self.list) # add commands to the context menu
+        # add commands to the context menu
+        # self.appendContextMenu("My commands", self.list)
+        return
 
     def GetClassName(self): 
         # This function is mandatory if this is a full Python workbench
@@ -118,3 +122,43 @@ class ThermalWorkbench(FreeCADGui.Workbench):
                 if propertyName in data:
                     self.setGlobalPropertieValue(propertyName, data[propertyName])
     
+    def loadWorkbenchSettings(self):
+        """
+        It reads from documentPath and loads the workbench settings
+        """
+        from public.utils import getWorkbenchSettingsPath
+
+        workbenchSettingsPath = getWorkbenchSettingsPath(self.documentPath)
+
+        # If file exists, load settings
+        if os.path.isfile(workbenchSettingsPath):
+            FreeCAD.Console.PrintMessage("Workbench settings file found. Loading settings.\n")
+            with open(workbenchSettingsPath) as json_file:
+                data = json.load(json_file)
+
+                for propertyName in self.getGlobalPropertiesValues():
+                    if propertyName in data:
+                        self.setGlobalPropertieValue(propertyName, data[propertyName]["value"])
+
+                if "exportPath" in data:
+                    self.setExportPath(data["exportPath"])
+        # If file does not exist, create it
+        else:
+            FreeCAD.Console.PrintMessage("Workbench settings file not found. Creating new one.\n")
+            self.saveWorkbenchSettings()
+
+    def saveWorkbenchSettings(self):
+        """
+        It saves the workbench settings in documentPath
+        """
+        from public.utils import getWorkbenchSettingsPath
+
+        workbenchSettingsPath = getWorkbenchSettingsPath(self.documentPath)
+        
+        with open(workbenchSettingsPath, 'w') as outfile:
+            # global properties and export path
+            workbenchSettings = self.getGlobalPropertiesValues()
+            workbenchSettings["exportPath"] = self.getExportPath()
+            json.dump(workbenchSettings, outfile)
+
+

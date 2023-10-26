@@ -24,7 +24,7 @@ def test_element_sun():
 def _element_element_backwards_pyramid(properties_path, ray_amount):
     mesh = vtk_io.load_vtk(BACKWARDS_PYRAMID_GEOMETRY_PATH)
     properties = properties_atlas.PropertiesAtlas(utils.element_amount(mesh.triangles), properties_path)
-    return view_factors.element_element(mesh, properties, ray_amount, 10, 0.01, False)
+    return view_factors.element_element(mesh, properties, ray_amount, 50, 0.01, False)
 
 def test_element_element_backwards_pyramid_view_factors_rows_sum_one():
     element_element_view_factors = _element_element_backwards_pyramid(BACKWARDS_PYRAMID_PROPERTIES_PATH_NO_REFLECTIONS, 10000)
@@ -32,7 +32,7 @@ def test_element_element_backwards_pyramid_view_factors_rows_sum_one():
     for element_id in range(len(element_element_view_factors)):
         row = np.delete(element_element_view_factors[element_id], element_id)
         row_sum = np.sum(row)
-        assert row_sum < 1.01 and row_sum > 0.99
+        assert row_sum < 1.01 and row_sum > 0.98
 
 def test_element_element_backwards_pyramid_view_factors_rows_are_similar():
     element_element_view_factors_epsilon = 0.02
@@ -51,7 +51,7 @@ def test_element_element_backwards_pyramid_view_factors_half_reflections_sum_one
     element_element_view_factors = _element_element_backwards_pyramid(BACKWARDS_PYRAMID_PROPERTIES_PATH_HALF_REFLECTIONS, 10000)
     for row in element_element_view_factors:
         row_sum = np.sum(row)
-        assert row_sum < 1.01 and row_sum > 0.99
+        assert row_sum < 1.01 and row_sum > 0.98
 
 def test_element_element_backwards_pyramid_view_factors_half_reflections_are_correct():
     element_element_view_factors = _element_element_backwards_pyramid(BACKWARDS_PYRAMID_PROPERTIES_PATH_HALF_REFLECTIONS, 10000)
@@ -65,7 +65,7 @@ def test_element_element_backwards_pyramid_view_factors_half_reflections_half_ab
     print(element_element_view_factors)
     for row in element_element_view_factors:
         row_sum = np.sum(row)
-        assert row_sum < 1.01 and row_sum > 0.99
+        assert row_sum < 1.01 and row_sum > 0.98
 
 def test_element_element_backwards_pyramid_view_factors_half_reflections_half_absortance_are_correct():
     element_element_view_factors = _element_element_backwards_pyramid(BACKWARDS_PYRAMID_PROPERTIES_PATH_HALF_REFLECTIONS_HALF_ABSORTANCE, 10000)

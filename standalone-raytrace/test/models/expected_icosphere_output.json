@@ -1,6 +1,6 @@
 {
     "materials": {
-        "material_props": {
+        "properties": {
             "MaterialA": {
                 "test_id": 0,
                 "absorptance": 0.75,
@@ -22,7 +22,7 @@
                 ]
             }
         },
-        "triangles_by_material": {
+        "elements": {
             "MaterialA": [
                 0,
                 1,

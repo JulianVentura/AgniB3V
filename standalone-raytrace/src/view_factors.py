@@ -88,11 +88,12 @@ def element_element(mesh, properties, ray_amount=1000, max_reflections_amount=3,
 
 		#Original emission
 		ray_origins = utils.generate_random_points_in_element(emitting_element, ray_amount)
-		ray_origins += displacement*emitting_element_normal
 		ray_directions = utils.generate_random_unit_vectors(ray_amount)
-
 		if not internal_emission:
 			utils.orient_vector_towards_normal(ray_directions, emitting_element_normal)
+
+		ray_origins += ray_directions*displacement
+
 
 		if(DEBUG_VISUALIZATION_ENABLED):
 			visualization.view_raycast(mesh, element_idx, ray_origins, ray_directions)

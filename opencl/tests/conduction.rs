@@ -1,7 +1,7 @@
 use anyhow::Result;
 use opencl::fem::executor::run_solver;
 use serde::Deserialize;
-use std::{fs::File, io::BufReader, io::Read};
+use std::{fs::remove_dir_all, fs::File, io::BufReader, io::Read};
 
 #[derive(Deserialize)]
 pub struct VTK {
@@ -90,6 +90,8 @@ pub fn test_1() -> Result<()> {
         actual_results_name,
         format!("{}_results", new_results_name),
     )?;
+
+    remove_dir_all(format!("{}/{}_results", results_path, new_results_name))?;
 
     Ok(())
 }

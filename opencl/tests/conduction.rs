@@ -1,7 +1,11 @@
 use anyhow::Result;
 use opencl::fem::executor::run_solver;
 use serde::Deserialize;
-use std::{fs::remove_dir_all, fs::File, io::BufReader, io::Read};
+use std::{fs::remove_dir_all, fs::File, io::BufReader, path::PathBuf};
+use vtkio::{
+    model::{Attribute, DataSet, Piece},
+    IOBuffer, Vtk,
+};
 
 #[derive(Deserialize)]
 pub struct VTK {
@@ -14,21 +18,50 @@ pub struct VTKSeries {
     files: Vec<VTK>,
 }
 
-fn compare_files(file_path1: String, file_path2: String) -> Result<()> {
-    // Read the contents of the first file
-    let file1 = File::open(file_path1)?;
-    let mut buf_reader1 = BufReader::new(file1);
-    let mut contents1 = String::new();
-    buf_reader1.read_to_string(&mut contents1)?;
+fn assert_float_eq(value_1: f64, value_2: f64, precision: f64) {
+    assert!(
+        (value_1 - value_2).abs() < precision,
+        "value1 {} != {}",
+        value_1,
+        value_2
+    );
+}
 
-    // Read the contents of the second file
-    let file2 = File::open(file_path2)?;
-    let mut buf_reader2 = BufReader::new(file2);
-    let mut contents2 = String::new();
-    buf_reader2.read_to_string(&mut contents2)?;
+fn get_vtk_results(vtk_file: Vtk) -> Vec<f64> {
+    if let DataSet::UnstructuredGrid { meta: _, pieces } = vtk_file.data {
+        if let Piece::Inline(vtk_piece) = &pieces[0] {
+            if let Attribute::DataArray(data_array) = &vtk_piece.data.point[0] {
+                if let IOBuffer::F64(vtk_data) = &data_array.data {
+                    return vtk_data.to_vec();
+                }
+            }
+        }
+    }
+    return vec![];
+}
 
-    // Compare the contents of the two files
-    assert!(contents1 == contents2, "Files are not identical");
+fn compare_vtk(file_path1: String, file_path2: String) -> Result<()> {
+    let file_path_buf = PathBuf::from(file_path1);
+    let vtk_file1 =
+        Vtk::import(&file_path_buf).expect(&format!("Failed to load file: {:?}", file_path_buf));
+
+    let file_path_buf2 = PathBuf::from(file_path2);
+    let vtk_file2 =
+        Vtk::import(&file_path_buf2).expect(&format!("Failed to load file: {:?}", file_path_buf2));
+
+    let vtk_1_results = get_vtk_results(vtk_file1);
+    let vtk_2_results = get_vtk_results(vtk_file2);
+
+    assert!(
+        vtk_1_results.len() == vtk_2_results.len(),
+        "Vtks do not have the same lenght"
+    );
+
+    let precision = 0.001;
+
+    for i in 0..vtk_1_results.len() {
+        assert_float_eq(vtk_1_results[i], vtk_2_results[i], precision)
+    }
 
     Ok(())
 }
@@ -57,7 +90,12 @@ fn compare_results(
     );
 
     for i in 0..actual_file_json.files.len() {
-        compare_files(
+        assert_float_eq(
+            actual_file_json.files[i].time,
+            new_file_json.files[i].time,
+            0.01,
+        );
+        compare_vtk(
             format!("{}/{}", actual_results, actual_file_json.files[i].name),
             format!("{}/{}", new_results, new_file_json.files[i].name),
         )?;

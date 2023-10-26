@@ -4,8 +4,13 @@ use super::parser;
 
 use anyhow::Result;
 
-pub fn run_solver(vtk_path: &String, json_path: &String, results_name: &String) -> Result<()> {
-    let results_folder = format!("./models/{}_results", results_name); //TODO: See if this is ok, or if we want to let the user choose this
+pub fn run_solver(
+    vtk_path: &String,
+    json_path: &String,
+    results_path: &String,
+    results_name: &String,
+) -> Result<()> {
+    let results_folder = format!("{}/{}_results", results_path, results_name);
     let results_file = format!("{}_results", results_name);
 
     let problem = parser::fem_problem_from_vtk(

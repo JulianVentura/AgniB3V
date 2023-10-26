@@ -154,6 +154,7 @@ class DialogSelectDocument(QDialog):
         # Save document path in workbench
         self.workbench.setDocumentPath(directory)
         self.workbench.setExportPath(directory)
+        self.workbench.loadWorkbenchSettings()
         self.close()
 
     def onCancel(self):

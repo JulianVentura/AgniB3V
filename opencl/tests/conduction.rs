@@ -133,3 +133,33 @@ pub fn test_1() -> Result<()> {
 
     Ok(())
 }
+
+#[test]
+pub fn test_2() -> Result<()> {
+    /*
+    Cube of 1 m x 1 m x 1 m
+    Material: Aluminuim, density: 2700 kg/m3, specific heat: 900 J/(K kg), thermal conductivity: 237 W/(K m)
+    Initial temperature of  273 K (0 C)
+    Fixed Flux of 200 W/m2
+    */
+
+    let vtk_path = "Unit_tests/Test_2/test_2.vtk".to_string();
+    let json_path = "Unit_tests/Test_2/test_2_out.json".to_string();
+    let actual_results_path = "Unit_tests/Test_2/test_2_results".to_string();
+    let results_path = "Unit_tests/Test_2".to_string();
+    let new_results_name = "test_2_new".to_string();
+    let actual_results_name = "test_2_results".to_string();
+
+    run_solver(&vtk_path, &json_path, &results_path, &new_results_name)?;
+
+    compare_results(
+        actual_results_path,
+        format!("{}/{}_results", results_path, new_results_name),
+        actual_results_name,
+        format!("{}_results", new_results_name),
+    )?;
+
+    remove_dir_all(format!("{}/{}_results", results_path, new_results_name))?;
+
+    Ok(())
+}

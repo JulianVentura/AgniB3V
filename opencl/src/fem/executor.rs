@@ -1,7 +1,9 @@
 use super::engine::{FEMEngine, Solver};
 use super::implicit_solver::ImplicitSolver;
+
 use super::parser;
 
+use super::explicit_solver::ExplicitSolver;
 use anyhow::Result;
 
 pub fn run_solver(

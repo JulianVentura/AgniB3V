@@ -104,21 +104,19 @@ fn compare_results(
     Ok(())
 }
 
-#[test]
-pub fn test_1() -> Result<()> {
-    /*
-    Cube of 1 m x 1 m x 1 m
-    Material: Aluminuim, density: 2700 kg/m3, specific heat: 900 J/(K kg), thermal conductivity: 237 W/(K m)
-    One of the faces has an initial temperature of 573 K (300 C), the rest 273 K (0 C)
-    There are no fluxes
-    */
-
-    let vtk_path = "Unit_tests/Test_1/test_1.vtk".to_string();
-    let json_path = "Unit_tests/Test_1/test_1_out.json".to_string();
-    let actual_results_path = "Unit_tests/Test_1/test_1_results".to_string();
-    let results_path = "Unit_tests/Test_1".to_string();
-    let new_results_name = "test_1_new".to_string();
-    let actual_results_name = "test_1_results".to_string();
+fn run_test(test_number: u32) -> Result<()> {
+    let vtk_path = format!("Unit_tests/Test_{}/test_{}.vtk", test_number, test_number);
+    let json_path = format!(
+        "Unit_tests/Test_{}/test_{}_out.json",
+        test_number, test_number
+    );
+    let actual_results_path = format!(
+        "Unit_tests/Test_{}/test_{}_results",
+        test_number, test_number
+    );
+    let results_path = format!("Unit_tests/Test_{}", test_number);
+    let new_results_name = format!("test_{}_new", test_number);
+    let actual_results_name = format!("test_{}_results", test_number);
 
     run_solver(&vtk_path, &json_path, &results_path, &new_results_name)?;
 
@@ -135,6 +133,20 @@ pub fn test_1() -> Result<()> {
 }
 
 #[test]
+pub fn test_1() -> Result<()> {
+    /*
+    Cube of 1 m x 1 m x 1 m
+    Material: Aluminuim, density: 2700 kg/m3, specific heat: 900 J/(K kg), thermal conductivity: 237 W/(K m)
+    One of the faces has an initial temperature of 573 K (300 C), the rest 273 K (0 C)
+    There are no fluxes
+    */
+
+    run_test(1)?;
+
+    Ok(())
+}
+
+#[test]
 pub fn test_2() -> Result<()> {
     /*
     Cube of 1 m x 1 m x 1 m
@@ -143,23 +155,23 @@ pub fn test_2() -> Result<()> {
     Fixed Flux of 200 W/m2
     */
 
-    let vtk_path = "Unit_tests/Test_2/test_2.vtk".to_string();
-    let json_path = "Unit_tests/Test_2/test_2_out.json".to_string();
-    let actual_results_path = "Unit_tests/Test_2/test_2_results".to_string();
-    let results_path = "Unit_tests/Test_2".to_string();
-    let new_results_name = "test_2_new".to_string();
-    let actual_results_name = "test_2_results".to_string();
+    run_test(2)?;
 
-    run_solver(&vtk_path, &json_path, &results_path, &new_results_name)?;
+    Ok(())
+}
 
-    compare_results(
-        actual_results_path,
-        format!("{}/{}_results", results_path, new_results_name),
-        actual_results_name,
-        format!("{}_results", new_results_name),
-    )?;
+#[test]
+pub fn test_3() -> Result<()> {
+    /*
+    Cube of 1 m x 1 m x 1 m
+    One of the faces has material Copper: density: 8960 kg/m3, specific heat: 385 J/(K kg), thermal conductivity: 400 W/(K m)
+    The rest of the cube has material Oak (Wood): density: 700 kg/m3, specific heat: 2300 J/(K kg), thermal conductivity: 0.23 W/(K m)
+    The initial temperature of the Copper face is 573 K (300 C)
+    The initial temperatures of the Oak faces are 273 K (0 C)
+    There are no fluxes
+    */
 
-    remove_dir_all(format!("{}/{}_results", results_path, new_results_name))?;
+    run_test(3)?;
 
     Ok(())
 }

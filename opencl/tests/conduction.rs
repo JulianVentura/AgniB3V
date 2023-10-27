@@ -175,3 +175,34 @@ pub fn test_3() -> Result<()> {
 
     Ok(())
 }
+
+#[test]
+pub fn test_4() -> Result<()> {
+    /*
+    Cube of 1 m x 1 m x 1 m
+    One of the faces has material Copper: density: 8960 kg/m3, specific heat: 385 J/(K kg), thermal conductivity: 400 W/(K m)
+    The rest of the cube has material Aluminuim, density: 2700 kg/m3, specific heat: 900 J/(K kg), thermal conductivity: 237 W/(K m)
+    The initial temperature of the Copper face is 573 K (300 C)
+    The initial temperatures of the Aluminium faces are 273 K (0 C)
+    There are no fluxes
+    */
+
+    run_test(4)?;
+
+    Ok(())
+}
+
+#[test]
+pub fn test_5() -> Result<()> {
+    /*
+    Cube of 1 m x 1 m x 1 m
+    One of the faces has material Copper: density: 8960 kg/m3, specific heat: 385 J/(K kg), thermal conductivity: 400 W/(K m)
+    The rest of the cube has material Oak (Wood): density: 700 kg/m3, specific heat: 2300 J/(K kg), thermal conductivity: 0.23 W/(K m)
+    Initial temperature of  273 K (0 C)
+    Fixed Flux of 100 W/m2
+    */
+
+    run_test(5)?;
+
+    Ok(())
+}

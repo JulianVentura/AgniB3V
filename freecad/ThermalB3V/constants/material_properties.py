@@ -4,7 +4,7 @@ MATERIAL_PROPERTIES = [
     "SpecificHeat",
     "Density",
     "Flux",
-    "Absorptanse",
+    "Absorptance",
     "Thickness",
     "AlphaSun",
     "AlphaIR",

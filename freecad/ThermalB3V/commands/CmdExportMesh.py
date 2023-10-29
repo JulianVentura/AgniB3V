@@ -179,6 +179,23 @@ class CmdExportMesh:
         
         FreeCAD.Console.PrintMessage(f"Writing to file {meshPath}\n")
         femMeshObject.FemMesh.write(meshPath)
+        FreeCAD.Console.PrintMessage(f"Modifying file {meshPath}\n")
+        with open(meshPath, "r") as file:
+            data = ""
+            readData = True
+            for line in file:
+                if line.startswith("OFFSETS"):
+                    readData = False
+                elif line.startswith("CONNECTIVITY"):
+                    readData = True
+                    continue
+                
+                if readData:
+                    data += line
+        
+        with open(meshPath, "w") as file:
+            file.write(data)
+
         FreeCAD.Console.PrintMessage(f"Exported mesh to file {meshPath}\n")
 
     def writeMaterialAsJson(self, properties, elements, path):

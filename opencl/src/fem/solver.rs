@@ -183,6 +183,7 @@ mod tests {
         let thickness = 0.1;
         let alpha_sun = 1.0;
         let solar_intensity = 300.0;
+        let earth_ir = 1.0;
         let betha = 0.1;
         let albedo_factor = 0.1;
 
@@ -228,6 +229,7 @@ mod tests {
             props1,
             f1,
             solar_intensity,
+            earth_ir,
             betha,
             albedo_factor,
             0.0,
@@ -240,6 +242,7 @@ mod tests {
             props2,
             f2,
             solar_intensity,
+            earth_ir,
             betha,
             albedo_factor,
             0.0,

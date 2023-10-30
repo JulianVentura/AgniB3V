@@ -56,6 +56,7 @@ impl Element {
         properties: MaterialProperties,
         factors: ViewFactors,
         solar_intensity: f64,
+        earth_ir: f64,
         betha: f64,
         albedo_factor: f64,
         generated_heat: f64,
@@ -93,12 +94,14 @@ impl Element {
             &properties,
             &factors,
             solar_intensity,
+            earth_ir,
             betha,
             albedo_factor,
             generated_heat,
         );
 
-        let f_eclipse = Self::calculate_f_eclipse(area, &properties, &factors, generated_heat);
+        let f_eclipse =
+            Self::calculate_f_eclipse(area, &properties, &factors, earth_ir, generated_heat);
 
         Element {
             p1,
@@ -124,6 +127,7 @@ impl Element {
         let alpha_sun = 1.0;
         let alpha_ir = 1.0;
         let solar_intensity = 300.0;
+        let earth_ir = 225.0;
         let betha = 0.1;
         let albedo_factor = 0.1;
 
@@ -149,6 +153,7 @@ impl Element {
             props,
             factors,
             solar_intensity,
+            earth_ir,
             betha,
             albedo_factor,
             generated_heat,
@@ -264,6 +269,7 @@ impl Element {
         properties: &MaterialProperties,
         factors: &ViewFactors,
         solar_intensity: f64,
+        earth_ir: f64,
         betha: f64,
         albedo_factor: f64,
         generated_heat: f64,
@@ -277,7 +283,7 @@ impl Element {
         let constant = 1.0;
 
         let solar = properties.alpha_sun * solar_intensity * f64::sin(betha.into()) * factors.sun;
-        let ir = properties.alpha_ir * constant * factors.earth;
+        let ir = properties.alpha_ir * constant * factors.earth * earth_ir;
         let albedo = properties.alpha_sun * solar_intensity * albedo_factor * factors.earth;
 
         let magnitude = (generated_heat + solar + ir + albedo) * area / 3.0;
@@ -289,6 +295,7 @@ impl Element {
         area: f64,
         properties: &MaterialProperties,
         factors: &ViewFactors,
+        earth_ir: f64,
         generated_heat: f64,
     ) -> Vector {
         //TODO: Add single node heat source
@@ -299,7 +306,7 @@ impl Element {
         //TODO: Define constant value
         let constant = 1.0;
 
-        let ir = properties.alpha_ir * constant * factors.earth;
+        let ir = properties.alpha_ir * constant * factors.earth * earth_ir;
 
         let magnitude = (generated_heat + ir) * area / 3.0;
 

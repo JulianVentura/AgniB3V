@@ -249,7 +249,6 @@ pub fn fem_problem_from_vtk(
     global_properties.beta_angle = global_properties.beta_angle.to_radians();
 
     // Add to model
-    // global.properties.earth_ir
     // global.properties.space_temperature
     // global.properties.initial_temperature
 
@@ -310,6 +309,7 @@ pub fn fem_problem_from_vtk(
             parser_element.material.clone(),
             factors,
             global_properties.solar_constant,
+            global_properties.earth_ir,
             global_properties.beta_angle,
             global_properties.albedo,
             parser_element.flux,

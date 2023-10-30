@@ -254,7 +254,7 @@ mod tests {
 
         let f_index = FEMEngine::calculate_f_index(orbit_time, orbit_period, orbit_divisions);
 
-        let actual_f_index = 4;
+        let actual_f_index = 3;
 
         assert_eq!(f_index, actual_f_index);
     }

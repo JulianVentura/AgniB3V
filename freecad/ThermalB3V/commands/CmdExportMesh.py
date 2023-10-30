@@ -6,6 +6,7 @@ from public.utils import iconPath
 from utils.CustomJsonEncoder import CustomJsonEncoder
 from ui.DialogExport import DialogExport
 from constants.material_properties import MATERIAL_PROPERTIES
+import vtk
 
 class CmdExportMesh:
     def __init__(self, workbench):
@@ -180,6 +181,24 @@ class CmdExportMesh:
         FreeCAD.Console.PrintMessage(f"Writing to file {meshPath}\n")
         femMeshObject.FemMesh.write(meshPath)
         FreeCAD.Console.PrintMessage(f"Modifying file {meshPath}\n")
+
+        reader = vtk.vtkGenericDataObjectReader()
+        reader.SetFileName(meshPath)
+        reader.Update()
+
+        # Access the data object
+        data_object = reader.GetOutput()
+
+        # Modify the version of the VTK file as needed
+        # ...
+
+        # Write the modified VTK file
+        writer = vtk.vtkUnstructuredGridWriter()
+        writer.SetFileName(os.path.join(path, "mesh_modified.vtk"))
+        writer.SetInputData(data_object)
+        writer.SetFileVersion(42)
+        writer.Write()
+        """
         with open(meshPath, "r") as file:
             data = ""
             readData = True
@@ -195,6 +214,7 @@ class CmdExportMesh:
         
         with open(meshPath, "w") as file:
             file.write(data)
+        """
 
         FreeCAD.Console.PrintMessage(f"Exported mesh to file {meshPath}\n")
 

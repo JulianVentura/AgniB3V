@@ -242,13 +242,13 @@ mod tests {
         };
 
         let f1 = ViewFactors {
-            earth: 1.0,
+            earth: vec![1.0],
             sun: 1.0,
             elements: vec![0.1, 0.3],
         };
 
         let f2 = ViewFactors {
-            earth: 1.0,
+            earth: vec![1.0],
             sun: 1.0,
             elements: vec![0.2, 0.4],
         };

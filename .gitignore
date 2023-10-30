@@ -392,5 +392,6 @@ plotter/results
 plotter/cilinder_vtk_results
 
 plotter/vtk_cilinder_results_cond
-standalone-raytrace/mesh.json
-standalone-raytrace/mesh.vtk
+standalone-raytrace/*.json
+standalone-raytrace/*.vtk
+opencl/Unit_tests

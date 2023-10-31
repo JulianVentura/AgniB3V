@@ -33,6 +33,15 @@ pub struct ParserElement {
     flux: f64,                //TODO: Remove in final version
 }
 
+#[derive(Deserialize)]
+pub struct ParserConfig {
+    pub vtk_path: String,
+    pub materials_path: String,
+    pub results_path: String,
+    pub results_name: String,
+    pub solver: String,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct ParserPropertiesMaterialsDetails {
     thermal_conductivity: f64,
@@ -359,4 +368,12 @@ fn update_initial_temperatures(
 ) {
     let entry = initial_temperatures.entry(node).or_insert((0.0, 0));
     *entry = (entry.0 + temperature, entry.1 + 1);
+}
+
+pub fn parse_config(config_path: &String) -> ParserConfig {
+    let config_reader = BufReader::new(File::open(config_path).expect("Couldn't read config file"));
+    let config_json: ParserConfig =
+        serde_json::from_reader(config_reader).expect("Couldn't parse config file");
+
+    return config_json;
 }

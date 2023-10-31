@@ -6,28 +6,34 @@ use super::parser;
 use super::explicit_solver::ExplicitSolver;
 use anyhow::Result;
 
-pub fn run_solver(
-    vtk_path: &String,
-    json_path: &String,
-    results_path: &String,
-    results_name: &String,
-) -> Result<()> {
-    let results_folder = format!("{}/{}_results", results_path, results_name);
-    let results_file = format!("{}_results", results_name);
+pub fn run_solver(config_path: &String) -> Result<()> {
+    let config = parser::parse_config(config_path);
+    let results_folder = format!("{}/{}_results", config.results_path, config.results_name);
+    let results_file = format!("{}_results", config.results_name);
 
     let problem = parser::fem_problem_from_vtk(
-        vtk_path.to_string(),
-        json_path.to_string(),
+        config.vtk_path.to_string(),
+        config.materials_path.to_string(),
         [].into_iter().collect(),
     );
 
-    let solver = ImplicitSolver::new(&problem.elements, problem.parameters.time_step); //TODO: add option to choose solver
+    let solver = match config.solver.as_str() {
+        "Explicit" => Solver::Explicit(ExplicitSolver::new(&problem.elements)),
+        "Implicit" => Solver::Implicit(ImplicitSolver::new(
+            &problem.elements,
+            problem.parameters.time_step,
+        )),
+        _ => panic!("Solver not recognized"),
+    };
 
-    let points = solver.points().clone();
+    let points = match &solver {
+        Solver::Explicit(s) => s.points().clone(),
+        Solver::Implicit(s) => s.points().clone(),
+    };
 
     let snapshot_period = problem.parameters.snapshot_period;
 
-    let mut engine = FEMEngine::new(problem.parameters, Solver::Implicit(solver));
+    let mut engine = FEMEngine::new(problem.parameters, solver);
 
     let temp_results = engine.run()?;
 

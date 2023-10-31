@@ -7,20 +7,14 @@ use log::error;
 fn run() -> Result<()> {
     let args: Vec<String> = env::args().collect();
 
-    if args.len() < 5 {
-        eprintln!(
-            "Usage: {} vtk_path json_path results_path results_name",
-            args[0]
-        );
+    if args.len() < 2 {
+        eprintln!("Usage: {} config_path", args[0]);
         std::process::exit(1);
     }
 
-    let vtk_path = &args[1];
-    let json_path = &args[2];
-    let results_path = &args[3];
-    let results_name = &args[4];
+    let config_path = &args[1];
 
-    fem::executor::run_solver(vtk_path, json_path, results_path, results_name)?;
+    fem::executor::run_solver(config_path)?;
 
     Ok(())
 }

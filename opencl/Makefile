@@ -1,8 +1,5 @@
-vtk_path ?= models/mesh.vtk
-json_path ?= models/mesh_res.json
-results_name ?= mesh_vtk
-results_path ?= models
+config_path ?= models/config.json
 
 build:
 	cargo build --release
-	./target/release/opencl $(vtk_path) $(json_path) $(results_path) $(results_name)
+	./target/release/opencl $(config_path)

@@ -105,9 +105,8 @@ fn compare_results(
 }
 
 fn run_test(test_number: u32) -> Result<()> {
-    let vtk_path = format!("Unit_tests/Test_{}/test_{}.vtk", test_number, test_number);
-    let json_path = format!(
-        "Unit_tests/Test_{}/test_{}_out.json",
+    let config_path = format!(
+        "Unit_tests/Test_{}/test_{}_config.json",
         test_number, test_number
     );
     let actual_results_path = format!(
@@ -118,7 +117,7 @@ fn run_test(test_number: u32) -> Result<()> {
     let new_results_name = format!("test_{}_new", test_number);
     let actual_results_name = format!("test_{}_results", test_number);
 
-    run_solver(&vtk_path, &json_path, &results_path, &new_results_name)?;
+    run_solver(&config_path)?;
 
     compare_results(
         actual_results_path,
@@ -133,8 +132,9 @@ fn run_test(test_number: u32) -> Result<()> {
 }
 
 #[test]
-pub fn test_1() -> Result<()> {
+pub fn test_conduction_1() -> Result<()> {
     /*
+    Only Condcution
     Cube of 1 m x 1 m x 1 m
     Material: Aluminuim, density: 2700 kg/m3, specific heat: 900 J/(K kg), thermal conductivity: 237 W/(K m)
     One of the faces has an initial temperature of 573 K (300 C), the rest 273 K (0 C)
@@ -147,8 +147,9 @@ pub fn test_1() -> Result<()> {
 }
 
 #[test]
-pub fn test_2() -> Result<()> {
+pub fn test_conduction_2() -> Result<()> {
     /*
+    Only Condcution
     Cube of 1 m x 1 m x 1 m
     Material: Aluminuim, density: 2700 kg/m3, specific heat: 900 J/(K kg), thermal conductivity: 237 W/(K m)
     Initial temperature of  273 K (0 C)
@@ -161,8 +162,9 @@ pub fn test_2() -> Result<()> {
 }
 
 #[test]
-pub fn test_3() -> Result<()> {
+pub fn test_conduction_3() -> Result<()> {
     /*
+    Only Condcution
     Cube of 1 m x 1 m x 1 m
     One of the faces has material Copper: density: 8960 kg/m3, specific heat: 385 J/(K kg), thermal conductivity: 400 W/(K m)
     The rest of the cube has material Oak (Wood): density: 700 kg/m3, specific heat: 2300 J/(K kg), thermal conductivity: 0.23 W/(K m)
@@ -177,8 +179,9 @@ pub fn test_3() -> Result<()> {
 }
 
 #[test]
-pub fn test_4() -> Result<()> {
+pub fn test_conduction_4() -> Result<()> {
     /*
+    Only Condcution
     Cube of 1 m x 1 m x 1 m
     One of the faces has material Copper: density: 8960 kg/m3, specific heat: 385 J/(K kg), thermal conductivity: 400 W/(K m)
     The rest of the cube has material Aluminuim, density: 2700 kg/m3, specific heat: 900 J/(K kg), thermal conductivity: 237 W/(K m)
@@ -193,8 +196,9 @@ pub fn test_4() -> Result<()> {
 }
 
 #[test]
-pub fn test_5() -> Result<()> {
+pub fn test_conduction_5() -> Result<()> {
     /*
+    Only Condcution
     Cube of 1 m x 1 m x 1 m
     One of the faces has material Copper: density: 8960 kg/m3, specific heat: 385 J/(K kg), thermal conductivity: 400 W/(K m)
     The rest of the cube has material Oak (Wood): density: 700 kg/m3, specific heat: 2300 J/(K kg), thermal conductivity: 0.23 W/(K m)
@@ -203,6 +207,21 @@ pub fn test_5() -> Result<()> {
     */
 
     run_test(5)?;
+
+    Ok(())
+}
+
+#[test]
+pub fn test_radiation_1() -> Result<()> {
+    /*
+    Only Radiation between elements
+    Two planes of 1000 m x 1000 m x 0.001 m, separated by 0.1 m
+    Both planes have density: 2700 kg/m3, specific heat: 897 J/(K kg), thermal conductivity: 0 W/(K m), alphaIR = 1.0
+    Initial temperature of plane 1: 500 K
+    Initial temperature of plane 2: 300 K
+    */
+
+    run_test(6)?;
 
     Ok(())
 }

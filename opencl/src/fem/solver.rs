@@ -102,7 +102,7 @@ pub fn construct_l_matrix(elements: &Vec<Element>, n_points: usize) -> Matrix {
         v
     });
 
-    l * BOLTZMANN / 3.0
+    l * BOLTZMANN / 9.0
 }
 
 pub fn construct_global_vector_f_const(elements: &Vec<Element>, n_points: usize) -> Vector {

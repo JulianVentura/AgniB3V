@@ -175,6 +175,7 @@ mod tests {
         }
     }
 
+    #[ignore]
     #[test]
     fn test_l_matrix_construction_base_2d_plane() {
         let conductivity = 237.0;

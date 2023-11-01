@@ -225,3 +225,20 @@ pub fn test_radiation_1() -> Result<()> {
 
     Ok(())
 }
+
+#[test]
+pub fn test_radiation_2() -> Result<()> {
+    /*
+    Only Radiation between elements
+    Two planes of 1000 m x 1000 m x 0.001 m, separated by 0.1 m
+    Both planes have density: 2700 kg/m3, specific heat: 897 J/(K kg), thermal conductivity: 0 W/(K m)
+    Plane 1 has alphaIR = 0.7
+    Plane 2 has alphaIR = 1.0
+    Initial temperature of plane 1: 500 K
+    Initial temperature of plane 2: 300 K
+    */
+
+    run_test(7)?;
+
+    Ok(())
+}

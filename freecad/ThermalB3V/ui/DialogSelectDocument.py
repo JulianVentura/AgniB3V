@@ -3,6 +3,7 @@ import FreeCADGui
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
+from constants import CONFIG_GROUP
 
 class DialogSelectDocument(QDialog):
     """
@@ -151,10 +152,19 @@ class DialogSelectDocument(QDialog):
             FreeCAD.Console.PrintMessage(f"Saving current document {documentName} in {directoryWithName}\n")
             # TODO: Document is not saving correctly (manual save is needed)
             FreeCAD.ActiveDocument.saveAs(directoryWithName)
+
         # Save document path in workbench
-        self.workbench.setDocumentPath(directory)
+        self.workbench.setDocumentPath(directory) # TODO: ¿remove?
         self.workbench.setExportPath(directory)
-        self.workbench.loadWorkbenchSettings()
+
+        # Load or create workbench settings
+        if bool(FreeCAD.activeDocument()):
+            if bool(FreeCAD.activeDocument().getObject(CONFIG_GROUP)):
+                configGroup = FreeCAD.activeDocument().getObject(CONFIG_GROUP)
+                self.workbench.loadWorkbenchSettings(configGroup)
+            else:
+                self.workbench.saveWorkbenchSettings()
+
         self.close()
 
     def onCancel(self):

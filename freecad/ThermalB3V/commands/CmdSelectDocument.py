@@ -1,6 +1,7 @@
 import FreeCAD
 from ui.DialogSelectDocument import DialogSelectDocument
 from public.utils import iconPath
+from constants import CONFIG_GROUP
 
 class CmdSelectDocument:
     def __init__(self, workbench):
@@ -15,9 +16,9 @@ class CmdSelectDocument:
 
     def IsActive(self):
         """
-        Active only when no document is active and saved (i.e. has FileName)
+        Active only when no document is active and config exists
         """
-        return not (bool(FreeCAD.activeDocument()) and bool(FreeCAD.activeDocument().FileName))
+        return not (bool(FreeCAD.activeDocument()) and bool(FreeCAD.activeDocument().getObject(CONFIG_GROUP)))
         
     def GetResources(self):
         return {

@@ -1,6 +1,7 @@
 import FreeCAD
 from ui.DialogGlobalProperties import DialogGlobalProperties
 from public.utils import iconPath
+from constants import CONFIG_GROUP
 
 class CmdOpenGlobalProperties:
     def __init__(self, workbench):
@@ -16,9 +17,9 @@ class CmdOpenGlobalProperties:
     def IsActive(self):
         """
         Show command as active if there is an active document
-        and the document is saved (i.e. has FileName)
+        and config exists
         """
-        return bool(FreeCAD.activeDocument()) and bool(FreeCAD.activeDocument().FileName)
+        return bool(FreeCAD.activeDocument()) and bool(FreeCAD.activeDocument().getObject(CONFIG_GROUP))
         
     def GetResources(self):
         return {

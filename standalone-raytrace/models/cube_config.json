@@ -1,0 +1,7 @@
+{
+    "mesh_file_path": "./models/cube.vtk",
+    "properties_file_path": "./models/cube_materials.json",
+    "output_path": "./models/cube_output.json",
+    "sun_direction": "[0,1,1]",
+    "internal_emission": "false"
+}

@@ -7,6 +7,7 @@ from utils.CustomJsonEncoder import CustomJsonEncoder
 from ui.DialogExport import DialogExport
 from constants.material_properties import MATERIAL_PROPERTIES
 import vtk
+from constants import CONFIG_GROUP
 
 class CmdExportMesh:
     def __init__(self, workbench):
@@ -22,9 +23,9 @@ class CmdExportMesh:
     def IsActive(self):
         """
         Show command as active if there is an active document
-        and the document is saved (i.e. has FileName)
+        and config exists
         """
-        return bool(FreeCAD.activeDocument()) and bool(FreeCAD.activeDocument().FileName)
+        return bool(FreeCAD.activeDocument()) and bool(FreeCAD.activeDocument().getObject(CONFIG_GROUP))
 
     def GetResources(self):
         return {

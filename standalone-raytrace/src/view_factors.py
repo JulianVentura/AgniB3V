@@ -17,35 +17,29 @@ def point_sun(mesh, sun_direction, displacement=0.05):
 	return [1 if x else 0 for x in intersected]
 
 def element_earth(mesh, earth_direction, ray_amount, displacement=0.05):
-	center = np.array([0.5,0.5,0.5])
 	element_normals = trimesh.triangles.normals(mesh.triangles)[0]
-	view_factors = np.zeros(len(mesh.triangles))
+	view_factors = np.zeros(utils.element_amount(mesh.triangles))
 
-	for element_idx in range(len(mesh.triangles)):
-		element_normal = element_normals[element_idx]
+	for element_idx in range(utils.element_amount(mesh.triangles)):
+		emitting_element = mesh.triangles[element_idx]
+		emitting_element_normal = element_normals[element_idx]
+	
+		#Facing away from earth's plane
+		if np.dot(emitting_element_normal, earth_direction) <= 0:
+			continue
 
-		triangle = mesh.triangles[element_idx]
-		ray_origins = np.zeros((ray_amount, 3))
-		ray_directions = np.zeros((ray_amount, 3))
+		ray_origins = utils.generate_random_points_in_element(emitting_element, ray_amount)
+		ray_directions = utils.generate_random_unit_vectors(ray_amount)
+		utils.orient_vector_towards_normal(ray_directions, earth_direction)
 
-		random_verts = np.random.rand(2*ray_amount,3)
-
-		#Original emission
-		for i in range(ray_amount):
-			weights = utils.proportionalize(random_verts[2*i])
-			ray_origins[i] = weights[0]*triangle[0] + weights[1]*triangle[1] + weights[2]*triangle[2] + displacement*element_normal
-
-			# Flip random rays that have a direction contrary to Earth's direction
-			random_direction = utils.normalize(random_verts[2*i + 1] - center)
-			oriented_towards_normal = np.dot(random_direction, earth_direction) >= 0
-			ray_directions[i] = random_direction if oriented_towards_normal else -random_direction
+		ray_origins += emitting_element_normal*displacement
 
 		if(DEBUG_VISUALIZATION_ENABLED):
 			visualization.view_raycast(mesh, element_idx, ray_origins, ray_directions)
 
-		locations, index_ray, index_tri = mesh.ray.intersects_location(ray_origins, ray_directions)
-		view_factors[element_idx] = 1 if (len(index_tri) < ray_amount) else 0
-	
+		hit_element_ids, hit_ray_ids = mesh.ray.intersects_id(ray_origins, ray_directions, return_locations=False, multiple_hits=False)
+		view_factors[element_idx] = (ray_amount - hit_ray_ids.size)/ray_amount
+
 	return view_factors
 
 def element_sun(mesh, sun_direction, displacement=0.01):

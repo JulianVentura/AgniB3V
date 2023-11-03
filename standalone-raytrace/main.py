@@ -6,7 +6,7 @@ import numpy as np
 
 def op_process_view_factors(mesh_file_path, properties_file_path):
     """
-    Recieves the mesh file path (vtk) and the properties file path (json).
+    Receives the mesh file path (vtk) and the properties file path (json).
     It calculates the view factors and saves them into the output_path file.
     """
     print("Starting process of view factors")
@@ -37,7 +37,7 @@ def op_process_view_factors(mesh_file_path, properties_file_path):
 
 def op_visualize_view_factors(mesh_file_path, properties_file_path, element_id):
     """
-    Recieves the mesh file path (vtk), the properties file path (json) and the element id
+    Receives the mesh file path (vtk), the properties file path (json) and the element id
     and creates a visualization of the view factors of the element.
     """
     print("Starting visualization of view factors")
@@ -54,7 +54,7 @@ def op_visualize_view_factors(mesh_file_path, properties_file_path, element_id):
 
 def op_visualize_material(mesh_file_path, properties_file_path):
     """
-    Recieves the mesh file path (vtk) and the properties file path (json) and creates
+    Receives the mesh file path (vtk) and the properties file path (json) and creates
     a visualization of the material.
     """
     print("Starting visualization of material")
@@ -65,7 +65,7 @@ def op_visualize_material(mesh_file_path, properties_file_path):
 
 def op_show_help(argv):
     """
-    Recieves the argv list and prints a help message.
+    Receives the argv list and prints a help message.
     """
     print("Use:")
     print(f"  python3 {argv[0]} process <mesh_file_path> <properties_file_path>")

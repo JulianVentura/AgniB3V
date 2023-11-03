@@ -33,7 +33,7 @@ class PropertiesAtlas():
 
     def get_material_props(self, element_index):
         """
-        Recieven an index and returns the properties of the material of the element
+        Recieves an index and returns the properties of the material of the element
         with the given index.
         """
         return self.materials[self.material_by_element[element_index]]
@@ -46,7 +46,7 @@ class PropertiesAtlas():
 
     def get_global_prop(self, key):
         """
-        Recives a global property key and returns the data associated with it.
+        Receives a global property key and returns the data associated with it.
         """
         return self.properties_json["global_properties"][key]
 

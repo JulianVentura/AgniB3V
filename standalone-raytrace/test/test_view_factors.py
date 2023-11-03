@@ -14,15 +14,29 @@ def test_element_earth():
     expected_view_factors = np.zeros(20)
     expected_view_factors[expected_visible_elements] = 1
     assert np.array_equal(earth_view_factors, expected_view_factors)
-
-def test_element_sun():
+      
+#   /_15_|_19_\    .       /15 \             ___/_\___
+#  | \10/ \14/ |     .    /   10\            \ /   \ /
+#  |6_\/_5_\/_9|     .   |      5|  <-----   /_\___/_\
+#   \0 \ 1 / 4/    .      \    0/               \ /
+def test_element_sun_view_factors_are_as_expected():
     mesh = vtk_io.load_vtk(ICOSPHERE_GEOMETRY_PATH)
     sun_direction = np.array([1,0,0])
     sun_view_factors = view_factors.element_sun(mesh, sun_direction)
-    expected_visible_elements = np.array([0,1,4,5,6,9,10,14,15,19])
     expected_view_factors = np.zeros(20)
-    expected_view_factors[expected_visible_elements] = 1
-    assert np.array_equal(sun_view_factors, expected_view_factors)
+    expected_view_factors[0] = 0.2
+    expected_view_factors[1] = 0.6
+    expected_view_factors[4] = expected_view_factors[0]
+    expected_view_factors[5] = 1.0
+    expected_view_factors[6] = 0.3
+    expected_view_factors[9] = expected_view_factors[6]
+    expected_view_factors[10] = 0.8
+    expected_view_factors[14] = expected_view_factors[10]
+    expected_view_factors[15] = 0.5
+    expected_view_factors[19] = expected_view_factors[15]
+    
+    for i in range(20):
+        assert _is_in_interval(sun_view_factors[i], expected_view_factors[i], 0.02)
 
 def _element_element_backwards_pyramid(properties_path, ray_amount):
     mesh = vtk_io.load_vtk(BACKWARDS_PYRAMID_GEOMETRY_PATH)

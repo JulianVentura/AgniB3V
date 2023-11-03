@@ -72,7 +72,10 @@ def _filter_reflected_rays_by_element_absorptance(absorptance, hit_points, hit_r
 	return _hit_points, _hit_ray_ids, _hit_element_ids, hit_element_ids[absorbed_rays]
 
 
-def element_element(mesh, properties, ray_amount=1000, max_reflections_amount=3, internal_emission=True):
+def element_element(mesh, properties):
+	ray_amount = properties.get_global_prop("element_ray_amount")
+	max_reflections_amount = properties.get_global_prop("element_max_reflections_amount")
+	internal_emission = properties.get_global_prop("internal_emission")
 	element_normals = trimesh.triangles.normals(mesh.triangles)[0]
 	view_factors = np.zeros((len(mesh.triangles), len(mesh.triangles)))
 	

@@ -4,21 +4,21 @@ import numpy as np
 
 def _is_in_interval(value, center, epsilon):
     return value < center + epsilon and value > center - epsilon
-
-def test_element_earth():
-    earth_direction = np.array([1,0,0])
-    mesh = vtk_io.load_vtk(ICOSPHERE_GEOMETRY_PATH)
-    earth_view_factors = view_factors.element_earth(mesh, earth_direction ,10000)
-    #TODO: Fix 11,13,18,16 are almost ortogonal
-    expected_visible_elements = np.array([0,1,4,5,6,9,10,14,15,19,11,13,18,16])
-    expected_view_factors = np.zeros(20)
-    expected_view_factors[expected_visible_elements] = 1
-    assert np.array_equal(earth_view_factors, expected_view_factors)
       
 #   /_15_|_19_\    .       /15 \             ___/_\___
 #  | \10/ \14/ |     .    /   10\            \ /   \ /
 #  |6_\/_5_\/_9|     .   |      5|  <-----   /_\___/_\
 #   \0 \ 1 / 4/    .      \    0/               \ /
+def test_element_sun_visible_faces():
+    sun_direction = np.array([1,0,0])
+    mesh = vtk_io.load_vtk(ICOSPHERE_GEOMETRY_PATH)
+    earth_view_factors = view_factors.element_sun(mesh, sun_direction)
+    earth_view_factors = np.ceil(earth_view_factors)
+    expected_visible_elements = np.array([0,1,4,5,6,9,10,14,15,19])
+    expected_view_factors = np.zeros(20)
+    expected_view_factors[expected_visible_elements] = 1
+    assert np.array_equal(earth_view_factors, expected_view_factors)
+
 def test_element_sun_view_factors_are_as_expected():
     mesh = vtk_io.load_vtk(ICOSPHERE_GEOMETRY_PATH)
     sun_direction = np.array([1,0,0])
@@ -34,9 +34,42 @@ def test_element_sun_view_factors_are_as_expected():
     expected_view_factors[14] = expected_view_factors[10]
     expected_view_factors[15] = 0.5
     expected_view_factors[19] = expected_view_factors[15]
-    
+
     for i in range(20):
         assert _is_in_interval(sun_view_factors[i], expected_view_factors[i], 0.02)
+
+def test_element_earth_visible_faces():
+    earth_direction = np.array([1,0,0])
+    mesh = vtk_io.load_vtk(ICOSPHERE_GEOMETRY_PATH)
+    earth_view_factors = view_factors.element_earth(mesh, earth_direction ,10000)
+    earth_view_factors = np.ceil(earth_view_factors)
+    expected_visible_elements = np.array([0,1,4,5,6,9,10,14,15,19])
+    expected_view_factors = np.zeros(20)
+    expected_view_factors[expected_visible_elements] = 1
+    print(earth_view_factors)
+    print(expected_view_factors)
+    assert np.array_equal(earth_view_factors, expected_view_factors)
+
+def test_element_earth_view_factors_are_as_expected():
+    earth_direction = np.array([1,0,0])
+    mesh = vtk_io.load_vtk(ICOSPHERE_GEOMETRY_PATH)
+    earth_view_factors = view_factors.element_earth(mesh, earth_direction ,10000)
+    expected_view_factors = np.zeros(20)
+    expected_view_factors[0] = 0.7
+    expected_view_factors[1] = 0.8
+    expected_view_factors[4] = expected_view_factors[0]
+    expected_view_factors[5] = 1.0
+    expected_view_factors[6] = 0.7
+    expected_view_factors[9] = expected_view_factors[6]
+    expected_view_factors[10] = 0.9
+    expected_view_factors[14] = expected_view_factors[10]
+    expected_view_factors[15] = 0.8
+    expected_view_factors[19] = expected_view_factors[15]
+
+    for i in range(20):
+        print(i)
+        assert _is_in_interval(earth_view_factors[i], expected_view_factors[i], 0.05)
+
 
 def _element_element_backwards_pyramid(properties_path, ray_amount):
     mesh = vtk_io.load_vtk(BACKWARDS_PYRAMID_GEOMETRY_PATH)

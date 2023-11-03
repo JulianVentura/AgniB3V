@@ -4,30 +4,25 @@ from src import properties_atlas, vtk_io, view_factors, visualization
 import numpy as np
 
 
-def op_process_view_factors(
-    mesh_file_path,
-    properties_file_path,
-    output_path,
-    sun_direction,
-    internal_emission,
-):
+def op_process_view_factors(mesh_file_path, properties_file_path):
     """
-    Recieves the mesh file path (vtk), the properties file path (json), the output path (json),
-    the sun direction (vector) and a boolean indicating if the internal emission is enabled.
+    Recieves the mesh file path (vtk) and the properties file path (json).
     It calculates the view factors and saves them into the output_path file.
     """
-    internal_emission = internal_emission == "true"
+    print("Starting process of view factors")
     mesh = vtk_io.load_vtk(mesh_file_path)
-
-    sun_direction = np.array(list(map(float, sun_direction.strip("[]").split(","))))
     props = properties_atlas.PropertiesAtlas(len(mesh.triangles), properties_file_path)
 
-    element_sun_view_factors = view_factors.element_sun(mesh, sun_direction)
-    element_element_view_factors = view_factors.element_element(
-        mesh, props, 500, 3, internal_emission
-    )
+    SUN_DISPLACEMENT = 0.05
+    ELEMENT_DISPLACEMENT = 0.1
+    EARTH_DISPLACEMENT = 0.05
+    
+    sun_direction = np.array(list(map(float, props.get_global_prop("sun_direction").strip("[]").split(","))))
+
+    element_sun_view_factors = view_factors.element_sun(mesh, sun_direction, SUN_DISPLACEMENT)
+    element_element_view_factors = view_factors.element_element(mesh, props, ELEMENT_DISPLACEMENT)
     element_earth_view_factors = view_factors.element_earth(
-        mesh, list(map(lambda x: -x, sun_direction)), 200
+        mesh, list(map(lambda x: -x, sun_direction)), EARTH_DISPLACEMENT
     )
 
     props.add_prop(
@@ -38,30 +33,14 @@ def op_process_view_factors(
             "elements": list(map(list, element_element_view_factors)),
         },
     )
-    props.dump(output_path)
-
-
-def op_process_view_factors_config(config_file_path):
-    """
-    Recieves the config file path (json) and calculates the view factors and
-    saves them into the defined output file.
-    """
-    config_file = open(config_file_path)
-    config_json = json.load(config_file)
-    op_process_view_factors(
-        config_json["mesh_file_path"],
-        config_json["properties_file_path"],
-        config_json["output_path"],
-        config_json["sun_direction"],
-        config_json["internal_emission"],
-    )
-
+    props.dump(properties_file_path)
 
 def op_visualize_view_factors(mesh_file_path, properties_file_path, element_id):
     """
     Recieves the mesh file path (vtk), the properties file path (json) and the element id
     and creates a visualization of the view factors of the element.
     """
+    print("Starting visualization of view factors")
     mesh = vtk_io.load_vtk(mesh_file_path)
     element_id = int(element_id)
     material_file = open(properties_file_path)
@@ -78,6 +57,7 @@ def op_visualize_material(mesh_file_path, properties_file_path):
     Recieves the mesh file path (vtk) and the properties file path (json) and creates
     a visualization of the material.
     """
+    print("Starting visualization of material")
     mesh = vtk_io.load_vtk(mesh_file_path)
     props = properties_atlas.PropertiesAtlas(len(mesh.triangles), properties_file_path)
     visualization.view_material(mesh, props)
@@ -88,10 +68,7 @@ def op_show_help(argv):
     Recieves the argv list and prints a help message.
     """
     print("Use:")
-    print(f"  python3 {argv[0]} process <config_file_path>")
-    print(
-        f"  python3 {argv[0]} processcli <mesh_file_path> <properties_file_path> <output_path> <sun_direction> <internal_emission>"
-    )
+    print(f"  python3 {argv[0]} process <mesh_file_path> <properties_file_path>")
     print(f"  python3 {argv[0]} viewvf <mesh_file_path> <properties_file_path> <element_id>")
     print(f"  python3 {argv[0]} viewm <mesh_file_path> <properties_file_path>")
 
@@ -101,14 +78,12 @@ def main():
     Reads from the argv and expect a command as a first argument.
     
     The commands are:
-        process: given a config file, it calculates the view factors.
-        processcli: given the expected arguments, it calculates the view factors.
+        process: given a mesh file and a properties file, it calculates the view factors.
         viewvf: creates visualization for the view factors of an element.
         viewm: creates visualization for the material of the mesh.
 
     For each command expect the following arguments:
-        process: config_file_path
-        processcli: mesh_file_path, properties_file_path, output_path, sun_direction, internal_emission
+        process: mesh_file_path, properties_file_path
         viewvf: mesh_file_path, properties_file_path, element_id
         viewm: mesh_file_path, properties_file_path
     """
@@ -117,10 +92,8 @@ def main():
         return
 
     match sys.argv:
-        case [_, "process", config_file_path]:
-            op_process_view_factors_config(config_file_path)
-        case [_, "processcli", mesh_file_path, properties_file_path, output_path, sun_direction, internal_emission]:
-            op_process_view_factors(mesh_file_path, properties_file_path, output_path, sun_direction, internal_emission)
+        case [_, "process", mesh_file_path, properties_file_path]:
+            op_process_view_factors(mesh_file_path, properties_file_path)
         case [_, "viewvf", mesh_file_path, properties_file_path, element_id]:
             op_visualize_view_factors(mesh_file_path, properties_file_path, element_id)
         case [_, "viewm", mesh_file_path, properties_file_path]:

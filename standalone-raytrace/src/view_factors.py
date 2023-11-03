@@ -50,15 +50,19 @@ def element_earth(mesh, earth_direction, ray_amount, displacement=0.05):
 
 def element_sun(mesh, sun_direction, displacement=0.01):
 	element_centers = np.array(list(map(lambda x: (x[0] + x[1] + x[2])/3, mesh.triangles)))
+	element_normals = trimesh.triangles.normals(mesh.triangles)[0]
+	
 	ray_origins =  element_centers + sun_direction*displacement
 	ray_directions = np.broadcast_to(sun_direction, (len(ray_origins), 3))
+	element_sun_view_factors = utils.aparent_element_area_multiplier(ray_directions, element_normals)
 	intersected = mesh.ray.intersects_any(ray_origins, ray_directions)
-	
+	element_sun_view_factors[intersected] = 0
+
 	if(DEBUG_VISUALIZATION_ENABLED):
 		invisible_nodes = np.arange(len(element_centers))[intersected]
 		visualization.view_invisible_points(mesh, -sun_direction, element_centers[invisible_nodes])
 	
-	return [0 if x else 1 for x in intersected]
+	return element_sun_view_factors
 
 def _filter_reflected_rays_by_element_absorptance(absorptance, hit_points, hit_ray_ids, hit_element_ids):
 	random_values = np.random.rand(len(hit_element_ids))

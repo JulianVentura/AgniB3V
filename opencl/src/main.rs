@@ -1,4 +1,5 @@
 pub mod fem;
+pub mod gpu;
 use std::env;
 
 use anyhow::Result;

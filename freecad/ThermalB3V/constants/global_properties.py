@@ -70,4 +70,19 @@ GLOBAL_PROPERTIES_INPUTS = {
         "unit": "s",
         "value": 3600.0,
     },
+    "elementRayAmount": {
+        "label": "Element ray amount",
+        "unit": "",
+        "value": 500,
+    },
+    "elementMaxReflectionsAmount": {
+        "label": "Element max reflections amount",
+        "unit": "",
+        "value": 3,
+    },
+    "earthRayAmount": {
+        "label": "Earth ray amount",
+        "unit": "",
+        "value": 200,
+    },
 }

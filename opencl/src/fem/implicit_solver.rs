@@ -1,3 +1,14 @@
+use super::super::gpu::eq_systems_methods_cpu::lu_decomposition;
+use super::super::gpu::eq_systems_methods_cpu::lu_solve;
+
+use super::super::gpu::eq_systems_methods_cpu::LUDecomposition;
+
+use super::super::gpu::eq_systems_methods_cpu::gauss_seidel_cpu;
+
+use super::super::gpu::eq_systems_methods_cpu::jacobi_method_cpu;
+
+use super::super::gpu::jacobi_method::jacobi_method;
+
 use super::element::Element;
 use super::point::Point;
 use super::solver;
@@ -7,6 +18,8 @@ pub struct ImplicitSolver {
     f_const: Vector,
     f_const_eclipse: Vector,
     pub a_lu: LU,
+    pub a_lu_dec: LUDecomposition,
+    pub a: Matrix,
     pub d: Matrix,
     pub h: Matrix,
     temp: Vector,
@@ -38,13 +51,18 @@ impl ImplicitSolver {
         let theta = 0.5;
         let d = &m / time_step - (1.0 - theta) * &k;
         let a = &m / time_step + theta * &k;
-        let a_lu = a.lu();
+        println!("Building LU decomposition");
+        let a_lu_dec = lu_decomposition(a.clone());
+        let a_lu = a.clone().lu();
+
         println!("FEM Engine built successfully");
 
         ImplicitSolver {
             f_const,
             f_const_eclipse,
             a_lu,
+            a_lu_dec,
+            a,
             d,
             h,
             temp,
@@ -69,7 +87,10 @@ impl ImplicitSolver {
 
         let b = &self.d * &self.temp + f;
 
-        self.temp = self.a_lu.solve(&b).expect("Oh no...");
+        //self.temp = self.a_lu.solve(&b).expect("Oh no...");
+        //self.temp = gauss_seidel_cpu(self.a.clone(), b);
+        //self.temp = jacobi_method(self.a.clone(), b).expect("Oh no...");
+        self.temp = lu_solve(&self.a_lu_dec, b);
     }
 
     pub fn points(&self) -> &Vec<Point> {

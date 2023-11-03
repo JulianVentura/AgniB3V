@@ -111,22 +111,23 @@ pub fn lu_decomposition(a: Matrix) -> LUDecomposition {
 
     for i in 0..n {
         for k in i..n {
-            let mut sum = 0.0;
+            let mut sum1 = 0.0;
             for j in 0..i {
-                sum += l[(i, j)] * u[(j, k)];
+                sum1 += l[(i, j)] * u[(j, k)];
             }
-            u[(i, k)] = a[(i, k)] - sum;
+            u[(i, k)] = a[(i, k)] - sum1;
         }
 
         for k in i..n {
+            //TODO: Add pivoting, if uii is 0 this gives NaN
             if i == k {
                 l[(i, i)] = 1.0;
             } else {
-                let mut sum = 0.0;
+                let mut sum2 = 0.0;
                 for j in 0..i {
-                    sum += l[(k, j)] * u[(j, i)];
+                    sum2 += l[(k, j)] * u[(j, i)];
                 }
-                l[(k, i)] = (a[(k, i)] - sum) / u[(i, i)];
+                l[(k, i)] = (a[(k, i)] - sum2) / u[(i, i)];
             }
         }
     }
@@ -160,13 +161,16 @@ pub fn lu_solve(lu: &LUDecomposition, b: Vector) -> Vector {
 }
 pub mod test {
     use crate::fem::structures::Matrix;
+    use rand::prelude::*;
+    use rand_chacha::ChaCha8Rng;
 
     fn assert_matrix_eq_float(a: Matrix, b: Matrix, precision: f64) {
         assert_eq!(a.nrows(), b.nrows());
         assert_eq!(a.ncols(), b.ncols());
         for i in 0..a.nrows() {
             for j in 0..a.ncols() {
-                assert!((a[(i, j)] - b[(i, j)]).abs() < precision);
+                let msg = format!("{} != {}", a[(i, j)], b[(i, j)]);
+                assert!((a[(i, j)] - b[(i, j)]).abs() < precision, "{}", msg);
             }
         }
     }
@@ -434,5 +438,37 @@ pub mod test {
         ];
         assert_matrix_eq_float_2(l, L, 0.01); //Filled by column
         assert_matrix_eq_float_2(u, U, 0.01); //Filled by column
+    }
+
+    #[ignore]
+    #[test]
+    pub fn test_lu_decomposition_4() {
+        //This would not work until pivoting implemented
+        let a = Matrix::from_vec(3, 3, vec![5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0]); //Filled by column
+        let lu = super::lu_decomposition(a.clone());
+        let l = lu.l;
+        let u = lu.u;
+
+        assert_matrix_eq_float(a, l * u, 0.01); //Filled by column
+    }
+
+    #[test]
+    pub fn test_lu_decomposition_5() {
+        //This would not work until pivoting implemented
+        let size = 1000;
+        let size_sqr = size * size;
+        let mut v = vec![0.0; size_sqr];
+        let mut rng = ChaCha8Rng::seed_from_u64(2);
+        for i in 0..size_sqr {
+            let mut y: f64 = rng.gen(); // generates a float between 0 and 1
+            y *= 100.0;
+            v[i] = y;
+        }
+        let a = Matrix::from_vec(size, size, v); //Filled by column
+        let lu = super::lu_decomposition(a.clone());
+        let l = lu.l;
+        let u = lu.u;
+
+        assert_matrix_eq_float(a, l * u, 0.01); //Filled by column
     }
 }

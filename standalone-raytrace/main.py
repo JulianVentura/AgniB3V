@@ -17,13 +17,9 @@ def op_process_view_factors(mesh_file_path, properties_file_path):
     ELEMENT_DISPLACEMENT = 0.1
     EARTH_DISPLACEMENT = 0.05
     
-    sun_direction = np.array(list(map(float, props.get_global_prop("sun_direction").strip("[]").split(","))))
-
-    element_sun_view_factors = view_factors.element_sun(mesh, sun_direction, SUN_DISPLACEMENT)
+    element_sun_view_factors = view_factors.element_sun(mesh, props, SUN_DISPLACEMENT)
     element_element_view_factors = view_factors.element_element(mesh, props, ELEMENT_DISPLACEMENT)
-    element_earth_view_factors = view_factors.element_earth(
-        mesh, list(map(lambda x: -x, sun_direction)), EARTH_DISPLACEMENT
-    )
+    element_earth_view_factors = view_factors.element_earth(mesh, props, EARTH_DISPLACEMENT)
 
     props.add_prop(
         "view_factors",

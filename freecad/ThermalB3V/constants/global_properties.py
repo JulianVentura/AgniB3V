@@ -52,8 +52,8 @@ GLOBAL_PROPERTIES_INPUTS = {
     },
     "internalEmission": {
         "label": "Internal emission",
-        "unit": "W/m2",
-        "value": 0.0,
+        "unit": "",
+        "value": False,
     },
     "simulationTime": {
         "label": "Simulation time",

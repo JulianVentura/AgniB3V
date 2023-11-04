@@ -96,6 +96,10 @@ class WidgetGlobalProperties(QWidget):
             qtInput.setMaximum(999999999)
             qtInput.setValue(value)
             qtInput.valueChanged.connect(lambda x: self.workbench.setGlobalPropertieValue(attributeName, x))
+        elif type(value) == bool:
+            qtInput = QCheckBox(self)
+            qtInput.setChecked(value)
+            qtInput.stateChanged.connect(lambda x: self.workbench.setGlobalPropertieValue(attributeName, x))
         else:
             qtInput = QLineEdit(self)
             qtInput.setText(value)

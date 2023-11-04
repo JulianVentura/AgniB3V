@@ -13,13 +13,9 @@ def op_process_view_factors(mesh_file_path, properties_file_path):
     mesh = vtk_io.load_vtk(mesh_file_path)
     props = properties_atlas.PropertiesAtlas(len(mesh.triangles), properties_file_path)
 
-    SUN_DISPLACEMENT = 0.05
-    ELEMENT_DISPLACEMENT = 0.1
-    EARTH_DISPLACEMENT = 0.05
-    
-    element_sun_view_factors = view_factors.element_sun(mesh, props, SUN_DISPLACEMENT)
-    element_element_view_factors = view_factors.element_element(mesh, props, ELEMENT_DISPLACEMENT)
-    element_earth_view_factors = view_factors.element_earth(mesh, props, EARTH_DISPLACEMENT)
+    element_sun_view_factors = view_factors.element_sun(mesh, props)
+    element_element_view_factors = view_factors.element_element(mesh, props)
+    element_earth_view_factors = view_factors.element_earth(mesh, props)
 
     props.add_prop(
         "view_factors",

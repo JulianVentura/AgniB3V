@@ -54,6 +54,10 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         self.createAttributes("exportPath", "")
         self.createAttributes("documentPath", "")
 
+        # Initialize raytrace path
+        self.createAttributes("raytracePath", "")
+
+
         # List of tools in the workbench toolbar
         thermalList = [
             "THM_Select_Document",
@@ -166,6 +170,7 @@ class ThermalWorkbench(FreeCADGui.Workbench):
             WorkbenchSettings.addProperty(propertyName, props['value'])
         WorkbenchSettings.addProperty("exportPath", self.exportPath)
         WorkbenchSettings.addProperty("documentPath", self.documentPath)
+        WorkbenchSettings.addProperty("raytracePath", self.raytracePath)
 
         # Check if workbenchSettings exists
         FreeCAD.Console.PrintMessage("Getting if workbench settings exist\n")
@@ -199,3 +204,5 @@ class ThermalWorkbench(FreeCADGui.Workbench):
             self.setExportPath(propValue)
         if (propValue := getattr(workbenchSettings, "documentPath", None)) != None:
             self.setDocumentPath(propValue)
+        if (propValue := getattr(workbenchSettings, "raytracePath", None)) != None:
+            self.setRaytracePath(propValue)

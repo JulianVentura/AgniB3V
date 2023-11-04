@@ -6,19 +6,17 @@ import sys
 DEBUG_VISUALIZATION_ENABLED = False
 RAY_DISPLACEMENT = 1e-4
 
-def point_sun(mesh, sun_direction):
-	sun_direction = np.array(sun_direction)
-	ray_origins = mesh.vertices - sun_direction*RAY_DISPLACEMENT
-	ray_directions = np.broadcast_to(-sun_direction, (len(ray_origins), 3))
-	intersected = mesh.ray.intersects_any(ray_origins, ray_directions)
-	
-	if(DEBUG_VISUALIZATION_ENABLED):
-		invisible_nodes = np.arange(len(mesh.vertices))[intersected]
-		visualization.view_invisible_points(mesh, sun_direction, mesh.vertices[invisible_nodes])
-	
-	return [1 if x else 0 for x in intersected]
+def element_earth(mesh, properties):
+	"""
+	Receives a trimesh mesh object and a properties atlas object.
+	Finds the view factors of the elements of the mesh with the earth and returns
+	a list of the view factors.
+	"""
+	sun_direction = np.array(list(map(float, properties.get_global_prop("sun_direction").strip("[]").split(","))))
+	earth_direction = -sun_direction
+	ray_amount = properties.get_global_prop("earth_ray_amount")
 
-def element_earth(mesh, earth_direction, ray_amount):
+	center = np.array([0.5,0.5,0.5])
 	element_normals = trimesh.triangles.normals(mesh.triangles)[0]
 	view_factors = np.zeros(utils.element_amount(mesh.triangles))
 
@@ -44,9 +42,22 @@ def element_earth(mesh, earth_direction, ray_amount):
 
 	return view_factors
 
-def element_sun(mesh, sun_direction):
+def element_sun(mesh, properties):
+	"""
+	Receives a trimesh mesh object and a properties atlas object.
+	Finds the view factors of the elements of the mesh with the sun and returns
+	a list of the view factors.
+	"""
+	sun_direction = np.array(
+		list(map(float, properties.get_global_prop("sun_direction").strip("[]").split(",")))
+	)
 	element_centers = np.array(list(map(lambda x: (x[0] + x[1] + x[2])/3, mesh.triangles)))
 	element_normals = trimesh.triangles.normals(mesh.triangles)[0]
+
+	# Create ray from element centers with direction of the sun and check if it intersects
+	ray_origins =  element_centers + sun_direction*displacement
+	ray_directions = np.broadcast_to(sun_direction, (len(ray_origins), 3))
+	intersected = mesh.ray.intersects_any(ray_origins, ray_directions)
 	
 	ray_origins =  element_centers + sun_direction*RAY_DISPLACEMENT
 	ray_directions = np.broadcast_to(sun_direction, (len(ray_origins), 3))
@@ -73,6 +84,11 @@ def _filter_reflected_rays_by_element_absorptance(absorptance, hit_points, hit_r
 
 
 def element_element(mesh, properties):
+	"""
+	Receives a trimesh mesh object and a properties atlas object.
+	Finds the view factors of the elements of the mesh with the other elements and returns
+	a list of the view factors.
+	"""
 	ray_amount = properties.get_global_prop("element_ray_amount")
 	max_reflections_amount = properties.get_global_prop("element_max_reflections_amount")
 	internal_emission = properties.get_global_prop("internal_emission")

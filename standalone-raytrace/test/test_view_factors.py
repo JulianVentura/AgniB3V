@@ -10,9 +10,9 @@ def _is_in_interval(value, center, epsilon):
 #  |6_\/_5_\/_9|     .   |      5|  <-----   /_\___/_\
 #   \0 \ 1 / 4/    .      \    0/               \ /
 def test_element_sun_visible_faces():
-    sun_direction = np.array([1,0,0])
     mesh = vtk_io.load_vtk(ICOSPHERE_GEOMETRY_PATH)
-    earth_view_factors = view_factors.element_sun(mesh, sun_direction)
+    properties = properties_atlas.PropertiesAtlas(utils.element_amount(mesh.triangles), ICOSPHERE_PROPERTIES_PATH)
+    earth_view_factors = view_factors.element_sun(mesh, properties)
     earth_view_factors = np.ceil(earth_view_factors)
     expected_visible_elements = np.array([0,1,4,5,6,9,10,14,15,19])
     expected_view_factors = np.zeros(20)
@@ -39,9 +39,9 @@ def test_element_sun_view_factors_are_as_expected():
         assert _is_in_interval(sun_view_factors[i], expected_view_factors[i], 0.02)
 
 def test_element_earth_visible_faces():
-    earth_direction = np.array([1,0,0])
     mesh = vtk_io.load_vtk(ICOSPHERE_GEOMETRY_PATH)
-    earth_view_factors = view_factors.element_earth(mesh, earth_direction ,10000)
+    properties = properties_atlas.PropertiesAtlas(utils.element_amount(mesh.triangles), ICOSPHERE_PROPERTIES_PATH)
+    earth_view_factors = view_factors.element_earth(mesh, properties)
     earth_view_factors = np.ceil(earth_view_factors)
     expected_visible_elements = np.array([0,1,4,5,6,9,10,14,15,19])
     expected_view_factors = np.zeros(20)
@@ -71,13 +71,13 @@ def test_element_earth_view_factors_are_as_expected():
         assert _is_in_interval(earth_view_factors[i], expected_view_factors[i], 0.05)
 
 
-def _element_element_backwards_pyramid(properties_path, ray_amount):
+def _element_element_backwards_pyramid(properties_path):
     mesh = vtk_io.load_vtk(BACKWARDS_PYRAMID_GEOMETRY_PATH)
     properties = properties_atlas.PropertiesAtlas(utils.element_amount(mesh.triangles), properties_path)
-    return view_factors.element_element(mesh, properties, ray_amount, 50, False)
+    return view_factors.element_element(mesh, properties, 0.01)
 
 def test_element_element_backwards_pyramid_view_factors_rows_sum_one():
-    element_element_view_factors = _element_element_backwards_pyramid(BACKWARDS_PYRAMID_PROPERTIES_PATH_NO_REFLECTIONS, 10000)
+    element_element_view_factors = _element_element_backwards_pyramid(BACKWARDS_PYRAMID_PROPERTIES_PATH_NO_REFLECTIONS)
     print(element_element_view_factors)
     for element_id in range(len(element_element_view_factors)):
         row = np.delete(element_element_view_factors[element_id], element_id)
@@ -86,51 +86,51 @@ def test_element_element_backwards_pyramid_view_factors_rows_sum_one():
 
 def test_element_element_backwards_pyramid_view_factors_rows_are_similar():
     element_element_view_factors_epsilon = 0.03
-    element_element_view_factors = _element_element_backwards_pyramid(BACKWARDS_PYRAMID_PROPERTIES_PATH_NO_REFLECTIONS, 10000)
+    element_element_view_factors = _element_element_backwards_pyramid(BACKWARDS_PYRAMID_PROPERTIES_PATH_NO_REFLECTIONS)
     for element_id in range(len(element_element_view_factors)):
         row = np.delete(element_element_view_factors[element_id], element_id)
         assert np.all(row < 1/3 + element_element_view_factors_epsilon)
         assert np.all(row > 1/3 - element_element_view_factors_epsilon)
 
 def test_view_factors_full_reflections():
-    element_element_view_factors = _element_element_backwards_pyramid(BACKWARDS_PYRAMID_PROPERTIES_PATH_FULL_REFLECTIONS, 10000)
+    element_element_view_factors = _element_element_backwards_pyramid(BACKWARDS_PYRAMID_PROPERTIES_PATH_FULL_REFLECTIONS)
     view_factors_sum = np.sum(element_element_view_factors)
     assert _is_in_interval(view_factors_sum, 0, sys.float_info.epsilon*10)
 
 def test_element_element_backwards_pyramid_view_factors_half_reflections_sum_one():
-    element_element_view_factors = _element_element_backwards_pyramid(BACKWARDS_PYRAMID_PROPERTIES_PATH_HALF_REFLECTIONS, 10000)
+    element_element_view_factors = _element_element_backwards_pyramid(BACKWARDS_PYRAMID_PROPERTIES_PATH_HALF_REFLECTIONS)
     for row in element_element_view_factors:
         row_sum = np.sum(row)
         assert _is_in_interval(row_sum, 1, 0.2)
 
 def test_element_element_backwards_pyramid_view_factors_half_reflections_are_correct():
-    element_element_view_factors = _element_element_backwards_pyramid(BACKWARDS_PYRAMID_PROPERTIES_PATH_HALF_REFLECTIONS, 10000)
+    element_element_view_factors = _element_element_backwards_pyramid(BACKWARDS_PYRAMID_PROPERTIES_PATH_HALF_REFLECTIONS)
     expected_element_element_view_factors = np.array([[1/3,2/3,0,0],[2/3,1/3,0,0],[0.5,0.5,0,0],[0.5,0.5,0,0]]),
     view_factors_errors = element_element_view_factors - expected_element_element_view_factors
     print(element_element_view_factors)
     assert np.sum(view_factors_errors * view_factors_errors) < 0.02*16
 
 def test_element_element_backwards_pyramid_view_factors_half_reflections_half_absortance_sum_one():
-    element_element_view_factors = _element_element_backwards_pyramid(BACKWARDS_PYRAMID_PROPERTIES_PATH_HALF_REFLECTIONS_HALF_ABSORTANCE, 10000)
+    element_element_view_factors = _element_element_backwards_pyramid(BACKWARDS_PYRAMID_PROPERTIES_PATH_HALF_REFLECTIONS_HALF_ABSORTANCE)
     print(element_element_view_factors)
     for row in element_element_view_factors:
         row_sum = np.sum(row)
         assert _is_in_interval(row_sum, 1, 0.2)
 
 def test_element_element_backwards_pyramid_view_factors_half_reflections_half_absortance_are_correct():
-    element_element_view_factors = _element_element_backwards_pyramid(BACKWARDS_PYRAMID_PROPERTIES_PATH_HALF_REFLECTIONS_HALF_ABSORTANCE, 10000)
+    element_element_view_factors = _element_element_backwards_pyramid(BACKWARDS_PYRAMID_PROPERTIES_PATH_HALF_REFLECTIONS_HALF_ABSORTANCE)
     expected_element_element_view_factors = np.array([[1/3,2/3,0,0],[2/3,1/3,0,0],[0.5,0.5,0,0],[0.5,0.5,0,0]]),
     view_factors_errors = element_element_view_factors - expected_element_element_view_factors
     assert np.sum(view_factors_errors * view_factors_errors) < 0.02*16
 
 
-def _element_element_backwards_diamond(properties_path, ray_amount):
+def _element_element_backwards_diamond(properties_path):
     mesh = vtk_io.load_vtk(BACKWARDS_DIAMOND_GEOMETRY_PATH)
     properties = properties_atlas.PropertiesAtlas(utils.element_amount(mesh.triangles), properties_path)
-    return view_factors.element_element(mesh, properties, ray_amount, 50, True)
+    return view_factors.element_element(mesh, properties, 0.01)
 
 def test_element_element_backwards_diamond_view_factors_sum_one_half():
-    element_element_view_factors = _element_element_backwards_diamond(BACKWARDS_DIAMOND_PROPERTIES_PATH, 10000)
+    element_element_view_factors = _element_element_backwards_diamond(BACKWARDS_DIAMOND_PROPERTIES_PATH)
     print(element_element_view_factors)
     for (element_id, row) in enumerate(element_element_view_factors):
         row_sum = np.sum(row)
@@ -140,7 +140,7 @@ def test_element_element_backwards_diamond_view_factors_sum_one_half():
             assert _is_in_interval(row_sum, 0.5, 0.03)
 
 def test_element_element_backwards_diamond_view_factors_are_correct():
-    element_element_view_factors = _element_element_backwards_diamond(BACKWARDS_DIAMOND_PROPERTIES_PATH, 10000)
+    element_element_view_factors = _element_element_backwards_diamond(BACKWARDS_DIAMOND_PROPERTIES_PATH)
     expected_element_element_view_factors = np.array([
         [0,1/6,1/6,1/6,0,0,0],
         [1/6,0,1/6,1/6,1/6,1/6,1/6],

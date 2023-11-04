@@ -23,7 +23,7 @@ def test_property_add():
     mesh = vtk_io.load_vtk(ICOSPHERE_GEOMETRY_PATH)
     properties = properties_atlas.PropertiesAtlas(len(mesh.triangles), ICOSPHERE_PROPERTIES_PATH)
     properties.add_prop("test", test_property)
-    assert properties.material_json["test"] == test_property
+    assert properties.properties_json["test"] == test_property
 
 def test_property_dump():
     mesh = vtk_io.load_vtk(ICOSPHERE_GEOMETRY_PATH)

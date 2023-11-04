@@ -12,8 +12,7 @@ def element_earth(mesh, properties):
 	Finds the view factors of the elements of the mesh with the earth and returns
 	a list of the view factors.
 	"""
-	sun_direction = np.array(list(map(float, properties.get_global_prop("sun_direction").strip("[]").split(","))))
-	earth_direction = -sun_direction
+	earth_direction = np.array(list(map(float, properties.get_global_prop("earth_direction").strip("[]").split(","))))
 	ray_amount = properties.get_global_prop("earth_ray_amount")
 
 	center = np.array([0.5,0.5,0.5])

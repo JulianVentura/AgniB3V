@@ -55,15 +55,15 @@ def test_element_earth_view_factors_are_as_expected():
     mesh = vtk_io.load_vtk(ICOSPHERE_GEOMETRY_PATH)
     earth_view_factors = view_factors.element_earth(mesh, earth_direction ,10000)
     expected_view_factors = np.zeros(20)
-    expected_view_factors[0] = 0.7
-    expected_view_factors[1] = 0.8
+    expected_view_factors[0] = 0.6
+    expected_view_factors[1] = 0.7
     expected_view_factors[4] = expected_view_factors[0]
     expected_view_factors[5] = 1.0
-    expected_view_factors[6] = 0.7
+    expected_view_factors[6] = 0.6
     expected_view_factors[9] = expected_view_factors[6]
-    expected_view_factors[10] = 0.9
+    expected_view_factors[10] = 0.85
     expected_view_factors[14] = expected_view_factors[10]
-    expected_view_factors[15] = 0.8
+    expected_view_factors[15] = 0.65
     expected_view_factors[19] = expected_view_factors[15]
 
     for i in range(20):
@@ -74,7 +74,7 @@ def test_element_earth_view_factors_are_as_expected():
 def _element_element_backwards_pyramid(properties_path, ray_amount):
     mesh = vtk_io.load_vtk(BACKWARDS_PYRAMID_GEOMETRY_PATH)
     properties = properties_atlas.PropertiesAtlas(utils.element_amount(mesh.triangles), properties_path)
-    return view_factors.element_element(mesh, properties, ray_amount, 50, 0.01, False)
+    return view_factors.element_element(mesh, properties, ray_amount, 50, False)
 
 def test_element_element_backwards_pyramid_view_factors_rows_sum_one():
     element_element_view_factors = _element_element_backwards_pyramid(BACKWARDS_PYRAMID_PROPERTIES_PATH_NO_REFLECTIONS, 10000)
@@ -127,7 +127,7 @@ def test_element_element_backwards_pyramid_view_factors_half_reflections_half_ab
 def _element_element_backwards_diamond(properties_path, ray_amount):
     mesh = vtk_io.load_vtk(BACKWARDS_DIAMOND_GEOMETRY_PATH)
     properties = properties_atlas.PropertiesAtlas(utils.element_amount(mesh.triangles), properties_path)
-    return view_factors.element_element(mesh, properties, ray_amount, 50, 0.01, True)
+    return view_factors.element_element(mesh, properties, ray_amount, 50, True)
 
 def test_element_element_backwards_diamond_view_factors_sum_one_half():
     element_element_view_factors = _element_element_backwards_diamond(BACKWARDS_DIAMOND_PROPERTIES_PATH, 10000)

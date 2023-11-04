@@ -1,12 +1,14 @@
 import numpy as np
 import trimesh
 from . import utils, visualization
+import sys
 
 DEBUG_VISUALIZATION_ENABLED = False
+RAY_DISPLACEMENT = 1e-4
 
-def point_sun(mesh, sun_direction, displacement=0.05):
+def point_sun(mesh, sun_direction):
 	sun_direction = np.array(sun_direction)
-	ray_origins = mesh.vertices - sun_direction*displacement
+	ray_origins = mesh.vertices - sun_direction*RAY_DISPLACEMENT
 	ray_directions = np.broadcast_to(-sun_direction, (len(ray_origins), 3))
 	intersected = mesh.ray.intersects_any(ray_origins, ray_directions)
 	
@@ -16,7 +18,7 @@ def point_sun(mesh, sun_direction, displacement=0.05):
 	
 	return [1 if x else 0 for x in intersected]
 
-def element_earth(mesh, earth_direction, ray_amount, displacement=0.05):
+def element_earth(mesh, earth_direction, ray_amount):
 	element_normals = trimesh.triangles.normals(mesh.triangles)[0]
 	view_factors = np.zeros(utils.element_amount(mesh.triangles))
 
@@ -32,7 +34,7 @@ def element_earth(mesh, earth_direction, ray_amount, displacement=0.05):
 		ray_directions = utils.generate_random_unit_vectors(ray_amount)
 		utils.orient_vector_towards_normal(ray_directions, earth_direction)
 
-		ray_origins += emitting_element_normal*displacement
+		ray_origins += emitting_element_normal*RAY_DISPLACEMENT
 
 		if(DEBUG_VISUALIZATION_ENABLED):
 			visualization.view_raycast(mesh, element_idx, ray_origins, ray_directions)
@@ -42,11 +44,11 @@ def element_earth(mesh, earth_direction, ray_amount, displacement=0.05):
 
 	return view_factors
 
-def element_sun(mesh, sun_direction, displacement=0.01):
+def element_sun(mesh, sun_direction):
 	element_centers = np.array(list(map(lambda x: (x[0] + x[1] + x[2])/3, mesh.triangles)))
 	element_normals = trimesh.triangles.normals(mesh.triangles)[0]
 	
-	ray_origins =  element_centers + sun_direction*displacement
+	ray_origins =  element_centers + sun_direction*RAY_DISPLACEMENT
 	ray_directions = np.broadcast_to(sun_direction, (len(ray_origins), 3))
 	element_sun_view_factors = utils.aparent_element_area_multiplier(ray_directions, element_normals)
 	intersected = mesh.ray.intersects_any(ray_origins, ray_directions)
@@ -70,7 +72,7 @@ def _filter_reflected_rays_by_element_absorptance(absorptance, hit_points, hit_r
 	return _hit_points, _hit_ray_ids, _hit_element_ids, hit_element_ids[absorbed_rays]
 
 
-def element_element(mesh, properties, ray_amount=1000, max_reflections_amount=3, displacement=0.1, internal_emission=True):
+def element_element(mesh, properties, ray_amount=1000, max_reflections_amount=3, internal_emission=True):
 	element_normals = trimesh.triangles.normals(mesh.triangles)[0]
 	view_factors = np.zeros((len(mesh.triangles), len(mesh.triangles)))
 	
@@ -90,7 +92,7 @@ def element_element(mesh, properties, ray_amount=1000, max_reflections_amount=3,
 		if not internal_emission:
 			utils.orient_vector_towards_normal(ray_directions, emitting_element_normal)
 
-		ray_origins += ray_directions*displacement
+		ray_origins += ray_directions*RAY_DISPLACEMENT
 
 
 		if(DEBUG_VISUALIZATION_ENABLED):
@@ -113,7 +115,7 @@ def element_element(mesh, properties, ray_amount=1000, max_reflections_amount=3,
 
 			hit_element_ids, hit_ray_ids, hit_points = mesh.ray.intersects_id(hit_points, ray_directions, return_locations=True, multiple_hits=False)
 			hit_points, hit_ray_ids, hit_element_ids, absorbed_element_ids =_filter_reflected_rays_by_element_absorptance(absorptance, hit_points, hit_ray_ids, hit_element_ids)
-			hit_points += displacement*element_normals[hit_element_ids]
+			hit_points += RAY_DISPLACEMENT*element_normals[hit_element_ids]
 
 			for absorbed_element_id in absorbed_element_ids:
 				view_factors_row[absorbed_element_id] += 1

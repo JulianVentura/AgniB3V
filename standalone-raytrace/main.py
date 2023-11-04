@@ -23,12 +23,12 @@ def op_process_view_factors(argv):
     sun_direction = np.array(list(map(float, sun_direction.strip("[]").split(","))))
     props = properties_atlas.PropertiesAtlas(len(mesh.triangles), properties_file_path)
 
-    element_sun_view_factors = view_factors.element_sun(mesh, sun_direction, 0.05)
+    element_sun_view_factors = view_factors.element_sun(mesh, sun_direction)
     element_element_view_factors = view_factors.element_element(
-        mesh, props, 500, 3, 0.1, internal_emission
+        mesh, props, 500, 3, internal_emission
     )
     element_earth_view_factors = view_factors.element_earth(
-        mesh, list(map(lambda x: -x, sun_direction)), 200, 0.05
+        mesh, list(map(lambda x: -x, sun_direction)), 200
     )
 
     props.add_prop(

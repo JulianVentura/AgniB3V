@@ -54,7 +54,7 @@ def element_sun(mesh, properties):
 	element_normals = trimesh.triangles.normals(mesh.triangles)[0]
 
 	# Create ray from element centers with direction of the sun and check if it intersects
-	ray_origins =  element_centers + sun_direction*displacement
+	ray_origins =  element_centers + sun_direction*RAY_DISPLACEMENT
 	ray_directions = np.broadcast_to(sun_direction, (len(ray_origins), 3))
 	intersected = mesh.ray.intersects_any(ray_origins, ray_directions)
 	

@@ -3,7 +3,6 @@ import json
 from src import properties_atlas, vtk_io, view_factors, visualization
 import numpy as np
 
-
 def op_process_view_factors(mesh_file_path, properties_file_path):
     """
     Receives the mesh file path (vtk) and the properties file path (json).
@@ -11,13 +10,32 @@ def op_process_view_factors(mesh_file_path, properties_file_path):
     """
     print("Starting process of view factors")
     mesh = vtk_io.load_vtk(mesh_file_path)
-    props = properties_atlas.PropertiesAtlas(len(mesh.triangles), properties_file_path)
+    properties = properties_atlas.PropertiesAtlas(len(mesh.triangles), properties_file_path)
 
-    element_sun_view_factors = view_factors.element_sun(mesh, props)
-    element_element_view_factors = view_factors.element_element(mesh, props)
-    element_earth_view_factors = view_factors.element_earth(mesh, props)
+    sun_direction = np.array(
+        list(map(float, properties.get_global_prop("sun_direction").strip("[]").split(",")))
+    )
+    earth_direction = np.array(
+        list(map(float, properties.get_global_prop("earth_direction").strip("[]").split(",")))
+    )
+    earth_ray_amount = properties.get_global_prop("earth_ray_amount")
+    element_ray_amount = properties.get_global_prop("element_ray_amount")
+    element_max_reflections_amount = properties.get_global_prop("element_max_reflections_amount")
+    internal_emission = properties.get_global_prop("internal_emission")
 
-    props.add_prop(
+    element_sun_view_factors = view_factors.element_sun(mesh, sun_direction)
+    element_element_view_factors = view_factors.element_element(
+        mesh,
+        properties.get_material_props,
+        element_ray_amount,
+        element_max_reflections_amount,
+        internal_emission,
+    )
+    element_earth_view_factors = view_factors.element_earth(
+        mesh, earth_direction, earth_ray_amount
+    )
+
+    properties.add_prop(
         "view_factors",
         {
             "sun": list(element_sun_view_factors),
@@ -25,7 +43,7 @@ def op_process_view_factors(mesh_file_path, properties_file_path):
             "elements": list(map(list, element_element_view_factors)),
         },
     )
-    props.dump(properties_file_path)
+    properties.dump(properties_file_path)
 
 def op_visualize_view_factors(mesh_file_path, properties_file_path, element_id):
     """

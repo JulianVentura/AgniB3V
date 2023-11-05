@@ -12,16 +12,10 @@ pip install -r requirements.txt
 
 - **Processing of view factors**
 
-It can be done by passing every argument as:
+It can be done by passing file paths as:
 
 ```sh
-main processcli mesh_file_path properties_file_path output_path sun_direction internal_emission
-```
-
-Or can be done by passing a config file as:
-
-```sh
-main process config_file_path
+main process mesh_file_path properties_file_path
 ```
 
 - **Viewing mesh assigned materials**

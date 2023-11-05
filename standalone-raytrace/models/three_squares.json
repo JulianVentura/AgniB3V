@@ -1,0 +1,53 @@
+{
+    "global_properties": {
+        "beta_angle": 31.0,
+        "orbit_height": 299.0,
+        "orbital_period": 6000.0,
+        "albedo": 0.2,
+        "earth_ir": 225.0,
+        "solar_constant": 1361.0,
+        "space_temperature": 6.0,
+        "initial_temperature": 197.0,
+        "sun_direction": "0,0,1",
+        "earth_direction": "0,0,-1",
+        "internal_emission": 0.0,
+        "simulation_time": 86401.0,
+        "time_step": 60.0,
+        "snap_period": 3600.0,
+        "element_ray_amount": 500,
+        "element_max_reflections_amount": 3,
+        "earth_ray_amount": 200
+    },
+    "materials": {
+        "properties": {
+            "Aluminio": {
+                "thermal_conductivity": 0.158,
+                "specific_heat": 2050.0,
+                "density": 1060.0,
+                "flux": 1.0,
+                "absorptance": 0.75,
+                "thickness": 3.0,
+                "alpha_sun": 4.0,
+                "alpha_ir": 5.0,
+                "initial_temperature": 6.0,
+                "color": [255,0,0,255]
+            },
+            "Cobre": {
+                "thermal_conductivity": 0.225,
+                "specific_heat": 850.0,
+                "density": 546.0,
+                "flux": 1.0,
+                "absorptance": 0.53,
+                "thickness": 3.0,
+                "alpha_sun": 4.0,
+                "alpha_ir": 5.0,
+                "initial_temperature": 6.0,
+                "color": [0,255,0,255]
+            }
+        },
+        "elements": {
+            "Aluminio": [0,1,2,3],
+            "Cobre": [4,5]
+        }
+    }
+}

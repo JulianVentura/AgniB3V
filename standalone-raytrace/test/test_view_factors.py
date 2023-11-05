@@ -74,7 +74,7 @@ def test_element_earth_view_factors_are_as_expected():
 def _element_element_backwards_pyramid(properties_path, ray_amount):
     mesh = vtk_io.load_vtk(BACKWARDS_PYRAMID_GEOMETRY_PATH)
     properties = properties_atlas.PropertiesAtlas(utils.element_amount(mesh.triangles), properties_path)
-    return view_factors.element_element(mesh, properties, ray_amount, 50, False)
+    return view_factors.element_element(mesh, properties.get_material_props, ray_amount, 50, False)
 
 def test_element_element_backwards_pyramid_view_factors_rows_sum_one():
     element_element_view_factors = _element_element_backwards_pyramid(BACKWARDS_PYRAMID_PROPERTIES_PATH_NO_REFLECTIONS, 10000)
@@ -127,7 +127,7 @@ def test_element_element_backwards_pyramid_view_factors_half_reflections_half_ab
 def _element_element_backwards_diamond(properties_path, ray_amount):
     mesh = vtk_io.load_vtk(BACKWARDS_DIAMOND_GEOMETRY_PATH)
     properties = properties_atlas.PropertiesAtlas(utils.element_amount(mesh.triangles), properties_path)
-    return view_factors.element_element(mesh, properties, ray_amount, 50, True)
+    return view_factors.element_element(mesh, properties.get_material_props, ray_amount, 50, True)
 
 def test_element_element_backwards_diamond_view_factors_sum_one_half():
     element_element_view_factors = _element_element_backwards_diamond(BACKWARDS_DIAMOND_PROPERTIES_PATH, 10000)

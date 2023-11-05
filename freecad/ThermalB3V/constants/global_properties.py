@@ -52,8 +52,8 @@ GLOBAL_PROPERTIES_INPUTS = {
     },
     "internalEmission": {
         "label": "Internal emission",
-        "unit": "W/m2",
-        "value": 0.0,
+        "unit": "",
+        "value": False,
     },
     "simulationTime": {
         "label": "Simulation time",
@@ -69,5 +69,20 @@ GLOBAL_PROPERTIES_INPUTS = {
         "label": "Snap period",
         "unit": "s",
         "value": 3600.0,
+    },
+    "elementRayAmount": {
+        "label": "Element ray amount",
+        "unit": "",
+        "value": 500,
+    },
+    "elementMaxReflectionsAmount": {
+        "label": "Element max reflections amount",
+        "unit": "",
+        "value": 3,
+    },
+    "earthRayAmount": {
+        "label": "Earth ray amount",
+        "unit": "",
+        "value": 200,
     },
 }

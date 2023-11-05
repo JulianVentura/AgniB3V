@@ -16,6 +16,8 @@ class WorkbenchSettings:
             if getattr(obj, prop, None) == None:
                 if type(value) == int or type(value) == float:
                     obj.addProperty("App::PropertyFloat", prop)
+                elif type(value) == bool:
+                    obj.addProperty("App::PropertyBool", prop)
                 else:
                     obj.addProperty("App::PropertyString", prop)
             setattr(obj, prop, value)

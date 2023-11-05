@@ -10,13 +10,15 @@ pip install -r requirements.txt
 
 ### Execution
 
-Processing of view factors:
+- **Processing of view factors**
+
+It can be done by passing file paths as:
 
 ```sh
-main process mesh_file_path properties_file_path output_path sun_direction
+main process mesh_file_path properties_file_path
 ```
 
-Viewing mesh assigned materials:
+- **Viewing mesh assigned materials**
 
 ```sh
 main viewm mesh_file_path properties_file_path
@@ -24,7 +26,7 @@ main viewm mesh_file_path properties_file_path
 
 Requires a color property per material on properties_file_path.
 
-Viewing "view factors" corresponding to element_id:
+- **Viewing "view factors" corresponding to element_id**
 
 ```sh
 main viewvf mesh_file_path properties_file_path element_id

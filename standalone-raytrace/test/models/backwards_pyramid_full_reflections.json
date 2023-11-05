@@ -1,4 +1,12 @@
 {
+    "global_properties": {
+        "sun_direction": "[1,0,0]",
+        "earth_direction": "[1,0,0]",
+        "earth_ray_amount": 10000,
+        "element_ray_amount": 10000,
+        "element_max_reflections_amount": 50,
+        "internal_emission": false
+    },
     "materials": {
         "properties": {
             "MaterialA": {

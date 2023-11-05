@@ -1,24 +1,17 @@
 import numpy as np
 import trimesh
 from . import utils, visualization
-import sys
 
 DEBUG_VISUALIZATION_ENABLED = False
 RAY_DISPLACEMENT = 1e-4
 
-def point_sun(mesh, sun_direction):
-	sun_direction = np.array(sun_direction)
-	ray_origins = mesh.vertices - sun_direction*RAY_DISPLACEMENT
-	ray_directions = np.broadcast_to(-sun_direction, (len(ray_origins), 3))
-	intersected = mesh.ray.intersects_any(ray_origins, ray_directions)
-	
-	if(DEBUG_VISUALIZATION_ENABLED):
-		invisible_nodes = np.arange(len(mesh.vertices))[intersected]
-		visualization.view_invisible_points(mesh, sun_direction, mesh.vertices[invisible_nodes])
-	
-	return [1 if x else 0 for x in intersected]
-
 def element_earth(mesh, earth_direction, ray_amount):
+	"""
+	Receives a trimesh mesh object, a vector that represents the direction of the earth
+	and the amount of rays to be casted.
+	Finds the view factors of the elements of the mesh with the earth and returns
+	a list of the view factors.
+	"""
 	element_normals = trimesh.triangles.normals(mesh.triangles)[0]
 	view_factors = np.zeros(utils.element_amount(mesh.triangles))
 
@@ -45,6 +38,11 @@ def element_earth(mesh, earth_direction, ray_amount):
 	return view_factors
 
 def element_sun(mesh, sun_direction):
+	"""
+	Receives a trimesh mesh object and and vector that represents the direction of the sun.
+	Finds the view factors of the elements of the mesh with the sun and returns
+	a list of the view factors.
+	"""
 	element_centers = np.array(list(map(lambda x: (x[0] + x[1] + x[2])/3, mesh.triangles)))
 	element_normals = trimesh.triangles.normals(mesh.triangles)[0]
 	
@@ -72,13 +70,20 @@ def _filter_reflected_rays_by_element_absorptance(absorptance, hit_points, hit_r
 	return _hit_points, _hit_ray_ids, _hit_element_ids, hit_element_ids[absorbed_rays]
 
 
-def element_element(mesh, properties, ray_amount=1000, max_reflections_amount=3, internal_emission=True):
+def element_element(mesh, get_material_props, ray_amount, max_reflections_amount, internal_emission):
+	"""
+	Receives a trimesh mesh object, a function that returns the material properties of an element,
+	the amount of rays to be casted, the maximum amount of reflections and a boolean that
+	indicates if the element emits light internally.
+	Finds the view factors of the elements of the mesh with the other elements and returns
+	a list of the view factors.
+	"""
 	element_normals = trimesh.triangles.normals(mesh.triangles)[0]
 	view_factors = np.zeros((len(mesh.triangles), len(mesh.triangles)))
 	
 	absorptance = np.zeros(len(mesh.triangles))
 	for element_idx in range(len(mesh.triangles)):
-		element_material = properties.get_material_props(element_idx)
+		element_material = get_material_props(element_idx)
 		absorptance[element_idx] = element_material['absorptance']
 
 	for element_idx in range(len(mesh.triangles)):

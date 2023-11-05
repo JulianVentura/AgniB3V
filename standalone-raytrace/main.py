@@ -1,9 +1,9 @@
 import sys
 import json
-from src import properties_atlas, vtk_io, view_factors, visualization
+from src import properties_atlas, vtk_io, view_factors, visualization, serializer
 import numpy as np
 
-def op_process_view_factors(mesh_file_path, properties_file_path):
+def op_process_view_factors(mesh_file_path, properties_file_path, view_factors_file_path):
     """
     Receives the mesh file path (vtk) and the properties file path (json).
     It calculates the view factors and saves them into the output_path file.
@@ -35,15 +35,12 @@ def op_process_view_factors(mesh_file_path, properties_file_path):
         mesh, earth_direction, earth_ray_amount
     )
 
-    properties.add_prop(
-        "view_factors",
-        {
-            "sun": list(element_sun_view_factors),
-            "earth": list(element_earth_view_factors),
-            "elements": list(map(list, element_element_view_factors)),
-        },
+    serializer.serialize_view_factors(
+        view_factors_file_path,
+        [element_earth_view_factors],
+        [element_sun_view_factors],
+        [element_element_view_factors]
     )
-    properties.dump(properties_file_path)
 
 def op_visualize_view_factors(mesh_file_path, properties_file_path, element_id):
     """
@@ -102,8 +99,8 @@ def main():
         return
 
     match sys.argv:
-        case [_, "process", mesh_file_path, properties_file_path]:
-            op_process_view_factors(mesh_file_path, properties_file_path)
+        case [_, "process", mesh_file_path, properties_file_path, view_factors_file_path]:
+            op_process_view_factors(mesh_file_path, properties_file_path, view_factors_file_path)
         case [_, "viewvf", mesh_file_path, properties_file_path, element_id]:
             op_visualize_view_factors(mesh_file_path, properties_file_path, element_id)
         case [_, "viewm", mesh_file_path, properties_file_path]:

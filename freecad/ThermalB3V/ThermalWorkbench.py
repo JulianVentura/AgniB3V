@@ -57,6 +57,8 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         # Initialize raytrace path
         self.createAttributes("raytracePath", "")
 
+        # Initialize materials
+        self.createAttributes("materials", {})
 
         # List of tools in the workbench toolbar
         thermalList = [

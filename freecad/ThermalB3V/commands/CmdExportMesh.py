@@ -83,11 +83,10 @@ class CmdExportMesh:
             properties[materialObject.Name] = self.getProperties(materialObject.Material)
             if not properties[materialObject.Name]:
                 FreeCAD.Console.PrintError(f"Some of the material properties are missing in {materialObject.Label}\n")
-                FreeCAD.Console.PrintError(f"The expected properties are: {MATERIAL_PROPERTIES}\n")
                 # console the missing properties
                 for property in MATERIAL_PROPERTIES:
                     if property not in materialObject.Material:
-                        FreeCAD.Console.PrintError(f"Missing property: {property}\n")
+                        FreeCAD.Console.PrintError(f"  Missing property: {property}\n")
                 return
 
         # Writing path

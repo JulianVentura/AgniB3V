@@ -5,7 +5,15 @@ from . import utils, visualization
 DEBUG_VISUALIZATION_ENABLED = False
 RAY_DISPLACEMENT = 1e-4
 
-def element_earth(mesh, earth_direction, ray_amount):
+#prenumbra_fraction is the fraction of the umbra that is considered penumbra
+def albedo_edge(ray_sun_dot_product, penumbra_fraction=0):
+	min_albedo_dot_product = np.cos((1 - penumbra_fraction)*(np.pi/2))
+	albedo_full_indices = ray_sun_dot_product > 0
+	ray_sun_dot_product = np.abs(np.clip(ray_sun_dot_product, -min_albedo_dot_product, 0))
+	ray_sun_dot_product[albedo_full_indices] = 1
+	return ray_sun_dot_product
+
+def element_earth(mesh, earth_direction, sun_direction, penumbra_fraction=0.05, ray_amount=1000):
 	"""
 	Receives a trimesh mesh object, a vector that represents the direction of the earth
 	and the amount of rays to be casted.
@@ -33,7 +41,24 @@ def element_earth(mesh, earth_direction, ray_amount):
 			visualization.view_raycast(mesh, element_idx, ray_origins, ray_directions)
 
 		hit_element_ids, hit_ray_ids = mesh.ray.intersects_id(ray_origins, ray_directions, return_locations=False, multiple_hits=False)
-		view_factors[element_idx] = (ray_amount - hit_ray_ids.size)/ray_amount
+		
+		#View factor (fraction of visible area)
+		view_factor = (ray_amount - hit_ray_ids.size)/ray_amount
+
+		mask = np.ones(ray_amount, dtype=bool)
+		mask[hit_ray_ids] = 0
+		not_hit_ray_directions = ray_directions[mask]
+
+		#Aparent area
+		#ray_normal_dot_product = not_hit_ray_directions @ emitting_element_normal[:,np.newaxis].flatten()
+		#aparent_area_coefficient = np.sum(ray_normal_dot_product / np.linalg.norm(not_hit_ray_directions, axis=1))/(not_hit_ray_directions.size // 3)
+
+		#Albedo
+		ray_sun_dot_product = -not_hit_ray_directions @ sun_direction[:,np.newaxis]
+		albedo = np.sum(albedo_edge(ray_sun_dot_product, penumbra_fraction))/(not_hit_ray_directions.size // 3)
+
+		#aparent_area_coefficient * albedo * view_factor
+		view_factors[element_idx] = albedo * view_factor
 
 	return view_factors
 

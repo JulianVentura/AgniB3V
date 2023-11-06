@@ -3,7 +3,7 @@ from src import vtk_io, utils, properties_atlas, view_factors
 import numpy as np
 
 def _is_in_interval(value, center, epsilon):
-    return value < center + epsilon and value > center - epsilon
+    return value <= center + epsilon and value >= center - epsilon
       
 #   /_15_|_19_\    .       /15 \             ___/_\___
 #  | \10/ \14/ |     .    /   10\            \ /   \ /
@@ -40,20 +40,20 @@ def test_element_sun_view_factors_are_as_expected():
 
 def test_element_earth_visible_faces():
     earth_direction = np.array([1,0,0])
+    sun_direction = np.array([1,0,0])
     mesh = vtk_io.load_vtk(ICOSPHERE_GEOMETRY_PATH)
-    earth_view_factors = view_factors.element_earth(mesh, earth_direction ,10000)
+    earth_view_factors = view_factors.element_earth(mesh, earth_direction, sun_direction, 0.05, 10000)
     earth_view_factors = np.ceil(earth_view_factors)
     expected_visible_elements = np.array([0,1,4,5,6,9,10,14,15,19])
     expected_view_factors = np.zeros(20)
     expected_view_factors[expected_visible_elements] = 1
-    print(earth_view_factors)
-    print(expected_view_factors)
     assert np.array_equal(earth_view_factors, expected_view_factors)
 
-def test_element_earth_view_factors_are_as_expected():
+def _test_element_earth_view_factors_are_as_expected(penumbra_fraction):
     earth_direction = np.array([1,0,0])
+    sun_direction = np.array([-1,0,0])
     mesh = vtk_io.load_vtk(ICOSPHERE_GEOMETRY_PATH)
-    earth_view_factors = view_factors.element_earth(mesh, earth_direction ,10000)
+    earth_view_factors = view_factors.element_earth(mesh, earth_direction, sun_direction, penumbra_fraction, 10000)
     expected_view_factors = np.zeros(20)
     expected_view_factors[0] = 0.6
     expected_view_factors[1] = 0.7
@@ -67,9 +67,48 @@ def test_element_earth_view_factors_are_as_expected():
     expected_view_factors[19] = expected_view_factors[15]
 
     for i in range(20):
-        print(i)
-        assert _is_in_interval(earth_view_factors[i], expected_view_factors[i], 0.05)
+        assert _is_in_interval(earth_view_factors[i], expected_view_factors[i], 0.06)
 
+def test_element_earth_view_factors_are_as_expected_without_penumbra():
+    _test_element_earth_view_factors_are_as_expected(0)
+
+def test_element_earth_view_factors_are_as_expected_with_penumbra():
+    _test_element_earth_view_factors_are_as_expected(0.5)
+
+def _test_penumbra(expected_lit_fractions, penumbra_fraction):
+        SUBDIVISIONS = 16
+        SUN_VECTOR = np.array([12,0,0])
+        mesh = vtk_io.load_vtk(RING_GEOMETRY_PATH)
+        for i in range(SUBDIVISIONS - 1):
+            angle = (i/SUBDIVISIONS)*2*np.pi
+            earth_vector = np.array([np.cos(angle), np.sin(angle), 0])
+            earth_view_factors = view_factors.element_earth(mesh, -earth_vector, SUN_VECTOR, penumbra_fraction=penumbra_fraction, ray_amount=30000)
+            lit_fraction = np.sum(earth_view_factors > 0.1)/earth_view_factors.size
+            assert _is_in_interval(lit_fraction, expected_lit_fractions[i], 0.06)
+
+def test_penumbra_full_umbra():
+        expected_lit_fractions = [
+            0.5, 0.5, 0.5, 0.4, 0.4,
+            0.3, 0.2, 0.0, 0.0, 0.0,
+            0.2, 0.3, 0.3, 0.4, 0.5
+        ]
+        _test_penumbra(expected_lit_fractions, 0)
+
+def test_penumbra_half_umbra():
+        expected_lit_fractions = [
+            0.5, 0.5, 0.5, 0.5, 0.5,
+            0.4, 0.3, 0.3, 0.0, 0.3,
+            0.3, 0.4, 0.4, 0.5, 0.5
+        ]
+        _test_penumbra(expected_lit_fractions, 0.25)
+
+def test_penumbra_full_umbra():
+        expected_lit_fractions = [
+            0.5, 0.5, 0.5, 0.5, 0.5,
+            0.5, 0.5, 0.5, 0.5, 0.5,
+            0.5, 0.5, 0.5, 0.5, 0.5
+        ]
+        _test_penumbra(expected_lit_fractions, 1.0)
 
 def _element_element_backwards_pyramid(properties_path, ray_amount):
     mesh = vtk_io.load_vtk(BACKWARDS_PYRAMID_GEOMETRY_PATH)

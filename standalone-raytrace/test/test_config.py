@@ -16,4 +16,6 @@ BACKWARDS_DIAMOND_GEOMETRY_PATH = "./test/models/backwards_diamond.vtk"
 BACKWARDS_DIAMOND_PROPERTIES_PATH = "./test/models/backwards_diamond.json"
 BACKWARDS_DIAMOND_INTERNAL_ELEMENT_ID = 1
 
+RING_GEOMETRY_PATH = "./test/models/ring.vtk"
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))

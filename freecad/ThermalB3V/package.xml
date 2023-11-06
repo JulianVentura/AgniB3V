@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<package format="1" xmlns="https://wiki.freecad.org/Package_Metadata">
+  <name>Thermal B3V</name>
+  <version>1.0.0</version>
+  <date>2023-10-27</date>
+  <description>A workbench designed to make satellite thermal analysis.</description>
+  <maintainer email="fbarreneche@fi.uba.ar">Franco Barreneche</maintainer>
+  <maintainer email="gbelinche@fi.uba.ar">Gianluca Belinche</maintainer>
+  <maintainer email="gbotta@fi.uba.ar">Guido Botta</maintainer>
+  <maintainer email="jventura@fi.uba.ar">Julian Ventura</maintainer>
+  <license file="LICENSE">LGPL-2.1-or-later</license>
+  <icon>public/icons/ThermalWorkbench.svg</icon>
+  <content>
+    <workbench>
+      <classname>ThermalWorkbench</classname>
+      <subdirectory>./</subdirectory>
+      <depend>FEM</depend>
+    </workbench>
+  </content>
+</package>

@@ -16,6 +16,8 @@ class WorkbenchSettings:
             if getattr(obj, prop, None) == None:
                 if type(value) == int or type(value) == float:
                     obj.addProperty("App::PropertyFloat", prop)
+                elif type(value) == bool:
+                    obj.addProperty("App::PropertyBool", prop)
                 else:
                     obj.addProperty("App::PropertyString", prop)
             setattr(obj, prop, value)
@@ -51,6 +53,10 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         # Will be set on Activated
         self.createAttributes("exportPath", "")
         self.createAttributes("documentPath", "")
+
+        # Initialize raytrace path
+        self.createAttributes("raytracePath", "")
+
 
         # List of tools in the workbench toolbar
         thermalList = [
@@ -164,6 +170,7 @@ class ThermalWorkbench(FreeCADGui.Workbench):
             WorkbenchSettings.addProperty(propertyName, props['value'])
         WorkbenchSettings.addProperty("exportPath", self.exportPath)
         WorkbenchSettings.addProperty("documentPath", self.documentPath)
+        WorkbenchSettings.addProperty("raytracePath", self.raytracePath)
 
         # Check if workbenchSettings exists
         FreeCAD.Console.PrintMessage("Getting if workbench settings exist\n")
@@ -197,3 +204,5 @@ class ThermalWorkbench(FreeCADGui.Workbench):
             self.setExportPath(propValue)
         if (propValue := getattr(workbenchSettings, "documentPath", None)) != None:
             self.setDocumentPath(propValue)
+        if (propValue := getattr(workbenchSettings, "raytracePath", None)) != None:
+            self.setRaytracePath(propValue)

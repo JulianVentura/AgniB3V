@@ -35,7 +35,7 @@ def generate_random_unit_vectors(amount):
 	random_vectors = np.random.rand(amount,3) - RAND_VECTOR_CENTER
 	return random_vectors / np.linalg.norm(random_vectors)
 
-#TODO: If vector equals normal it will be multiplied by zero
+#TODO: If vector is ortogonal to normal it will be multiplied by zero
 def orient_vector_towards_normal(vectors, normal):
 	vectors *= (np.sign(vectors @ normal[:,np.newaxis]))
 

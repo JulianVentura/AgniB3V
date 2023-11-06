@@ -43,7 +43,11 @@ class DialogExport(QDialog):
             self.workbench,
             self.onCancel
         )
-        viewFactorsSection = WidgetViewFactors(self)
+        viewFactorsSection = WidgetViewFactors(
+            self,
+            self.workbench,
+            self.onCancel,
+        )
         materialsSection = WidgetMaterials(self)
 
         self.horizontalLayout = QHBoxLayout(self)

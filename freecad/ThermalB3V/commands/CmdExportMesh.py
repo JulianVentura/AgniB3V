@@ -191,31 +191,13 @@ class CmdExportMesh:
         data_object = reader.GetOutput()
 
         # Modify the version of the VTK file as needed
-        # ...
-
         # Write the modified VTK file
+        # TODO: write vtk using data from workbench and not from file
         writer = vtk.vtkUnstructuredGridWriter()
-        writer.SetFileName(os.path.join(path, "mesh_modified.vtk"))
+        writer.SetFileName(meshPath)
         writer.SetInputData(data_object)
         writer.SetFileVersion(42)
         writer.Write()
-        """
-        with open(meshPath, "r") as file:
-            data = ""
-            readData = True
-            for line in file:
-                if line.startswith("OFFSETS"):
-                    readData = False
-                elif line.startswith("CONNECTIVITY"):
-                    readData = True
-                    continue
-                
-                if readData:
-                    data += line
-        
-        with open(meshPath, "w") as file:
-            file.write(data)
-        """
 
         FreeCAD.Console.PrintMessage(f"Exported mesh to file {meshPath}\n")
 

@@ -232,13 +232,13 @@ pub fn fem_problem_from_vtk(
                 vertices,
             } = &vtk_piece.cells.cell_verts
             {
-                for (id, vtk_element) in vertices.chunks(3).enumerate() {
-                    assert!(vtk_element.len() == 3);
+                for (id, vtk_element) in vertices.chunks(4).enumerate() {
+                    assert!(vtk_element.len() == 4);
                     parser_elements.push(ParserElement {
                         id: id as u32,
-                        nodeidx1: vtk_element[0],
-                        nodeidx2: vtk_element[1],
-                        nodeidx3: vtk_element[2],
+                        nodeidx1: vtk_element[1],
+                        nodeidx2: vtk_element[2],
+                        nodeidx3: vtk_element[3],
                         material: MaterialProperties::default(),
                         initial_temperature: 0.0, //TODO: Remove in final version
                         flux: 0.0,                //TODO: Remove in final version

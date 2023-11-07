@@ -1,3 +1,13 @@
+use anyhow::Result;
+use std::fs::File;
+use std::io::prelude::*;
+use std::time::Instant;
+
+use crate::gpu::matrix_mult::compile_kernel;
+use crate::gpu::matrix_mult::MatrixMult;
+
+use super::super::gpu::matrix_mult::matrix_mult;
+
 use super::super::gpu::eq_systems_methods_cpu::lu_decomposition;
 use super::super::gpu::eq_systems_methods_cpu::lu_solve;
 
@@ -6,8 +16,6 @@ use super::super::gpu::eq_systems_methods_cpu::LUDecomposition;
 use super::super::gpu::eq_systems_methods_cpu::gauss_seidel_cpu;
 
 use super::super::gpu::eq_systems_methods_cpu::jacobi_method_cpu;
-
-use super::super::gpu::jacobi_method::jacobi_method;
 
 use super::element::Element;
 use super::point::Point;
@@ -24,6 +32,7 @@ pub struct ImplicitSolver {
     pub h: Matrix,
     temp: Vector,
     points: Vec<Point>,
+    matrix_mult: MatrixMult,
 }
 
 impl ImplicitSolver {
@@ -55,6 +64,8 @@ impl ImplicitSolver {
         let a_lu_dec = lu_decomposition(a.clone());
         let a_lu = a.clone().lu();
 
+        let matrix_mult = compile_kernel(&temp, &h, &f_const, &d).expect("Oh no...");
+
         println!("FEM Engine built successfully");
 
         ImplicitSolver {
@@ -67,14 +78,16 @@ impl ImplicitSolver {
             h,
             temp,
             points,
+            matrix_mult,
         }
     }
 
-    pub fn step(&mut self, is_in_eclipse: bool) {
+    pub fn step(&mut self, is_in_eclipse: bool, file: &mut File) -> Result<()> {
         //System:
         // A * Tn+1 = D * Tn + (1 - theta) * Fn + theta * Fn+1
         // Since Fn+1 == Fn, then the system is simplified
         // TODO: Change f vector if radiation is included
+        let multiplication = Instant::now();
         let mut t_4 = self.temp.clone();
         solver::fourth_power(&mut t_4);
 
@@ -87,10 +100,32 @@ impl ImplicitSolver {
 
         let b = &self.d * &self.temp + f;
 
-        //self.temp = self.a_lu.solve(&b).expect("Oh no...");
+        /*let b = matrix_mult(
+            &self.temp,
+            if is_in_eclipse {
+                &self.f_const_eclipse
+            } else {
+                &self.f_const
+            },
+            &self.matrix_mult,
+        )?;*/
+        let elapsed_time_multiplication = multiplication.elapsed();
+        let solve = Instant::now();
+        self.temp = self.a_lu.solve(&b).expect("Oh no...");
+        let elapsed_time_solve = solve.elapsed();
+        file.write_all(
+            format!(
+                "{}\n{}\n",
+                elapsed_time_multiplication.as_nanos(),
+                elapsed_time_solve.as_nanos()
+            )
+            .as_bytes(),
+        )
+        .expect("Oh no...");
         //self.temp = gauss_seidel_cpu(self.a.clone(), b);
         //self.temp = jacobi_method(self.a.clone(), b).expect("Oh no...");
-        self.temp = lu_solve(&self.a_lu_dec, b);
+        //self.temp = lu_solve(&self.a_lu_dec, b);
+        Ok(())
     }
 
     pub fn points(&self) -> &Vec<Point> {

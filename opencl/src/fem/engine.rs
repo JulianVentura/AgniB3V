@@ -2,6 +2,8 @@ use super::constants::EARTH_RADIOUS;
 use super::structures::Vector;
 use super::{explicit_solver::ExplicitSolver, implicit_solver::ImplicitSolver};
 use anyhow::Result;
+use std::fs::File;
+use std::io::prelude::*;
 
 //TODO: Check how much slower the solver gets if we use a dyn (dynamic dispatch) over the Solver
 //object
@@ -68,6 +70,7 @@ impl FEMEngine {
         let snapshot_period = (self.snapshot_period / self.time_step) as u32;
 
         println!("Running for {steps} steps");
+        let mut file = File::create("timing.txt").expect("Oh no...");
 
         for step in 0..steps {
             if step % snapshot_period == 0 {
@@ -84,7 +87,7 @@ impl FEMEngine {
 
             match &mut self.solver {
                 Solver::Explicit(s) => s.step(self.time_step, is_in_eclipse),
-                Solver::Implicit(s) => s.step(is_in_eclipse),
+                Solver::Implicit(s) => s.step(is_in_eclipse, &mut file)?,
             };
         }
 

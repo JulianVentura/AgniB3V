@@ -158,7 +158,7 @@ class CmdExportMesh:
         shape = femMeshObject.FemMesh
         # The first n IDs are the edges of the shape
         # It start with ID 1, so we sum 1 to start in 0
-        idOffset = min(shape.Faces) + 1
+        idOffset = min(shape.Faces)
 
         # In a FreeCAD Fem Mesh, a face is a triangle
         # While a face in a FreeCAD solid is a face of the solid

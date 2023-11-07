@@ -51,6 +51,7 @@ class DialogExport(QDialog):
         materialsSection = WidgetMaterials(
             self,
             self.workbench,
+            self.onCancel,
         )
 
         self.horizontalLayout = QHBoxLayout(self)

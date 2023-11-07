@@ -1,12 +1,12 @@
-# List of material properties
+# List of material properties. They must be camelCase
 MATERIAL_PROPERTIES = [
-    "ThermalConductivity",
-    "SpecificHeat",
-    "Density",
-    "Flux",
-    "Absorptance",
-    "Thickness",
-    "AlphaSun",
-    "AlphaIR",
-    "InitialTemperature", # TODO: move initial temperature to another place
+    "thermalConductivity",
+    "specificHeat",
+    "density",
+    "flux",
+    "absorptance",
+    "thickness",
+    "alphaSun",
+    "alphaIR",
+    "initialTemperature", # TODO: move initial temperature to another place
 ]

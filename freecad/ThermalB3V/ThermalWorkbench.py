@@ -60,21 +60,27 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         # Initialize materials
         self.createAttributes("materials", {})
 
+        # List of tools for workbench initialization
+        workbenchInitList = [
+            "THM_Select_Document",
+            "THM_Initialize_Properties",
+        ]
+
         # List of tools in the workbench toolbar
         thermalList = [
-            "THM_Select_Document",
             "THM_Global_Properties",
-            "THM_Export_Mesh"
+            "THM_Material_Editor",
+            "THM_Export_Mesh",
         ]
         # TODO: implement FEM tools
         femList = [
             "FEM_Analysis",
-            "FEM_MaterialSolid",
             "FEM_MaterialEditor",
-            "FEM_MeshGmshFromShape"
+            "FEM_MeshGmshFromShape",
         ]
-        self.appendToolbar("Thermal", thermalList)
+        self.appendToolbar("Document", workbenchInitList)
         self.appendToolbar("FEM", femList)
+        self.appendToolbar("Thermal", thermalList)
 
         Commander.addCommands(self)
 

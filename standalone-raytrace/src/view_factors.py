@@ -35,7 +35,7 @@ def element_earth(mesh, earth_direction, sun_direction, penumbra_fraction=0.05, 
 		ray_directions = utils.generate_random_unit_vectors(ray_amount)
 		utils.orient_vector_towards_normal(ray_directions, earth_direction)
 
-		ray_origins += emitting_element_normal*RAY_DISPLACEMENT
+		ray_origins += ray_directions*RAY_DISPLACEMENT
 
 		if(DEBUG_VISUALIZATION_ENABLED):
 			visualization.view_raycast(mesh, element_idx, ray_origins, ray_directions)

@@ -1,9 +1,13 @@
+use crate::gpu::matrix_mult::{matrix_mult_v2, MatrixMult};
+
 use super::constants::EARTH_RADIOUS;
 use super::structures::Vector;
 use super::{explicit_solver::ExplicitSolver, implicit_solver::ImplicitSolver};
 use anyhow::Result;
+use ocl::Queue;
 use std::fs::File;
 use std::io::prelude::*;
+use std::time::Instant;
 
 //TODO: Check how much slower the solver gets if we use a dyn (dynamic dispatch) over the Solver
 //object
@@ -64,7 +68,8 @@ impl FEMEngine {
     }
 
     pub fn run(&mut self) -> Result<Vec<Vector>> {
-        let mut temp_results = Vec::new();
+        let instant = Instant::now();
+        /*let mut temp_results = Vec::new();
 
         let steps = (self.simulation_time / self.time_step) as u32;
         let snapshot_period = (self.snapshot_period / self.time_step) as u32;
@@ -96,9 +101,33 @@ impl FEMEngine {
             Solver::Implicit(s) => s.temperature(),
         };
 
-        temp_results.push(temp);
+        temp_results.push(temp);*/
 
-        Ok(temp_results)
+        let f_const = match &self.solver {
+            Solver::Implicit(s) => &s.f_const,
+            _ => panic!("Only implicit solver is supported"),
+        };
+        let f_const_eclipse = match &self.solver {
+            Solver::Implicit(s) => &s.f_const_eclipse,
+            _ => panic!("Only implicit solver is supported"),
+        };
+        let matrix_mult = match &self.solver {
+            Solver::Implicit(s) => &s.matrix_mult,
+            _ => panic!("Only implicit solver is supported"),
+        };
+
+        let temp_results = matrix_mult_v2(
+            self.simulation_time,
+            self.time_step,
+            self.snapshot_period,
+            self.orbit_period,
+            self.eclipse_fraction,
+            f_const,
+            f_const_eclipse,
+            matrix_mult,
+        );
+        println!("FEM Engine finished in {:?}", instant.elapsed());
+        temp_results
     }
 
     fn is_multiple(dividend: f64, divisor: f64) -> bool {

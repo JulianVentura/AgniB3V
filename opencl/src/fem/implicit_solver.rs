@@ -23,16 +23,15 @@ use super::solver;
 use super::structures::{Matrix, Vector, LU};
 
 pub struct ImplicitSolver {
-    f_const: Vector,
-    f_const_eclipse: Vector,
+    pub f_const: Vector,
+    pub f_const_eclipse: Vector,
     pub a_lu: LU,
-    pub a_lu_dec: LUDecomposition,
     pub a: Matrix,
     pub d: Matrix,
     pub h: Matrix,
     temp: Vector,
     points: Vec<Point>,
-    matrix_mult: MatrixMult,
+    pub matrix_mult: MatrixMult,
 }
 
 impl ImplicitSolver {
@@ -61,10 +60,11 @@ impl ImplicitSolver {
         let d = &m / time_step - (1.0 - theta) * &k;
         let a = &m / time_step + theta * &k;
         println!("Building LU decomposition");
-        let a_lu_dec = lu_decomposition(a.clone());
+        //let a_lu_dec = lu_decomposition(a.clone());
         let a_lu = a.clone().lu();
+        let a_inverse = a.clone().try_inverse().expect("Oh no...");
 
-        let matrix_mult = compile_kernel(&temp, &h, &f_const, &d).expect("Oh no...");
+        let matrix_mult = compile_kernel(&temp, &h, &f_const, &d, &a_inverse).expect("Oh no...");
 
         println!("FEM Engine built successfully");
 
@@ -72,7 +72,6 @@ impl ImplicitSolver {
             f_const,
             f_const_eclipse,
             a_lu,
-            a_lu_dec,
             a,
             d,
             h,
@@ -112,6 +111,7 @@ impl ImplicitSolver {
         let elapsed_time_multiplication = multiplication.elapsed();
         let solve = Instant::now();
         self.temp = self.a_lu.solve(&b).expect("Oh no...");
+        //self.temp = lu_solve(&self.a_lu_dec, b);
         let elapsed_time_solve = solve.elapsed();
         file.write_all(
             format!(

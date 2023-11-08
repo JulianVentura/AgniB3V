@@ -1,7 +1,7 @@
 use super::element::{Element, MaterialProperties, ViewFactors};
 use super::engine::{FEMOrbitParameters, FEMParameters};
 use super::point::Point;
-use super::structures::Vector;
+use super::structures::{Matrix, Vector};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use serde_json;
@@ -10,6 +10,10 @@ use std::fs::File;
 use std::io::BufReader;
 use vtkio::model::DataSet;
 use vtkio::model::*;
+
+extern crate bincode;
+extern crate byteorder;
+use byteorder::{BigEndian, ReadBytesExt};
 
 //Todo: Delete
 use std::path::PathBuf;
@@ -376,4 +380,91 @@ pub fn parse_config(config_path: &String) -> ParserConfig {
         serde_json::from_reader(config_reader).expect("Couldn't parse config file");
 
     return config_json;
+}
+
+const FACTOR: f64 = 1.0 / (1 << 16) as f64;
+
+struct ParserViewFactors {
+    earth: Vec<Vector>,
+    sun: Vec<Vector>,
+    elements: Matrix,
+}
+
+fn deserialize_view_factors(filename: String) -> ParserViewFactors {
+    let mut file = File::open(filename).expect("Uooops");
+    let earth = deserialize_multiple_vectors(&mut file);
+    let sun = deserialize_multiple_vectors(&mut file);
+
+    //TODO: Since elements view factors do not change, we don't need an array here
+    //We should change the protocol
+    let mut elements_array = deserialize_multiple_matrices(&mut file);
+
+    let elements = elements_array.pop().expect("Elements view factors empty");
+
+    ParserViewFactors {
+        earth,
+        sun,
+        elements,
+    }
+}
+
+fn deserialize_matrix(file: &mut File) -> Matrix {
+    let rows = file
+        .read_u16::<BigEndian>()
+        .expect("Deserialize matrix rows");
+    let columns = file
+        .read_u16::<BigEndian>()
+        .expect("Deserialize matrix rows");
+
+    let num_elements = (rows as usize) * (columns as usize);
+
+    let mut matrix_data: Vec<u16> = vec![0; num_elements];
+
+    file.read_u16_into::<BigEndian>(&mut matrix_data)
+        .expect("Read and parse matrix data");
+
+    Matrix::from_row_iterator(
+        rows.into(),
+        columns.into(),
+        matrix_data.into_iter().map(|x| x as f64 * FACTOR),
+    )
+}
+
+fn deserialize_vector(file: &mut File) -> Vector {
+    let size = file
+        .read_u16::<BigEndian>()
+        .expect("Deserialize vector size");
+
+    let mut data: Vec<u16> = vec![0; size.into()];
+
+    file.read_u16_into::<BigEndian>(&mut data)
+        .expect("Read and parse matrix data");
+
+    Vector::from_row_iterator(size.into(), data.into_iter().map(|x| x as f64 * FACTOR))
+}
+
+fn deserialize_multiple_matrices(file: &mut File) -> Vec<Matrix> {
+    let len = file
+        .read_u16::<BigEndian>()
+        .expect("Read number of matrices");
+    let mut matrices: Vec<_> = vec![];
+
+    for _ in 0..len {
+        matrices.push(deserialize_matrix(file));
+    }
+
+    matrices
+}
+
+fn deserialize_multiple_vectors(file: &mut File) -> Vec<Vector> {
+    let len = file
+        .read_u16::<BigEndian>()
+        .expect("Read number of vectors");
+    let mut vectors: Vec<_> = vec![];
+
+    for _ in 0..len {
+        vectors.push(deserialize_vector(file));
+    }
+
+    vectors
 }

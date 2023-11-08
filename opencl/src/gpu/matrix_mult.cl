@@ -35,7 +35,6 @@ __kernel void vec_sum(__global double *a, __global double *b,
 // WORK has P columns and get_local_size(0) rows.
 __kernel void gemv2(__global const double *a, __global const double *x,
                     __global double *y, __local double *work, int m, int n) {
-
   // Compute partial dot product
   double sum = (double)0;
   for (int k = get_global_id(COL_DIM); k < n; k += get_global_size(COL_DIM)) {

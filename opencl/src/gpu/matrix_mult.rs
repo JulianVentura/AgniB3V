@@ -5,12 +5,17 @@ use ocl::{flags, Buffer, Context, Device, Kernel, Platform, Program, Queue};
 
 use crate::fem::structures::{Matrix, Vector};
 
+use super::eq_systems_methods_cpu::LUDecomposition;
+
+use anyhow::Result;
+
 pub struct Kernels {
     pub kernel_t_4: Kernel,
     pub kernel_f: Kernel,
     pub kernel_f_sum: Kernel,
     pub kernel_d_temp: Kernel,
     pub kernel_b_f: Kernel,
+    pub kernel_solver: Kernel,
 }
 pub struct Buffers {
     pub buffer_t: Buffer<f64>,
@@ -25,6 +30,7 @@ pub struct MatrixMult {
     pub queue: Queue,
     pub kernels: Kernels,
     pub buffers: Buffers,
+    pub size: i32,
 }
 
 fn parse_kernel(path: &str) -> std::io::Result<String> {
@@ -36,7 +42,8 @@ pub fn compile_kernel(
     h: &Matrix,
     f_const: &Vector,
     d: &Matrix,
-) -> ocl::Result<(MatrixMult)> {
+    a_inverse: &Matrix,
+) -> ocl::Result<MatrixMult> {
     let src = match parse_kernel("./src/gpu/matrix_mult.cl") {
         Ok(x) => x,
         Err(e) => {
@@ -111,12 +118,11 @@ pub fn compile_kernel(
         .len(size_t)
         .copy_host_slice(vec![0.0; size_t as usize].as_slice())
         .build()?;
-
+    let threads = 4;
+    let local_size = [32, threads];
     let buffer_work = Buffer::<f64>::builder()
         .queue(queue.clone())
-        .flags(flags::MEM_READ_WRITE)
-        .len(size_t)
-        .copy_host_slice(vec![0.0; size_t as usize].as_slice())
+        .len(threads * local_size[0])
         .build()?;
     let buffer_work2 = Buffer::<f64>::builder()
         .queue(queue.clone())
@@ -124,6 +130,15 @@ pub fn compile_kernel(
         .len(size_t)
         .copy_host_slice(vec![0.0; size_t as usize].as_slice())
         .build()?;
+
+    let size_a_inverse = a_inverse.len() as i32;
+    let buffer_a_inverse = Buffer::<f64>::builder()
+        .queue(queue.clone())
+        .flags(flags::MEM_READ_WRITE)
+        .len(size_a_inverse)
+        .copy_host_slice(a_inverse.as_slice())
+        .build()?;
+
     // (3) Create a kernel with arguments matching those in the source above:
     let mut kernel_t_4 = Kernel::builder()
         .program(&program)
@@ -134,12 +149,20 @@ pub fn compile_kernel(
         .arg(&buffer_t_4)
         .arg(&size_t)
         .build()?;
-    let threads = 4;
+
+    let kernel_f = program.create_kernel("gemv2").unwrap();
+    kernel_f.set_arg(0, &buffer_h).unwrap();
+    kernel_f.set_arg(1, &buffer_t_4).unwrap();
+    kernel_f.set_arg(2, &buffer_f).unwrap();
+    kernel_f.set_arg(3, &buffer_work).unwrap();
+    kernel_f.set_arg(4, &size_t).unwrap();
+    kernel_f.set_arg(5, &size_t).unwrap();
     let mut kernel_f = Kernel::builder()
         .program(&program)
         .name("gemv2")
         .queue(queue.clone())
-        .global_work_size([size_t, threads])
+        .global_work_size([size_t, size_t])
+        .local_work_size(local_size)
         .arg(&buffer_h)
         .arg(&buffer_t_4)
         .arg(&buffer_f)
@@ -161,13 +184,12 @@ pub fn compile_kernel(
 
     let mut kernel_d_temp = Kernel::builder()
         .program(&program)
-        .name("gemv2")
+        .name("gemv1")
         .queue(queue.clone())
         .global_work_size([size_t, threads])
         .arg(&buffer_d)
         .arg(&buffer_t)
         .arg(&buffer_b)
-        .arg(&buffer_work2)
         .arg(&size_t)
         .arg(&size_t)
         .build()?;
@@ -183,12 +205,25 @@ pub fn compile_kernel(
         .arg(&size_t)
         .build()?;
 
+    let mut kernel_solver = Kernel::builder()
+        .program(&program)
+        .name("gemv2")
+        .queue(queue.clone())
+        .global_work_size(size_t)
+        .arg(&buffer_a_inverse)
+        .arg(&buffer_b)
+        .arg(&buffer_t)
+        .arg(&size_t)
+        .arg(&size_t)
+        .build()?;
+
     let kernels = Kernels {
         kernel_t_4,
         kernel_f,
         kernel_f_sum,
         kernel_d_temp,
         kernel_b_f,
+        kernel_solver,
     };
 
     let buffers = Buffers {
@@ -205,6 +240,7 @@ pub fn compile_kernel(
         queue,
         kernels,
         buffers,
+        size: size_t,
     };
 
     Ok(matrix_mult)
@@ -246,4 +282,83 @@ pub fn matrix_mult(t: &Vector, f_const: &Vector, matrix_mult: &MatrixMult) -> oc
         .enq()?;
 
     Ok(Vector::from_vec(values))
+}
+
+pub fn matrix_mult_v2(
+    simulation_time: f64,
+    time_step: f64,
+    snapshot_period: f64,
+    orbit_period: f64,
+    eclipse_fraction: f64,
+    f_const: &Vector,
+    f_const_eclipse: &Vector,
+    matrix_mult: &MatrixMult,
+) -> Result<Vec<Vector>> {
+    let mut temp_results = Vec::new();
+
+    let steps = (simulation_time / time_step) as u32;
+    let snapshot_period = (snapshot_period / time_step) as u32;
+
+    println!("Running for {steps} steps");
+
+    for step in 0..steps {
+        if step % snapshot_period == 0 {
+            matrix_mult.queue.finish()?;
+            let mut temp = vec![0.0; matrix_mult.size as usize];
+
+            matrix_mult
+                .buffers
+                .buffer_t
+                .cmd()
+                .queue(&matrix_mult.queue)
+                .offset(0)
+                .read(&mut temp)
+                .enq()?;
+
+            temp_results.push(Vector::from_vec(temp));
+        }
+
+        let time = step as f64 * time_step;
+        let is_in_eclipse = time % (orbit_period) > (orbit_period * (1.0 - eclipse_fraction));
+
+        if is_in_eclipse {
+            matrix_mult
+                .buffers
+                .buffer_f_const
+                .cmd()
+                .write(f_const_eclipse.as_slice())
+                .enq()?;
+        } else {
+            matrix_mult
+                .buffers
+                .buffer_f_const
+                .cmd()
+                .write(f_const.as_slice())
+                .enq()?;
+        }
+        unsafe {
+            matrix_mult.kernels.kernel_t_4.enq()?;
+            matrix_mult.kernels.kernel_f.enq()?;
+            matrix_mult.kernels.kernel_f_sum.enq()?;
+            matrix_mult.kernels.kernel_d_temp.enq()?;
+            matrix_mult.kernels.kernel_b_f.enq()?;
+            matrix_mult.kernels.kernel_solver.enq()?;
+        }
+    }
+
+    matrix_mult.queue.finish()?;
+    let mut temp = vec![0.0; matrix_mult.size as usize];
+
+    matrix_mult
+        .buffers
+        .buffer_t
+        .cmd()
+        .queue(&matrix_mult.queue)
+        .offset(0)
+        .read(&mut temp)
+        .enq()?;
+
+    temp_results.push(Vector::from_vec(temp));
+
+    Ok(temp_results)
 }

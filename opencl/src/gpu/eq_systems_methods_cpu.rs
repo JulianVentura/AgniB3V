@@ -60,8 +60,8 @@ pub fn gauss_seidel_cpu(a: Matrix, b: Vector) -> Vector {
 }
 
 pub struct LUDecomposition {
-    l: Matrix,
-    u: Matrix,
+    pub l: Matrix,
+    pub u: Matrix,
 }
 pub fn lu_decomposition_old(a: Matrix) -> LUDecomposition {
     let n = a.nrows();

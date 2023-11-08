@@ -24,9 +24,16 @@ def op_process_view_factors(mesh_file_path, properties_file_path, gmat_report_fi
         gmat_params.sun_position.y,
         gmat_params.sun_position.z
     ])
+    element_sun_view_factors = [view_factors.element_sun(mesh, sun_direction)]
+
+    element_element_view_factors = [view_factors.element_element(
+            mesh,
+            properties.get_material_props,
+            element_ray_amount,
+            element_max_reflections_amount,
+            internal_emission,
+     )]
     
-    element_sun_view_factors = []
-    element_element_view_factors = []
     element_earth_view_factors = []
     for step in range(len(gmat_params.elapsed_secs)):
         earth_direction = -np.array([
@@ -34,16 +41,6 @@ def op_process_view_factors(mesh_file_path, properties_file_path, gmat_report_fi
             gmat_params.sat_position[step].y,
             gmat_params.sat_position[step].z,
         ])
-
-        element_sun_view_factors.append(view_factors.element_sun(mesh, sun_direction))
-        element_element_view_factors.append(
-            view_factors.element_element(
-            mesh,
-            properties.get_material_props,
-            element_ray_amount,
-            element_max_reflections_amount,
-            internal_emission,
-        ))
         element_earth_view_factors.append(
         view_factors.element_earth(
             mesh,

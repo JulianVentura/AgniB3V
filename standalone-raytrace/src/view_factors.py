@@ -97,7 +97,7 @@ def _filter_reflected_rays_by_element_absorptance(absorptance, hit_points, hit_r
 	return _hit_points, _hit_ray_ids, _hit_element_ids, hit_element_ids[absorbed_rays]
 
 
-def element_element(mesh, get_material_props, ray_amount, max_reflections_amount, internal_emission):
+def element_element(mesh, props, ray_amount, max_reflections_amount, internal_emission):
 	"""
 	Receives a trimesh mesh object, a function that returns the material properties of an element,
 	the amount of rays to be casted, the maximum amount of reflections and a boolean that
@@ -107,12 +107,8 @@ def element_element(mesh, get_material_props, ray_amount, max_reflections_amount
 	"""
 	element_normals = trimesh.triangles.normals(mesh.triangles)[0]
 	view_factors = np.zeros((len(mesh.triangles), len(mesh.triangles)))
+	absorptance = props.get_absorptance_by_element()
 	
-	absorptance = np.zeros(len(mesh.triangles))
-	for element_idx in range(len(mesh.triangles)):
-		element_material = get_material_props(element_idx)
-		absorptance[element_idx] = element_material['absorptance']
-
 	for element_idx in range(len(mesh.triangles)):
 		emitting_element = mesh.triangles[element_idx]
 		emitting_element_normal = element_normals[element_idx]

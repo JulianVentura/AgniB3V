@@ -10,7 +10,7 @@
     "materials": {
         "properties": {
             "MaterialA": {
-                "absorptance": 0.0
+                "alpha_ir": 0.0
             }
         },
         "elements": {

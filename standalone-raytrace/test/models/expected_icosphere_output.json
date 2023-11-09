@@ -11,7 +11,7 @@
         "properties": {
             "MaterialA": {
                 "test_id": 0,
-                "absorptance": 0.75,
+                "alpha_ir": 0.75,
                 "color": [
                     255,
                     0,
@@ -21,7 +21,7 @@
             },
             "MaterialB": {
                 "test_id": 1,
-                "absorptance": 0.25,
+                "alpha_ir": 0.25,
                 "color": [
                     0,
                     255,

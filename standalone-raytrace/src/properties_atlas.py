@@ -16,6 +16,7 @@ class PropertiesAtlas():
         with open(material_file_path) as material_file:
             self.properties_json = json.load(material_file)
 
+        self.elements_amount = elements_amount
         self.material_by_element = np.full(elements_amount,-1)
         self.materials = []
 
@@ -38,6 +39,16 @@ class PropertiesAtlas():
         """
         return self.materials[self.material_by_element[element_index]]
     
+    def get_absorptance_by_element(self):
+        """
+        Returns an array of absortance per element
+        """
+        absorptance = np.zeros(self.elements_amount)
+        for element_idx in range(self.elements_amount):
+            element_material = self.get_material_props(element_idx)
+            absorptance[element_idx] = element_material['alpha_ir']
+        return absorptance
+        
     def add_prop(self, key, data):
         """
         Receives a key and data and adds it to the material json.

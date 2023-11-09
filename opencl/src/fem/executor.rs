@@ -35,7 +35,7 @@ pub fn run_solver(config_path: &String) -> Result<()> {
 
     let mut engine = FEMEngine::new(problem.parameters, solver);
 
-    let temp_results = engine.run()?;
+    let temp_results = engine.run_gpu()?;
 
     println!("{:#?}", &temp_results.last());
 

@@ -67,42 +67,7 @@ impl FEMEngine {
         }
     }
 
-    pub fn run(&mut self) -> Result<Vec<Vector>> {
-        let instant = Instant::now();
-        /*let mut temp_results = Vec::new();
-
-        let steps = (self.simulation_time / self.time_step) as u32;
-        let snapshot_period = (self.snapshot_period / self.time_step) as u32;
-
-        println!("Running for {steps} steps");
-        let mut file = File::create("timing.txt").expect("Oh no...");
-
-        for step in 0..steps {
-            if step % snapshot_period == 0 {
-                let temp = match &self.solver {
-                    Solver::Explicit(s) => s.temperature(),
-                    Solver::Implicit(s) => s.temperature(),
-                };
-                temp_results.push(temp);
-            }
-
-            let time = step as f64 * self.time_step;
-            let is_in_eclipse =
-                time % (self.orbit_period) > (self.orbit_period * (1.0 - self.eclipse_fraction));
-
-            match &mut self.solver {
-                Solver::Explicit(s) => s.step(self.time_step, is_in_eclipse),
-                Solver::Implicit(s) => s.step(is_in_eclipse, &mut file)?,
-            };
-        }
-
-        let temp = match &self.solver {
-            Solver::Explicit(s) => s.temperature(),
-            Solver::Implicit(s) => s.temperature(),
-        };
-
-        temp_results.push(temp);*/
-
+    pub fn run_gpu(&mut self) -> Result<Vec<Vector>> {
         let f_const = match &self.solver {
             Solver::Implicit(s) => &s.f_const,
             _ => panic!("Only implicit solver is supported"),
@@ -126,8 +91,44 @@ impl FEMEngine {
             f_const_eclipse,
             matrix_mult,
         );
-        println!("FEM Engine finished in {:?}", instant.elapsed());
         temp_results
+    }
+
+    pub fn run(&mut self) -> Result<Vec<Vector>> {
+        let mut temp_results = Vec::new();
+
+        let steps = (self.simulation_time / self.time_step) as u32;
+        let snapshot_period = (self.snapshot_period / self.time_step) as u32;
+
+        println!("Running for {steps} steps");
+
+        for step in 0..steps {
+            if step % snapshot_period == 0 {
+                let temp = match &self.solver {
+                    Solver::Explicit(s) => s.temperature(),
+                    Solver::Implicit(s) => s.temperature(),
+                };
+                temp_results.push(temp);
+            }
+
+            let time = step as f64 * self.time_step;
+            let is_in_eclipse =
+                time % (self.orbit_period) > (self.orbit_period * (1.0 - self.eclipse_fraction));
+
+            match &mut self.solver {
+                Solver::Explicit(s) => s.step(self.time_step, is_in_eclipse),
+                Solver::Implicit(s) => s.step(is_in_eclipse)?,
+            };
+        }
+
+        let temp = match &self.solver {
+            Solver::Explicit(s) => s.temperature(),
+            Solver::Implicit(s) => s.temperature(),
+        };
+
+        temp_results.push(temp);
+
+        Ok(temp_results)
     }
 
     fn is_multiple(dividend: f64, divisor: f64) -> bool {

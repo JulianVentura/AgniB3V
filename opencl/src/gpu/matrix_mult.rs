@@ -150,23 +150,14 @@ pub fn compile_kernel(
         .arg(&size_t)
         .build()?;
 
-    let kernel_f = program.create_kernel("gemv2").unwrap();
-    kernel_f.set_arg(0, &buffer_h).unwrap();
-    kernel_f.set_arg(1, &buffer_t_4).unwrap();
-    kernel_f.set_arg(2, &buffer_f).unwrap();
-    kernel_f.set_arg(3, &buffer_work).unwrap();
-    kernel_f.set_arg(4, &size_t).unwrap();
-    kernel_f.set_arg(5, &size_t).unwrap();
     let mut kernel_f = Kernel::builder()
         .program(&program)
-        .name("gemv2")
+        .name("gemv1")
         .queue(queue.clone())
-        .global_work_size([size_t, size_t])
-        .local_work_size(local_size)
+        .global_work_size(size_t)
         .arg(&buffer_h)
         .arg(&buffer_t_4)
         .arg(&buffer_f)
-        .arg(&buffer_work)
         .arg(&size_t)
         .arg(&size_t)
         .build()?;
@@ -207,7 +198,7 @@ pub fn compile_kernel(
 
     let mut kernel_solver = Kernel::builder()
         .program(&program)
-        .name("gemv2")
+        .name("gemv1")
         .queue(queue.clone())
         .global_work_size(size_t)
         .arg(&buffer_a_inverse)

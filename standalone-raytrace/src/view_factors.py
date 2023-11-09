@@ -15,8 +15,8 @@ def albedo_edge(ray_sun_dot_product, penumbra_fraction=0):
 
 def element_earth(mesh, earth_direction, sun_direction, penumbra_fraction=0.05, ray_amount=1000):
 	"""
-	Receives a trimesh mesh object, a vector that represents the direction of the earth
-	and the amount of rays to be casted.
+	Receives a trimesh mesh object, a vector that represents the direction towards
+	the earth and the amount of rays to be casted.
 	Finds the view factors of the elements of the mesh with the earth and returns
 	a list of the view factors.
 	"""
@@ -35,7 +35,7 @@ def element_earth(mesh, earth_direction, sun_direction, penumbra_fraction=0.05, 
 		ray_directions = utils.generate_random_unit_vectors(ray_amount)
 		utils.orient_vector_towards_normal(ray_directions, earth_direction)
 
-		ray_origins += emitting_element_normal*RAY_DISPLACEMENT
+		ray_origins += ray_directions*RAY_DISPLACEMENT
 
 		if(DEBUG_VISUALIZATION_ENABLED):
 			visualization.view_raycast(mesh, element_idx, ray_origins, ray_directions)
@@ -64,7 +64,7 @@ def element_earth(mesh, earth_direction, sun_direction, penumbra_fraction=0.05, 
 
 def element_sun(mesh, sun_direction):
 	"""
-	Receives a trimesh mesh object and and vector that represents the direction of the sun.
+	Receives a trimesh mesh object and and vector that represents the direction towards the sun.
 	Finds the view factors of the elements of the mesh with the sun and returns
 	a list of the view factors.
 	"""
@@ -79,7 +79,7 @@ def element_sun(mesh, sun_direction):
 
 	if(DEBUG_VISUALIZATION_ENABLED):
 		invisible_nodes = np.arange(len(element_centers))[intersected]
-		visualization.view_invisible_points(mesh, -sun_direction, element_centers[invisible_nodes])
+		visualization.view_invisible_points(mesh, sun_direction, element_centers[invisible_nodes])
 	
 	return element_sun_view_factors
 

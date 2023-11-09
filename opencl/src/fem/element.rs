@@ -10,8 +10,8 @@ pub struct Element {
     pub k: Matrix,
     pub m: Matrix,
     pub e: Matrix,
-    pub f: Vector,
-    pub f_eclipse: Vector,
+    pub f: Vec<Vector>,
+    pub f_eclipse: Vec<Vector>,
     pub alpha_sun: f64,
     pub alpha_ir: f64,
     pub view_factors: Vec<f64>,
@@ -43,7 +43,7 @@ impl Default for MaterialProperties {
 
 #[derive(Clone, Debug)]
 pub struct ViewFactors {
-    pub earth: f64,
+    pub earth: Vec<f64>,
     pub sun: f64,
     pub elements: Vec<f64>,
 }
@@ -89,7 +89,7 @@ impl Element {
 
         let e = Self::calculate_e(area, properties.alpha_ir);
 
-        let f = Self::calculate_f(
+        let f = Self::calculate_f_multiple_earth(
             area,
             &properties,
             &factors,
@@ -100,8 +100,13 @@ impl Element {
             generated_heat,
         );
 
-        let f_eclipse =
-            Self::calculate_f_eclipse(area, &properties, &factors, earth_ir, generated_heat);
+        let f_eclipse = Self::calculate_f_eclipse_multiple_earth(
+            area,
+            &properties,
+            earth_ir,
+            &factors,
+            generated_heat,
+        );
 
         Element {
             p1,
@@ -141,7 +146,7 @@ impl Element {
         };
 
         let factors = ViewFactors {
-            earth: 1.0,
+            earth: vec![1.0],
             sun: 1.0,
             elements: vec![0.1f64; n_elements],
         };
@@ -264,6 +269,63 @@ impl Element {
         (BOLTZMANN * alpha * area / 3.0) * e
     }
 
+    fn calculate_f_multiple_earth(
+        area: f64,
+        properties: &MaterialProperties,
+        factors: &ViewFactors,
+        solar_intensity: f64,
+        earth_ir: f64,
+        betha: f64,
+        albedo_factor: f64,
+        generated_heat: f64,
+    ) -> Vec<Vector> {
+        let earth = &factors.earth;
+        let mut f_vec: Vec<Vector> = vec![];
+
+        for earth_value in earth {
+            let f = Self::calculate_f(
+                area,
+                &properties,
+                &factors,
+                solar_intensity,
+                earth_ir,
+                betha,
+                albedo_factor,
+                generated_heat,
+                *earth_value,
+            );
+
+            f_vec.push(f);
+        }
+
+        f_vec
+    }
+
+    fn calculate_f_eclipse_multiple_earth(
+        area: f64,
+        properties: &MaterialProperties,
+        earth_ir: f64,
+        factors: &ViewFactors,
+        generated_heat: f64,
+    ) -> Vec<Vector> {
+        let earth = &factors.earth;
+        let mut f_vec: Vec<Vector> = vec![];
+
+        for earth_value in earth {
+            let f = Self::calculate_f_eclipse(
+                area,
+                &properties,
+                earth_ir,
+                generated_heat,
+                *earth_value,
+            );
+
+            f_vec.push(f);
+        }
+
+        f_vec
+    }
+
     fn calculate_f(
         area: f64,
         properties: &MaterialProperties,
@@ -273,6 +335,7 @@ impl Element {
         betha: f64,
         albedo_factor: f64,
         generated_heat: f64,
+        earth_view_factor: f64,
     ) -> Vector {
         //TODO: Add single node heat source
         // f += [nodo1.heat_source, nodo2.heat_source, nodo3.heat_source]
@@ -283,8 +346,8 @@ impl Element {
         let constant = 1.0;
 
         let solar = properties.alpha_sun * solar_intensity * f64::sin(betha.into()) * factors.sun;
-        let ir = properties.alpha_ir * constant * factors.earth * earth_ir;
-        let albedo = properties.alpha_sun * solar_intensity * albedo_factor * factors.earth;
+        let ir = properties.alpha_ir * constant * earth_view_factor * earth_ir;
+        let albedo = properties.alpha_sun * solar_intensity * albedo_factor * earth_view_factor;
 
         let magnitude = (generated_heat + solar + ir + albedo) * area / 3.0;
 
@@ -294,9 +357,9 @@ impl Element {
     fn calculate_f_eclipse(
         area: f64,
         properties: &MaterialProperties,
-        factors: &ViewFactors,
         earth_ir: f64,
         generated_heat: f64,
+        earth_view_factor: f64,
     ) -> Vector {
         //TODO: Add single node heat source
         // f += [nodo1.heat_source, nodo2.heat_source, nodo3.heat_source]
@@ -306,7 +369,7 @@ impl Element {
         //TODO: Define constant value
         let constant = 1.0;
 
-        let ir = properties.alpha_ir * constant * factors.earth * earth_ir;
+        let ir = properties.alpha_ir * constant * earth_view_factor * earth_ir;
 
         let magnitude = (generated_heat + ir) * area / 3.0;
 

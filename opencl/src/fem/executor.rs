@@ -14,7 +14,7 @@ pub fn run_solver(config_path: &String) -> Result<()> {
     let problem = parser::fem_problem_from_vtk(
         config.vtk_path.to_string(),
         config.materials_path.to_string(),
-        [].into_iter().collect(),
+        config.view_factors_path.to_string(),
     );
 
     let solver = match config.solver.as_str() {

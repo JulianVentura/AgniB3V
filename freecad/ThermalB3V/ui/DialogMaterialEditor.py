@@ -1,10 +1,10 @@
 from PySide2.QtWidgets import *
 from PySide2.QtCore import *
-from ui.WidgetGlobalProperties import WidgetGlobalProperties
+from ui.WidgetMaterials import WidgetMaterials
 
-class DialogGlobalProperties(QDialog):
+class DialogMaterialEditor(QDialog):
     """
-    Dialog to set global properties
+    Dialog to edit materials
     """
 
     def __init__(self, workbench):
@@ -15,16 +15,17 @@ class DialogGlobalProperties(QDialog):
 
     def initUI(self):
         # create our window
-        self.setWindowTitle("Global Properties")
+        self.setWindowTitle("Material Editor")
         self.setWindowFlags(Qt.WindowStaysOnTopHint)
-        self.setMinimumWidth(400)
+        self.setMinimumWidth(600)
+        self.setMinimumHeight(400)
         self.horizontalLayout = QHBoxLayout(self)
         self.frame = QFrame(self)
         self.horizontalLayout_2 = QHBoxLayout(self.frame)
 
-        self.globalProperties = WidgetGlobalProperties(self.frame, self.workbench, self.onClose)
+        self.materialEditor = WidgetMaterials(self.frame, self.workbench, self.onClose)
 
-        self.horizontalLayout_2.addWidget(self.globalProperties)
+        self.horizontalLayout_2.addWidget(self.materialEditor)
         self.horizontalLayout.addWidget(self.frame)    
         self.show()
 

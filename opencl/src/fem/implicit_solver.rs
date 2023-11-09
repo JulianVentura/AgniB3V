@@ -26,8 +26,8 @@ use super::solver;
 use super::structures::{Matrix, Vector, LU};
 
 pub struct ImplicitSolver {
-    pub f_const: Vector,
-    pub f_const_eclipse: Vector,
+    f_const: Vec<Vector>,
+    f_const_eclipse: Vec<Vector>,
     pub a_lu: LU,
     pub a: Matrix,
     pub d: Matrix,
@@ -49,9 +49,10 @@ impl ImplicitSolver {
         println!("Constructing global L matrix");
         let l = solver::construct_l_matrix(elements, n_points);
         println!("Constructing global flux vector");
-        let f_const = solver::construct_global_vector_f_const(elements, n_points);
+        let f_const = solver::construct_global_vector_f_const_multiple_earth(elements, n_points);
         println!("Constructing global flux vector eclipse");
-        let f_const_eclipse = solver::construct_global_vector_f_const_eclipse(elements, n_points);
+        let f_const_eclipse =
+            solver::construct_global_vector_f_const_eclipse_multiple_earth(elements, n_points);
         println!("Constructing points array");
         let points = solver::construct_points_array(elements, n_points);
         let temp = Vector::from_vec(points.iter().map(|p| p.temperature).collect::<Vec<f64>>());
@@ -67,7 +68,7 @@ impl ImplicitSolver {
 
         let a_lu = a.clone().lu();
         let a_inverse = matrix_inversion(a.clone()).expect("Oh no2...");
-        let matrix_mult = compile_kernel(&temp, &h, &f_const, &d, &a_inverse).expect("Oh no...");
+        let matrix_mult = compile_kernel(&temp, &h, &f_const[0], &d, &a_inverse).expect("Oh no...");
 
         println!("FEM Engine built successfully");
 
@@ -84,7 +85,7 @@ impl ImplicitSolver {
         }
     }
 
-    pub fn step(&mut self, is_in_eclipse: bool) -> Result<()> {
+    pub fn step(&mut self, is_in_eclipse: bool, f_index: usize) {
         //System:
         // A * Tn+1 = D * Tn + (1 - theta) * Fn + theta * Fn+1
         // Since Fn+1 == Fn, then the system is simplified
@@ -94,15 +95,14 @@ impl ImplicitSolver {
 
         let mut f = &self.h * t_4;
         if is_in_eclipse {
-            f += &self.f_const_eclipse;
+            f += &self.f_const_eclipse[f_index];
         } else {
-            f += &self.f_const;
+            f += &self.f_const[f_index];
         }
 
         let b = &self.d * &self.temp + f;
 
         self.temp = self.a_lu.solve(&b).expect("Oh no...");
-        Ok(())
     }
 
     pub fn points(&self) -> &Vec<Point> {

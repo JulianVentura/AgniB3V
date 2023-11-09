@@ -28,7 +28,7 @@ def op_process_view_factors(mesh_file_path, properties_file_path, gmat_report_fi
 
     element_element_view_factors = [view_factors.element_element(
             mesh,
-            properties.get_material_props,
+            properties,
             element_ray_amount,
             element_max_reflections_amount,
             internal_emission,

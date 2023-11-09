@@ -12,11 +12,11 @@ def test_properties_loading():
         material = properties.get_material_props(element_id)
         if element_id <= 9:
             assert material["test_id"] == 0
-            assert material["absorptance"] == 0.75
+            assert material["alpha_ir"] == 0.75
             assert material["color"] == [255,0,0,255]
         else:
             assert material["test_id"] == 1
-            assert material["absorptance"] == 0.25
+            assert material["alpha_ir"] == 0.25
             assert material["color"] == [0,255,0,255]
 
 def test_property_add():

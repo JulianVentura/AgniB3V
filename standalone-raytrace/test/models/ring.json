@@ -11,7 +11,7 @@
         "properties": {
             "MaterialA": {
                 "test_id": 0,
-                "absorptance": 0.75,
+                "alpha_ir": 1.0,
                 "color": [255,0,0,255]
             }
         },

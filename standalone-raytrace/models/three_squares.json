@@ -25,10 +25,9 @@
                 "specific_heat": 2050.0,
                 "density": 1060.0,
                 "flux": 1.0,
-                "absorptance": 0.75,
                 "thickness": 3.0,
                 "alpha_sun": 4.0,
-                "alpha_ir": 5.0,
+                "alpha_ir": 0.75,
                 "initial_temperature": 6.0,
                 "color": [255,0,0,255]
             },
@@ -37,10 +36,9 @@
                 "specific_heat": 850.0,
                 "density": 546.0,
                 "flux": 1.0,
-                "absorptance": 0.53,
                 "thickness": 3.0,
                 "alpha_sun": 4.0,
-                "alpha_ir": 5.0,
+                "alpha_ir": 0.53,
                 "initial_temperature": 6.0,
                 "color": [0,255,0,255]
             }

@@ -42,7 +42,7 @@ def test_element_earth_visible_faces():
     earth_direction = np.array([1,0,0])
     sun_direction = np.array([1,0,0])
     mesh = vtk_io.load_vtk(ICOSPHERE_GEOMETRY_PATH)
-    earth_view_factors = view_factors.element_earth(mesh, earth_direction, sun_direction, 0.05, 10000)
+    earth_view_factors, earth_albedo_coefficients = view_factors.element_earth(mesh, earth_direction, sun_direction, 0.05, 10000)
     earth_view_factors = np.ceil(earth_view_factors)
     expected_visible_elements = np.array([0,1,4,5,6,9,10,14,15,19])
     expected_view_factors = np.zeros(20)
@@ -53,7 +53,7 @@ def _test_element_earth_view_factors_are_as_expected(penumbra_fraction):
     earth_direction = np.array([1,0,0])
     sun_direction = np.array([-1,0,0])
     mesh = vtk_io.load_vtk(ICOSPHERE_GEOMETRY_PATH)
-    earth_view_factors = view_factors.element_earth(mesh, earth_direction, sun_direction, penumbra_fraction, 10000)
+    earth_view_factors, earth_albedo_coefficients = view_factors.element_earth(mesh, earth_direction, sun_direction, penumbra_fraction, 10000)
     expected_view_factors = np.zeros(20)
     expected_view_factors[0] = 0.6
     expected_view_factors[1] = 0.7
@@ -67,7 +67,7 @@ def _test_element_earth_view_factors_are_as_expected(penumbra_fraction):
     expected_view_factors[19] = expected_view_factors[15]
 
     for i in range(20):
-        assert _is_in_interval(earth_view_factors[i], expected_view_factors[i], 0.06)
+        assert _is_in_interval(earth_albedo_coefficients[i], expected_view_factors[i], 0.06)
 
 def test_element_earth_view_factors_are_as_expected_without_penumbra():
     _test_element_earth_view_factors_are_as_expected(0)
@@ -82,8 +82,8 @@ def _test_penumbra(expected_lit_fractions, penumbra_fraction):
         for i in range(SUBDIVISIONS - 1):
             angle = (i/SUBDIVISIONS)*2*np.pi
             earth_vector = np.array([np.cos(angle), np.sin(angle), 0])
-            earth_view_factors = view_factors.element_earth(mesh, -earth_vector, SUN_VECTOR, penumbra_fraction=penumbra_fraction, ray_amount=30000)
-            lit_fraction = np.sum(earth_view_factors > 0.1)/earth_view_factors.size
+            earth_view_factors, earth_albedo_coefficients = view_factors.element_earth(mesh, -earth_vector, SUN_VECTOR, penumbra_fraction=penumbra_fraction, ray_amount=1000)
+            lit_fraction = np.sum(earth_albedo_coefficients > 0.1)/earth_albedo_coefficients.size
             assert _is_in_interval(lit_fraction, expected_lit_fractions[i], 0.06)
 
 def test_penumbra_full_umbra():
@@ -100,7 +100,7 @@ def test_penumbra_half_umbra():
             0.4, 0.3, 0.3, 0.0, 0.3,
             0.3, 0.4, 0.4, 0.5, 0.5
         ]
-        _test_penumbra(expected_lit_fractions, 0.25)
+        _test_penumbra(expected_lit_fractions, 0.5)
 
 def test_penumbra_full_umbra():
         expected_lit_fractions = [

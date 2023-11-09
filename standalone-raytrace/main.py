@@ -41,13 +41,14 @@ def op_process_view_factors(mesh_file_path, properties_file_path, gmat_report_fi
             gmat_params.sat_position[step].y,
             gmat_params.sat_position[step].z,
         ])
-        element_earth_view_factors.append(
-        view_factors.element_earth(
+        earth_view_factors, earth_albedo_coefficients = view_factors.element_earth(
             mesh,
             earth_direction,
             sun_direction,
             ray_amount=earth_ray_amount
-        ))
+        )
+        earth_view_factors *= earth_albedo_coefficients
+        element_earth_view_factors.append(earth_view_factors)
 
     serializer.serialize_view_factors(
         view_factors_file_path,

@@ -24,6 +24,7 @@ def element_earth(mesh, earth_direction, sun_direction, penumbra_fraction=0.05, 
 	"""
 	element_normals = trimesh.triangles.normals(mesh.triangles)[0]
 	view_factors = np.zeros(utils.element_amount(mesh.triangles))
+	albedo_coefficients = np.zeros(utils.element_amount(mesh.triangles))
 
 	for element_idx in range(utils.element_amount(mesh.triangles)):
 		emitting_element = mesh.triangles[element_idx]
@@ -60,9 +61,9 @@ def element_earth(mesh, earth_direction, sun_direction, penumbra_fraction=0.05, 
 		albedo = np.sum(albedo_edge(ray_sun_dot_product, penumbra_fraction=penumbra_fraction))/(not_hit_ray_directions.size // 3)
 
 		#aparent_area_coefficient * albedo * view_factor
-		view_factors[element_idx] = albedo * view_factor
-
-	return view_factors
+		view_factors[element_idx] = albedo
+		albedo_coefficients[element_idx] = view_factor
+	return view_factors, albedo_coefficients
 
 def element_sun(mesh, sun_direction):
 	"""
@@ -108,7 +109,7 @@ def element_element(mesh, props, ray_amount, max_reflections_amount, internal_em
 	element_normals = trimesh.triangles.normals(mesh.triangles)[0]
 	view_factors = np.zeros((len(mesh.triangles), len(mesh.triangles)))
 	absorptance = props.get_absorptance_by_element()
-	
+
 	for element_idx in range(len(mesh.triangles)):
 		emitting_element = mesh.triangles[element_idx]
 		emitting_element_normal = element_normals[element_idx]

@@ -14,8 +14,10 @@ fn parse_kernel(path: &str) -> std::io::Result<String> {
 pub fn matrix_inversion(matrix: Matrix) -> Result<Matrix> {
     let size = matrix.len();
     let n = matrix.shape().0;
+
     let mut identity = Matrix::identity(n, n);
-    let opencl = OpenCL::new("./src/gpu/matrix_inversion.cl")?;
+    let src = parse_kernel("./src/gpu/matrix_inversion.cl")?;
+    let opencl = OpenCL::new(&src)?;
 
     let matrix_buffer = Buffer::<f64>::builder()
         .queue(opencl.queue.clone())

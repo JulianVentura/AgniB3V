@@ -26,8 +26,8 @@ use super::solver;
 use super::structures::{Matrix, Vector, LU};
 
 pub struct ImplicitSolver {
-    f_const: Vec<Vector>,
-    f_const_eclipse: Vec<Vector>,
+    pub f_const: Vec<Vector>,
+    pub f_const_eclipse: Vec<Vector>,
     pub a_lu: LU,
     pub a: Matrix,
     pub d: Matrix,
@@ -68,6 +68,21 @@ impl ImplicitSolver {
 
         let a_lu = a.clone().lu();
         let a_inverse = matrix_inversion(a.clone()).expect("Oh no2...");
+        let a_inverse2 = a.clone().try_inverse().expect("f");
+
+        let mut ok = true;
+        for (u, v) in a_inverse2.iter().zip(a_inverse.iter()) {
+            if (u - v) > f64::EPSILON {
+                ok = false;
+                println!("{}, {}", u, v);
+                break;
+            }
+        }
+
+        match ok {
+            true => println!("Validation OK"),
+            false => panic!("Inverse OH no---"),
+        };
         let matrix_mult = compile_kernel(&temp, &h, &f_const[0], &d, &a_inverse).expect("Oh no...");
 
         println!("FEM Engine built successfully");

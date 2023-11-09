@@ -90,8 +90,8 @@ impl FEMEngine {
             self.snapshot_period,
             self.orbit_period,
             self.eclipse_fraction,
-            f_const,
-            f_const_eclipse,
+            &f_const[0],
+            &f_const_eclipse[0],
             matrix_mult,
         );
         temp_results

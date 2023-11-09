@@ -260,6 +260,7 @@ pub fn fem_problem_from_vtk(
     let mut global_properties = properties_json.global_properties;
     global_properties.beta_angle = global_properties.beta_angle.to_radians();
 
+    let view_factors_parsed = deserialize_view_factors(view_factors_path);
     // Add to model
     // global.properties.space_temperature
     // global.properties.initial_temperature
@@ -268,6 +269,7 @@ pub fn fem_problem_from_vtk(
         betha: global_properties.beta_angle,
         altitude: global_properties.orbit_height,
         orbit_period: global_properties.orbital_period,
+        orbit_divisions: view_factors_parsed.earth.len() as u32,
     };
 
     for (material_name, material_elements) in properties_json.materials.elements {
@@ -294,8 +296,6 @@ pub fn fem_problem_from_vtk(
     //TODO: Remove in final version
     let initial_temperatures: HashMap<u32, (f64, u32)> =
         calculate_node_initial_temperatures(&parser_elements);
-
-    let view_factors_parsed = deserialize_view_factors(view_factors_path);
 
     for (parser_element_id, parser_element) in parser_elements.iter().enumerate() {
         let mut p1 = points[parser_element.nodeidx1 as usize].clone();
@@ -326,7 +326,11 @@ pub fn fem_problem_from_vtk(
                 view_factors_parsed.elements.row(parser_element_id as usize)[i];
         }
         let factors = ViewFactors {
-            earth: view_factors_parsed.earth[0][parser_element_id as usize],
+            earth: view_factors_parsed
+                .earth
+                .iter()
+                .map(|vec| vec[parser_element_id as usize])
+                .collect(),
             sun: view_factors_parsed.sun[0][parser_element_id as usize],
             elements: elements_view_factors,
         };

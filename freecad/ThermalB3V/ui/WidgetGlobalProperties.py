@@ -1,5 +1,6 @@
 from PySide2.QtWidgets import *
 from PySide2.QtCore import *
+from PySide2.QtGui import *
 
 class WidgetGlobalProperties(QWidget):
     """
@@ -90,12 +91,17 @@ class WidgetGlobalProperties(QWidget):
         Creates a label and it value from the attribute name, label, unit and value
         """
         qtLabel = QLabel(label + (f" ({unit})" if unit else ""), self)
-        if type(value) == int or type(value) == float:
+        if type(value) == float:
             qtInput = QDoubleSpinBox(self)
             qtInput.setDecimals(5)
             qtInput.setMaximum(999999999)
             qtInput.setValue(value)
             qtInput.valueChanged.connect(lambda x: self.workbench.setGlobalPropertieValue(attributeName, x))
+        elif type(value) == int:
+            qtInput = QLineEdit(self)
+            qtInput.setValidator(QIntValidator())
+            qtInput.setText(str(value))
+            qtInput.textChanged.connect(lambda x: self.workbench.setGlobalPropertieValue(attributeName, int(x)))
         elif type(value) == bool:
             qtInput = QCheckBox(self)
             qtInput.setChecked(value)

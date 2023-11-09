@@ -8,9 +8,11 @@ RAY_DISPLACEMENT = 1e-4
 #prenumbra_fraction is the fraction of the umbra that is considered penumbra
 def albedo_edge(ray_sun_dot_product, penumbra_fraction=0):
 	min_albedo_dot_product = np.cos((1 - penumbra_fraction)*(np.pi/2))
-	albedo_full_indices = ray_sun_dot_product > 0
-	ray_sun_dot_product = np.abs(np.clip(ray_sun_dot_product, -min_albedo_dot_product, 0))
-	ray_sun_dot_product[albedo_full_indices] = 1
+	albedo_light_indices = ray_sun_dot_product > 0
+	albedo_umbra_indices = ray_sun_dot_product < -min_albedo_dot_product
+	ray_sun_dot_product[albedo_umbra_indices] = 0
+	ray_sun_dot_product[albedo_light_indices] = 1
+	ray_sun_dot_product = np.abs(ray_sun_dot_product)
 	return ray_sun_dot_product
 
 def element_earth(mesh, earth_direction, sun_direction, penumbra_fraction=0.05, ray_amount=1000):
@@ -55,7 +57,7 @@ def element_earth(mesh, earth_direction, sun_direction, penumbra_fraction=0.05, 
 
 		#Albedo
 		ray_sun_dot_product = -not_hit_ray_directions @ sun_direction[:,np.newaxis]
-		albedo = np.sum(albedo_edge(ray_sun_dot_product, penumbra_fraction))/(not_hit_ray_directions.size // 3)
+		albedo = np.sum(albedo_edge(ray_sun_dot_product, penumbra_fraction=penumbra_fraction))/(not_hit_ray_directions.size // 3)
 
 		#aparent_area_coefficient * albedo * view_factor
 		view_factors[element_idx] = albedo * view_factor

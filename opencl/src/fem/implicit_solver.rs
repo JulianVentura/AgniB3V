@@ -3,6 +3,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::time::Instant;
 
+use crate::gpu::matrix_inversion;
 use crate::gpu::matrix_mult::compile_kernel;
 use crate::gpu::matrix_mult::MatrixMult;
 
@@ -16,6 +17,8 @@ use super::super::gpu::eq_systems_methods_cpu::LUDecomposition;
 use super::super::gpu::eq_systems_methods_cpu::gauss_seidel_cpu;
 
 use super::super::gpu::eq_systems_methods_cpu::jacobi_method_cpu;
+
+use super::super::gpu::matrix_inversion::matrix_inversion;
 
 use super::element::Element;
 use super::point::Point;
@@ -61,9 +64,9 @@ impl ImplicitSolver {
         let a = &m / time_step + theta * &k;
         println!("Building LU decomposition");
         //let a_lu_dec = lu_decomposition(a.clone());
-        let a_lu = a.clone().lu();
-        let a_inverse = a.clone().try_inverse().expect("Oh no...");
 
+        let a_lu = a.clone().lu();
+        let a_inverse = matrix_inversion(a.clone()).expect("Oh no2...");
         let matrix_mult = compile_kernel(&temp, &h, &f_const, &d, &a_inverse).expect("Oh no...");
 
         println!("FEM Engine built successfully");
@@ -81,12 +84,11 @@ impl ImplicitSolver {
         }
     }
 
-    pub fn step(&mut self, is_in_eclipse: bool, file: &mut File) -> Result<()> {
+    pub fn step(&mut self, is_in_eclipse: bool) -> Result<()> {
         //System:
         // A * Tn+1 = D * Tn + (1 - theta) * Fn + theta * Fn+1
         // Since Fn+1 == Fn, then the system is simplified
         // TODO: Change f vector if radiation is included
-        let multiplication = Instant::now();
         let mut t_4 = self.temp.clone();
         solver::fourth_power(&mut t_4);
 
@@ -99,32 +101,7 @@ impl ImplicitSolver {
 
         let b = &self.d * &self.temp + f;
 
-        /*let b = matrix_mult(
-            &self.temp,
-            if is_in_eclipse {
-                &self.f_const_eclipse
-            } else {
-                &self.f_const
-            },
-            &self.matrix_mult,
-        )?;*/
-        let elapsed_time_multiplication = multiplication.elapsed();
-        let solve = Instant::now();
         self.temp = self.a_lu.solve(&b).expect("Oh no...");
-        //self.temp = lu_solve(&self.a_lu_dec, b);
-        let elapsed_time_solve = solve.elapsed();
-        file.write_all(
-            format!(
-                "{}\n{}\n",
-                elapsed_time_multiplication.as_nanos(),
-                elapsed_time_solve.as_nanos()
-            )
-            .as_bytes(),
-        )
-        .expect("Oh no...");
-        //self.temp = gauss_seidel_cpu(self.a.clone(), b);
-        //self.temp = jacobi_method(self.a.clone(), b).expect("Oh no...");
-        //self.temp = lu_solve(&self.a_lu_dec, b);
         Ok(())
     }
 

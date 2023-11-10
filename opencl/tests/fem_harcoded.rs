@@ -69,7 +69,7 @@ fn create_example(p1: Point, p2: Point, p3: Point, p4: Point) -> Result<Vec<Vect
                 betha: 0.1,
                 altitude: 2000.0,
                 orbit_period: 100.0,
-                orbit_divisions: 1,
+                orbit_divisions: vec![0.0],
                 eclipse_start: 10.0,
                 eclipse_end: 10.0,
             },

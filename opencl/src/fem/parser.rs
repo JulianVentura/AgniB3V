@@ -267,11 +267,18 @@ pub fn fem_problem_from_vtk(
     // global.properties.space_temperature
     // global.properties.initial_temperature
 
+    let mut orbit_divisions = vec![];
+    for i in 0..view_factors_parsed.earth.len() {
+        orbit_divisions.push(
+            i as f64 * global_properties.orbital_period / view_factors_parsed.earth.len() as f64,
+        );
+    }
+
     let orbit_parameters = FEMOrbitParameters {
         betha: global_properties.beta_angle,
         altitude: global_properties.orbit_height,
         orbit_period: global_properties.orbital_period,
-        orbit_divisions: view_factors_parsed.earth.len() as u32,
+        orbit_divisions: orbit_divisions,
         eclipse_start: global_properties.eclipse_start,
         eclipse_end: global_properties.eclipse_end,
     };

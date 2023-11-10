@@ -85,6 +85,8 @@ pub struct ParserGlobalProperties {
     time_step: f64,
     snap_period: f64,
     simulation_time: f64,
+    eclipse_start: f64,
+    eclipse_end: f64,
 }
 
 #[derive(Debug, Deserialize)]
@@ -270,6 +272,8 @@ pub fn fem_problem_from_vtk(
         altitude: global_properties.orbit_height,
         orbit_period: global_properties.orbital_period,
         orbit_divisions: view_factors_parsed.earth.len() as u32,
+        eclipse_start: global_properties.eclipse_start,
+        eclipse_end: global_properties.eclipse_end,
     };
 
     for (material_name, material_elements) in properties_json.materials.elements {

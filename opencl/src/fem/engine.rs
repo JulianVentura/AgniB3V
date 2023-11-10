@@ -128,7 +128,7 @@ impl FEMEngine {
                 return Self::calculate_f_index(orbit_time, next, orbit_divisions);
             }
         }
-        if orbit_time >= next_start {
+        if orbit_time >= next_start || orbit_time < orbit_divisions[f_index] {
             return Self::calculate_f_index(orbit_time, next, orbit_divisions);
         } else {
             return f_index;
@@ -339,6 +339,45 @@ mod tests {
         let f_index = FEMEngine::calculate_f_index(orbit_time, f_index, &orbit_divisions);
 
         let actual_f_index = 1;
+
+        assert_eq!(f_index, actual_f_index);
+    }
+
+    #[test]
+    fn test_calculate_f_index_9() {
+        let orbit_time = 45.0;
+        let f_index = 1;
+        let orbit_divisions = vec![0.0, 10.0, 20.0, 30.0, 40.0];
+
+        let f_index = FEMEngine::calculate_f_index(orbit_time, f_index, &orbit_divisions);
+
+        let actual_f_index = 4;
+
+        assert_eq!(f_index, actual_f_index);
+    }
+
+    #[test]
+    fn test_calculate_f_index_10() {
+        let orbit_time = 25.0;
+        let f_index = 3;
+        let orbit_divisions = vec![0.0, 10.0, 20.0, 30.0, 40.0];
+
+        let f_index = FEMEngine::calculate_f_index(orbit_time, f_index, &orbit_divisions);
+
+        let actual_f_index = 2;
+
+        assert_eq!(f_index, actual_f_index);
+    }
+
+    #[test]
+    fn test_calculate_f_index_11() {
+        let orbit_time = 5.0;
+        let f_index = 2;
+        let orbit_divisions = vec![0.0, 10.0, 20.0, 30.0, 40.0];
+
+        let f_index = FEMEngine::calculate_f_index(orbit_time, f_index, &orbit_divisions);
+
+        let actual_f_index = 0;
 
         assert_eq!(f_index, actual_f_index);
     }

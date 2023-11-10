@@ -14,9 +14,7 @@ pub struct FEMEngine {
     simulation_time: f64,
     time_step: f64,
     snapshot_period: f64,
-    eclipse_fraction: f64,
-    orbit_period: f64,
-    orbit_divisions: u32,
+    orbit_parameters: FEMOrbitParameters,
     solver: Solver,
 }
 
@@ -26,6 +24,8 @@ pub struct FEMOrbitParameters {
     pub altitude: f64,
     pub orbit_period: f64,
     pub orbit_divisions: u32,
+    pub eclipse_start: f64,
+    pub eclipse_end: f64,
 }
 
 #[allow(dead_code)]
@@ -48,18 +48,11 @@ impl FEMEngine {
             panic!("Snapshot period must be multiple of simulation time");
         }
 
-        let eclipse_fraction =
-            Self::calculate_eclipse_fraction(params.orbit.altitude, params.orbit.betha);
-
-        println!("Eclipse fraction: {}", eclipse_fraction);
-
         FEMEngine {
             simulation_time: params.simulation_time,
             time_step: params.time_step,
             snapshot_period: params.snapshot_period,
-            eclipse_fraction,
-            orbit_period: params.orbit.orbit_period,
-            orbit_divisions: params.orbit.orbit_divisions,
+            orbit_parameters: params.orbit,
             solver,
         }
     }
@@ -82,11 +75,18 @@ impl FEMEngine {
             }
 
             let time = step as f64 * self.time_step;
-            let orbit_time = time % (self.orbit_period);
-            let is_in_eclipse = orbit_time > (self.orbit_period * (1.0 - self.eclipse_fraction));
+            let orbit_time = time % (self.orbit_parameters.orbit_period);
+            let is_in_eclipse = Self::is_in_eclipse(
+                self.orbit_parameters.eclipse_start,
+                self.orbit_parameters.eclipse_end,
+                orbit_time,
+            );
 
-            let f_index =
-                Self::calculate_f_index(orbit_time, self.orbit_period, self.orbit_divisions);
+            let f_index = Self::calculate_f_index(
+                orbit_time,
+                self.orbit_parameters.orbit_period,
+                self.orbit_parameters.orbit_divisions,
+            );
 
             match &mut self.solver {
                 Solver::Explicit(s) => s.step(self.time_step, is_in_eclipse, f_index),
@@ -108,18 +108,12 @@ impl FEMEngine {
         (dividend / divisor).fract().abs() < 1e-12
     }
 
-    fn calculate_eclipse_fraction(altitude: f64, betha: f64) -> f64 {
-        let mut eclipse_fraction = 0.0;
-
-        let betha_eclipse_begin = f64::asin(EARTH_RADIOUS / (EARTH_RADIOUS + altitude));
-
-        if betha < betha_eclipse_begin {
-            let upper = f64::sqrt(altitude * altitude + 2.0 * EARTH_RADIOUS * altitude);
-            let lower = (EARTH_RADIOUS + altitude) * f64::cos(betha);
-            eclipse_fraction = 1.0 / 180.0_f64.to_radians() * f64::acos(upper / lower);
+    fn is_in_eclipse(start: f64, end: f64, time: f64) -> bool {
+        if start <= end {
+            return time >= start && time <= end;
+        } else {
+            return time <= end || time >= start;
         }
-
-        eclipse_fraction
     }
 
     fn calculate_f_index(orbit_time: f64, orbit_period: f64, orbit_divisions: u32) -> usize {
@@ -143,68 +137,93 @@ mod tests {
     }
 
     #[test]
-    fn test_calculate_eclipse_fraction_1() {
-        let altitude = 2000.0;
-        let betha = 0.1;
-
-        let eclipse_fraction = FEMEngine::calculate_eclipse_fraction(altitude, betha);
-
-        let actual_eclipse_fraction = 0.27;
-        let precision = 0.01;
-
-        assert_float_eq(eclipse_fraction, actual_eclipse_fraction, precision);
+    fn test_is_in_eclipse_1() {
+        let start = 1000.0;
+        let end = 2000.0;
+        let time = 1500.0;
+        let is_in_eclipse = FEMEngine::is_in_eclipse(start, end, time);
+        assert!(is_in_eclipse);
     }
 
     #[test]
-    fn test_calculate_eclipse_fraction_2() {
-        let altitude = 2000.0;
-        let betha = 0.9;
-
-        let eclipse_fraction = FEMEngine::calculate_eclipse_fraction(altitude, betha);
-
-        let actual_eclipse_fraction = 0.0;
-        let precision = 0.01;
-
-        assert_float_eq(eclipse_fraction, actual_eclipse_fraction, precision);
+    fn test_is_in_eclipse_2() {
+        let start = 1000.0;
+        let end = 2000.0;
+        let time = 500.0;
+        let is_in_eclipse = FEMEngine::is_in_eclipse(start, end, time);
+        assert!(!is_in_eclipse);
     }
 
     #[test]
-    fn test_calculate_eclipse_fraction_3() {
-        let altitude = 1000.0;
-        let betha = 0.9;
-
-        let eclipse_fraction = FEMEngine::calculate_eclipse_fraction(altitude, betha);
-
-        let actual_eclipse_fraction = 0.2;
-        let precision = 0.01;
-
-        assert_float_eq(eclipse_fraction, actual_eclipse_fraction, precision);
+    fn test_is_in_eclipse_3() {
+        let start = 1000.0;
+        let end = 2000.0;
+        let time = 2500.0;
+        let is_in_eclipse = FEMEngine::is_in_eclipse(start, end, time);
+        assert!(!is_in_eclipse);
     }
 
     #[test]
-    fn test_calculate_eclipse_fraction_4() {
-        let altitude = 10000.0;
-        let betha = 0.3;
-
-        let eclipse_fraction = FEMEngine::calculate_eclipse_fraction(altitude, betha);
-
-        let actual_eclipse_fraction = 0.09;
-        let precision = 0.01;
-
-        assert_float_eq(eclipse_fraction, actual_eclipse_fraction, precision);
+    fn test_is_in_eclipse_4() {
+        let start = 1000.0;
+        let end = 2000.0;
+        let time = 2000.0;
+        let is_in_eclipse = FEMEngine::is_in_eclipse(start, end, time);
+        assert!(is_in_eclipse);
     }
 
     #[test]
-    fn test_calculate_eclipse_fraction_5() {
-        let altitude = 1.0;
-        let betha = 0.1;
+    fn test_is_in_eclipse_5() {
+        let start = 1000.0;
+        let end = 2000.0;
+        let time = 1000.0;
+        let is_in_eclipse = FEMEngine::is_in_eclipse(start, end, time);
+        assert!(is_in_eclipse);
+    }
 
-        let eclipse_fraction = FEMEngine::calculate_eclipse_fraction(altitude, betha);
+    #[test]
+    fn test_is_in_eclipse_6() {
+        let start = 3000.0;
+        let end = 2000.0;
+        let time = 2500.0;
+        let is_in_eclipse = FEMEngine::is_in_eclipse(start, end, time);
+        assert!(!is_in_eclipse);
+    }
 
-        let actual_eclipse_fraction = 0.49;
-        let precision = 0.01;
+    #[test]
+    fn test_is_in_eclipse_7() {
+        let start = 3000.0;
+        let end = 2000.0;
+        let time = 1500.0;
+        let is_in_eclipse = FEMEngine::is_in_eclipse(start, end, time);
+        assert!(is_in_eclipse);
+    }
 
-        assert_float_eq(eclipse_fraction, actual_eclipse_fraction, precision);
+    #[test]
+    fn test_is_in_eclipse_8() {
+        let start = 3000.0;
+        let end = 2000.0;
+        let time = 3500.0;
+        let is_in_eclipse = FEMEngine::is_in_eclipse(start, end, time);
+        assert!(is_in_eclipse);
+    }
+
+    #[test]
+    fn test_is_in_eclipse_9() {
+        let start = 3000.0;
+        let end = 2000.0;
+        let time = 3000.0;
+        let is_in_eclipse = FEMEngine::is_in_eclipse(start, end, time);
+        assert!(is_in_eclipse);
+    }
+
+    #[test]
+    fn test_is_in_eclipse_10() {
+        let start = 3000.0;
+        let end = 2000.0;
+        let time = 2000.0;
+        let is_in_eclipse = FEMEngine::is_in_eclipse(start, end, time);
+        assert!(is_in_eclipse);
     }
 
     #[test]

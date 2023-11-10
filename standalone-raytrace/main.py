@@ -24,8 +24,10 @@ def op_process_view_factors(mesh_file_path, properties_file_path, gmat_report_fi
         gmat_params.sun_position.y,
         gmat_params.sun_position.z
     ])
+    print("Calculating sun view factors")
     element_sun_view_factors = [view_factors.element_sun(mesh, sun_direction)]
 
+    print("Calculating element-element view factors")
     element_element_view_factors = [view_factors.element_element(
             mesh,
             properties,
@@ -34,8 +36,10 @@ def op_process_view_factors(mesh_file_path, properties_file_path, gmat_report_fi
             internal_emission,
      )]
     
+    print("Calculating earth view factors")
     element_earth_view_factors = []
     for step in range(len(gmat_params.elapsed_secs)):
+        print("Step", step)
         earth_direction = -np.array([
             gmat_params.sat_position[step].x,
             gmat_params.sat_position[step].y,
@@ -56,6 +60,7 @@ def op_process_view_factors(mesh_file_path, properties_file_path, gmat_report_fi
         element_sun_view_factors,
         element_element_view_factors
     )
+    print("Done")
 
 def op_visualize_view_factors(mesh_file_path, properties_file_path, element_id):
     """

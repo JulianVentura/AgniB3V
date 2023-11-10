@@ -106,6 +106,8 @@ impl Element {
             earth_ir,
             &factors,
             generated_heat,
+            solar_intensity,
+            albedo_factor,
         );
 
         Element {
@@ -307,6 +309,8 @@ impl Element {
         earth_ir: f64,
         factors: &ViewFactors,
         generated_heat: f64,
+        solar_intensity: f64,
+        albedo_factor: f64,
     ) -> Vec<Vector> {
         let earth = &factors.earth;
         let mut f_vec: Vec<Vector> = vec![];
@@ -318,6 +322,8 @@ impl Element {
                 earth_ir,
                 generated_heat,
                 *earth_value,
+                solar_intensity,
+                albedo_factor,
             );
 
             f_vec.push(f);
@@ -360,6 +366,8 @@ impl Element {
         earth_ir: f64,
         generated_heat: f64,
         earth_view_factor: f64,
+        solar_intensity: f64,
+        albedo_factor: f64,
     ) -> Vector {
         //TODO: Add single node heat source
         // f += [nodo1.heat_source, nodo2.heat_source, nodo3.heat_source]
@@ -370,8 +378,9 @@ impl Element {
         let constant = 1.0;
 
         let ir = properties.alpha_ir * constant * earth_view_factor * earth_ir;
+        let albedo = properties.alpha_sun * solar_intensity * albedo_factor * earth_view_factor;
 
-        let magnitude = (generated_heat + ir) * area / 3.0;
+        let magnitude = (generated_heat + ir + albedo) * area / 3.0;
 
         magnitude * f
     }

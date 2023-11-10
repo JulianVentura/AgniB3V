@@ -2,6 +2,7 @@ use super::constants::EARTH_RADIOUS;
 use super::structures::Vector;
 use super::{explicit_solver::ExplicitSolver, implicit_solver::ImplicitSolver};
 use anyhow::Result;
+use nalgebra::SimdBool;
 
 //TODO: Check how much slower the solver gets if we use a dyn (dynamic dispatch) over the Solver
 //object
@@ -23,7 +24,7 @@ pub struct FEMOrbitParameters {
     pub betha: f64,
     pub altitude: f64,
     pub orbit_period: f64,
-    pub orbit_divisions: u32,
+    pub orbit_divisions: Vec<f64>,
     pub eclipse_start: f64,
     pub eclipse_end: f64,
 }
@@ -65,6 +66,7 @@ impl FEMEngine {
 
         println!("Running for {steps} steps");
 
+        let mut f_index = 0;
         for step in 0..steps {
             if step % snapshot_period == 0 {
                 let temp = match &self.solver {
@@ -82,10 +84,10 @@ impl FEMEngine {
                 orbit_time,
             );
 
-            let f_index = Self::calculate_f_index(
+            f_index = Self::calculate_f_index(
                 orbit_time,
-                self.orbit_parameters.orbit_period,
-                self.orbit_parameters.orbit_divisions,
+                f_index,
+                &self.orbit_parameters.orbit_divisions,
             );
 
             match &mut self.solver {
@@ -116,10 +118,21 @@ impl FEMEngine {
         }
     }
 
-    fn calculate_f_index(orbit_time: f64, orbit_period: f64, orbit_divisions: u32) -> usize {
-        let orbit_division_time = orbit_period / orbit_divisions as f64;
-
-        (orbit_time / orbit_division_time) as usize
+    fn calculate_f_index(orbit_time: f64, f_index: usize, orbit_divisions: &Vec<f64>) -> usize {
+        let next = (f_index + 1) % orbit_divisions.len();
+        let next_start = orbit_divisions[next];
+        if next == 0 {
+            if orbit_time >= orbit_divisions[f_index] {
+                return f_index;
+            } else {
+                return Self::calculate_f_index(orbit_time, next, orbit_divisions);
+            }
+        }
+        if orbit_time >= next_start {
+            return Self::calculate_f_index(orbit_time, next, orbit_divisions);
+        } else {
+            return f_index;
+        }
     }
 }
 
@@ -228,11 +241,11 @@ mod tests {
 
     #[test]
     fn test_calculate_f_index_1() {
-        let orbit_time = 0.0;
-        let orbit_period = 100.0;
-        let orbit_divisions = 10;
+        let orbit_time = 5.0;
+        let f_index = 0;
+        let orbit_divisions = vec![0.0, 10.0, 20.0];
 
-        let f_index = FEMEngine::calculate_f_index(orbit_time, orbit_period, orbit_divisions);
+        let f_index = FEMEngine::calculate_f_index(orbit_time, f_index, &orbit_divisions);
 
         let actual_f_index = 0;
 
@@ -242,10 +255,10 @@ mod tests {
     #[test]
     fn test_calculate_f_index_2() {
         let orbit_time = 11.0;
-        let orbit_period = 100.0;
-        let orbit_divisions = 10;
+        let f_index = 0;
+        let orbit_divisions = vec![0.0, 10.0, 20.0];
 
-        let f_index = FEMEngine::calculate_f_index(orbit_time, orbit_period, orbit_divisions);
+        let f_index = FEMEngine::calculate_f_index(orbit_time, f_index, &orbit_divisions);
 
         let actual_f_index = 1;
 
@@ -254,11 +267,24 @@ mod tests {
 
     #[test]
     fn test_calculate_f_index_3() {
-        let orbit_time = 25.0;
-        let orbit_period = 100.0;
-        let orbit_divisions = 10;
+        let orbit_time = 12.0;
+        let f_index = 1;
+        let orbit_divisions = vec![0.0, 10.0, 20.0];
 
-        let f_index = FEMEngine::calculate_f_index(orbit_time, orbit_period, orbit_divisions);
+        let f_index = FEMEngine::calculate_f_index(orbit_time, f_index, &orbit_divisions);
+
+        let actual_f_index = 1;
+
+        assert_eq!(f_index, actual_f_index);
+    }
+
+    #[test]
+    fn test_calculate_f_index_4() {
+        let orbit_time = 21.0;
+        let f_index = 1;
+        let orbit_divisions = vec![0.0, 10.0, 20.0];
+
+        let f_index = FEMEngine::calculate_f_index(orbit_time, f_index, &orbit_divisions);
 
         let actual_f_index = 2;
 
@@ -266,14 +292,53 @@ mod tests {
     }
 
     #[test]
-    fn test_calculate_f_index_4() {
-        let orbit_time = 20.0;
-        let orbit_period = 30.0;
-        let orbit_divisions = 5;
+    fn test_calculate_f_index_5() {
+        let orbit_time = 25.0;
+        let f_index = 2;
+        let orbit_divisions = vec![0.0, 10.0, 20.0];
 
-        let f_index = FEMEngine::calculate_f_index(orbit_time, orbit_period, orbit_divisions);
+        let f_index = FEMEngine::calculate_f_index(orbit_time, f_index, &orbit_divisions);
 
-        let actual_f_index = 3;
+        let actual_f_index = 2;
+
+        assert_eq!(f_index, actual_f_index);
+    }
+
+    #[test]
+    fn test_calculate_f_index_6() {
+        let orbit_time = 3.0;
+        let f_index = 2;
+        let orbit_divisions = vec![0.0, 10.0, 20.0];
+
+        let f_index = FEMEngine::calculate_f_index(orbit_time, f_index, &orbit_divisions);
+
+        let actual_f_index = 0;
+
+        assert_eq!(f_index, actual_f_index);
+    }
+
+    #[test]
+    fn test_calculate_f_index_7() {
+        let orbit_time = 25.0;
+        let f_index = 0;
+        let orbit_divisions = vec![0.0, 10.0, 20.0];
+
+        let f_index = FEMEngine::calculate_f_index(orbit_time, f_index, &orbit_divisions);
+
+        let actual_f_index = 2;
+
+        assert_eq!(f_index, actual_f_index);
+    }
+
+    #[test]
+    fn test_calculate_f_index_8() {
+        let orbit_time = 15.0;
+        let f_index = 2;
+        let orbit_divisions = vec![0.0, 10.0, 20.0];
+
+        let f_index = FEMEngine::calculate_f_index(orbit_time, f_index, &orbit_divisions);
+
+        let actual_f_index = 1;
 
         assert_eq!(f_index, actual_f_index);
     }

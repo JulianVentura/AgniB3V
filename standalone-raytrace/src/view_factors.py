@@ -57,9 +57,12 @@ def element_earth(mesh, earth_direction, sun_direction, penumbra_fraction=0.05, 
 		#aparent_area_coefficient = np.sum(ray_normal_dot_product / np.linalg.norm(not_hit_ray_directions, axis=1))/(not_hit_ray_directions.size // 3)
 
 		#Albedo
-		ray_sun_dot_product = -not_hit_ray_directions @ sun_direction[:,np.newaxis]
-		albedo = np.sum(albedo_edge(ray_sun_dot_product, penumbra_fraction=penumbra_fraction))/(not_hit_ray_directions.size // 3)
-
+		if(not_hit_ray_directions.size > 0):
+			ray_sun_dot_product = -not_hit_ray_directions @ sun_direction[:,np.newaxis]
+			albedo = np.sum(albedo_edge(ray_sun_dot_product, penumbra_fraction=penumbra_fraction))/(not_hit_ray_directions.size // 3)
+		else:
+			albedo = 0
+		
 		#aparent_area_coefficient * albedo * view_factor
 		view_factors[element_idx] = albedo
 		albedo_coefficients[element_idx] = view_factor

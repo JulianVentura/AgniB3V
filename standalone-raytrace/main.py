@@ -95,7 +95,7 @@ def op_show_help(argv):
     Receives the argv list and prints a help message.
     """
     print("Use:")
-    print(f"  python3 {argv[0]} process <mesh_file_path> <properties_file_path> <gmat_report_file_path> <gmat_eclipse_file_path>")
+    print(f"  python3 {argv[0]} process <mesh_file_path> <properties_file_path> <gmat_report_file_path> <gmat_eclipse_file_path> <view_factors_file_path>")
     print(f"  python3 {argv[0]} viewvf <mesh_file_path> <properties_file_path> <element_id>")
     print(f"  python3 {argv[0]} viewm <mesh_file_path> <properties_file_path>")
 
@@ -111,7 +111,7 @@ def main():
         viewm: creates visualization for the material of the mesh.
 
     For each command expect the following arguments:
-        process: mesh_file_path, properties_file_path
+        process: mesh_file_path, properties_file_path, gmat_report_file_path, gmat_eclipse_file_path, view_factors_file_path
         viewvf: mesh_file_path, properties_file_path, element_id
         viewm: mesh_file_path, properties_file_path
     """

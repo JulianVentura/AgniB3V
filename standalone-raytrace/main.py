@@ -3,6 +3,13 @@ import json
 from src import properties_atlas, vtk_io, view_factors, visualization, serializer, gmat_parser
 import numpy as np
 
+def _add_gmat_params(properties, gmat_params):
+    properties.add_global_prop("beta_angle", gmat_params.beta_angle)
+    properties.add_global_prop("orbital_period", gmat_params.period)
+    start, end = gmat_params.eclipse_start_finish
+    properties.add_global_prop("eclipse_start", start)
+    properties.add_global_prop("eclipse_end", end)
+    
 def op_process_view_factors(mesh_file_path, properties_file_path, gmat_report_file_path, gmat_eclipse_file_path, view_factors_file_path):
     """
     Receives the mesh file path (vtk), the properties file path (json) and GMAT
@@ -19,11 +26,13 @@ def op_process_view_factors(mesh_file_path, properties_file_path, gmat_report_fi
     internal_emission = properties.get_global_prop("internal_emission")
 
     gmat_params = gmat_parser.parse_gmat(gmat_report_file_path, gmat_eclipse_file_path)
+    _add_gmat_params(properties, gmat_params)
     sun_direction = np.array([
         gmat_params.sun_position.x,
         gmat_params.sun_position.y,
         gmat_params.sun_position.z
     ])
+
     print("Calculating sun view factors")
     element_sun_view_factors = [view_factors.element_sun(mesh, sun_direction)]
 
@@ -38,7 +47,7 @@ def op_process_view_factors(mesh_file_path, properties_file_path, gmat_report_fi
     
     print("Calculating earth view factors")
     element_earth_view_factors = []
-    for step in range(len(gmat_params.elapsed_secs)):
+    for step in range(4): #range(len(gmat_params.elapsed_secs)):
         print("Step", step)
         earth_direction = -np.array([
             gmat_params.sat_position[step].x,
@@ -54,6 +63,7 @@ def op_process_view_factors(mesh_file_path, properties_file_path, gmat_report_fi
         earth_view_factors *= earth_albedo_coefficients
         element_earth_view_factors.append(earth_view_factors)
 
+    properties.dump(properties_file_path)
     serializer.serialize_view_factors(
         view_factors_file_path,
         element_earth_view_factors,

@@ -55,6 +55,12 @@ class PropertiesAtlas():
         """
         self.properties_json[key] = data
 
+    def add_global_prop(self, key, value):
+        """
+        Receives a global property key and value and adds it to the global properties.
+        """
+        self.properties_json["global_properties"][key] = value
+ 
     def get_global_prop(self, key):
         """
         Receives a global property key and returns the data associated with it.
@@ -66,4 +72,4 @@ class PropertiesAtlas():
         Recieves an output path and dumps the material json to a file.
         """
         with open(output_path, 'w', encoding='utf-8') as f:
-	        json.dump(self.properties_json, f, ensure_ascii=True)
+	        json.dump(self.properties_json, f, indent=4, ensure_ascii=True)

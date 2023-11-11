@@ -1,5 +1,4 @@
 import FreeCAD
-from ui.DialogGlobalProperties import DialogGlobalProperties
 from public.utils import iconPath
 from constants import CONFIG_GROUP
 

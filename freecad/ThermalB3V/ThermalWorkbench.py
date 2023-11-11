@@ -76,7 +76,6 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         # TODO: implement FEM tools
         femList = [
             "FEM_Analysis",
-            "FEM_MaterialEditor",
             "FEM_MeshGmshFromShape",
         ]
         self.appendToolbar("Document", workbenchInitList)

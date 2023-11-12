@@ -15,7 +15,7 @@ pip install -r requirements.txt
 It can be done by passing file paths as:
 
 ```sh
-main process mesh_file_path properties_file_path
+main process mesh_file_path properties_file_path gmat_report_file_path gmat_eclipse_file_path view_factors_file_path
 ```
 
 - **Viewing mesh assigned materials**

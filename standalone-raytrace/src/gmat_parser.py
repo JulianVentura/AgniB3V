@@ -169,8 +169,8 @@ def parse_eclipse_locator(eclipse_locator_filename, parameters):
     for idx, p in enumerate(header):
         if p in GMAT_ECLIPSE_NAMES:
             idx_from_param[p] = idx
-    # Find the Event Number 2 of type Umbra
 
+    # Find the Event Number 2 of type Umbra
     type_id = idx_from_param["Type"]
     event_number_id = idx_from_param["Event Number"]
 
@@ -229,27 +229,3 @@ def parse_gmat(report_filename, eclipse_filename) -> GMATParameters:
         eclipse_start_and_finish,
         period,
     )
-
-
-if __name__ == "__main__":
-    params = parse_gmat(
-        "./GMAT/R2022a/output/ReportFile1.txt",
-        "./GMAT/R2022a/output/EclipseLocator1.txt",
-    )
-
-    print(f"Beta Angle: {params.beta_angle}")
-    print("Sun position: ")
-    print(f"  X={params.sun_position.x}")
-    print(f"  Y={params.sun_position.y}")
-    print(f"  Z={params.sun_position.z}")
-    print(f"Altitude: {params.altitude}")
-    print(f"Eclipse: {params.eclipse_start_finish}")
-    print(f"Period: {params.period}")
-
-    for step in range(5):  # range(len(params.elapsed_secs)):
-        print(f"Step {step}: ")
-        print("  Sat position:")
-        print(f"   X={params.sat_position[step].x}")
-        print(f"   Y={params.sat_position[step].y}")
-        print(f"   Z={params.sat_position[step].z}")
-        print(f"  Elapsed seconds: {params.elapsed_secs[step]}")

@@ -342,7 +342,7 @@ impl Element {
         //Note: probably that would make each element where that node is part add its heat source, so it would be duplicated
         let f = Vector::from_row_slice(&[1.0, 1.0, 1.0]);
 
-        //TODO: Define constant value
+        //TODO: What is this? -> Delete
         let constant = 1.0;
 
         let solar = properties.alpha_sun * solar_intensity * f64::sin(betha.into()) * factors.sun;
@@ -366,7 +366,7 @@ impl Element {
         //Note: probably that would make each element where that node is part add its heat source, so it would be duplicated
         let f = Vector::from_row_slice(&[1.0, 1.0, 1.0]);
 
-        //TODO: Define constant value
+        //TODO: What is this? -> Delete
         let constant = 1.0;
 
         let ir = properties.alpha_ir * constant * earth_view_factor * earth_ir;

@@ -1,19 +1,16 @@
-use crate::gpu::matrix_mult::{matrix_mult_v2, MatrixMult};
-
-use super::constants::EARTH_RADIOUS;
+use super::constants::EARTH_RADIOUS; //TODO: Translate this properly
 use super::structures::Vector;
-use super::{explicit_solver::ExplicitSolver, implicit_solver::ImplicitSolver};
+use super::{
+    explicit_solver::ExplicitSolver, gpu_solver::GPUSolver, implicit_solver::ImplicitSolver,
+};
 use anyhow::Result;
-use ocl::Queue;
-use std::fs::File;
-use std::io::prelude::*;
-use std::time::Instant;
 
 //TODO: Check how much slower the solver gets if we use a dyn (dynamic dispatch) over the Solver
 //object
 pub enum Solver {
     Explicit(ExplicitSolver),
     Implicit(ImplicitSolver),
+    GPU(GPUSolver),
 }
 
 pub struct FEMEngine {
@@ -43,6 +40,23 @@ pub struct FEMParameters {
     pub orbit: FEMOrbitParameters,
 }
 
+/*
+NEW API IDEA
+
+Engine:
+    - Controls the solver, sending it to run for a given time and obtaining partial results from it
+    - It stores the partial results (in the future it may persist on disk)
+
+XSolver:
+    - Runs the simulation for a given time provided by the Engine and it returns partial results after
+    - It knows when to switch view factors and simulate an eclipse
+    - It's general logic may be in a utils module or in a general solver.
+
+
+solver::run_for(time: f64) -> Vector
+
+*/
+
 impl FEMEngine {
     pub fn new(params: FEMParameters, solver: Solver) -> Self {
         //TODO add error handling
@@ -70,34 +84,8 @@ impl FEMEngine {
         }
     }
 
-    pub fn run_gpu(&mut self) -> Result<Vec<Vector>> {
-        let f_const = match &self.solver {
-            Solver::Implicit(s) => &s.f_const,
-            _ => panic!("Only implicit solver is supported"),
-        };
-        let f_const_eclipse = match &self.solver {
-            Solver::Implicit(s) => &s.f_const_eclipse,
-            _ => panic!("Only implicit solver is supported"),
-        };
-        let matrix_mult = match &self.solver {
-            Solver::Implicit(s) => &s.matrix_mult,
-            _ => panic!("Only implicit solver is supported"),
-        };
-
-        let temp_results = matrix_mult_v2(
-            self.simulation_time,
-            self.time_step,
-            self.snapshot_period,
-            self.orbit_period,
-            self.eclipse_fraction,
-            &f_const[0],
-            &f_const_eclipse[0],
-            matrix_mult,
-        );
-        temp_results
-    }
-
     pub fn run(&mut self) -> Result<Vec<Vector>> {
+        //TODO: Instead of storing results to memory, we should go to disk directly
         let mut temp_results = Vec::new();
 
         let steps = (self.simulation_time / self.time_step) as u32;
@@ -105,13 +93,17 @@ impl FEMEngine {
 
         println!("Running for {steps} steps");
 
+        //TODO: Change this to new API
+        //TODO: The eclipse and view factor array logic should be on the solver side
+
         for step in 0..steps {
             if step % snapshot_period == 0 {
-                let temp = match &self.solver {
-                    Solver::Explicit(s) => s.temperature(),
-                    Solver::Implicit(s) => s.temperature(),
+                let temp = match &mut self.solver {
+                    Solver::Explicit(s) => s.temperature()?,
+                    Solver::Implicit(s) => s.temperature()?,
+                    Solver::GPU(s) => s.temperature()?,
                 };
-                temp_results.push(temp);
+                temp_results.push(temp.clone());
             }
 
             let time = step as f64 * self.time_step;
@@ -122,17 +114,19 @@ impl FEMEngine {
                 Self::calculate_f_index(orbit_time, self.orbit_period, self.orbit_divisions);
 
             match &mut self.solver {
-                Solver::Explicit(s) => s.step(self.time_step, is_in_eclipse, f_index),
-                Solver::Implicit(s) => s.step(is_in_eclipse, f_index),
+                Solver::Explicit(s) => s.step(self.time_step, is_in_eclipse, f_index)?,
+                Solver::Implicit(s) => s.step(is_in_eclipse, f_index)?,
+                Solver::GPU(s) => s.step(is_in_eclipse, f_index)?,
             };
         }
 
-        let temp = match &self.solver {
-            Solver::Explicit(s) => s.temperature(),
-            Solver::Implicit(s) => s.temperature(),
+        let temp = match &mut self.solver {
+            Solver::Explicit(s) => s.temperature()?,
+            Solver::Implicit(s) => s.temperature()?,
+            Solver::GPU(s) => s.temperature()?,
         };
 
-        temp_results.push(temp);
+        temp_results.push(temp.clone());
 
         Ok(temp_results)
     }
@@ -155,6 +149,7 @@ impl FEMEngine {
         eclipse_fraction
     }
 
+    //TODO: Change confusing names
     fn calculate_f_index(orbit_time: f64, orbit_period: f64, orbit_divisions: u32) -> usize {
         let orbit_division_time = orbit_period / orbit_divisions as f64;
 

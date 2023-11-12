@@ -1,40 +1,17 @@
-use anyhow::Result;
-use std::fs::File;
-use std::io::prelude::*;
-use std::time::Instant;
-
-use crate::gpu::matrix_inversion;
-use crate::gpu::matrix_mult::compile_kernel;
-use crate::gpu::matrix_mult::MatrixMult;
-
-use super::super::gpu::matrix_mult::matrix_mult;
-
-use super::super::gpu::eq_systems_methods_cpu::lu_decomposition;
-use super::super::gpu::eq_systems_methods_cpu::lu_solve;
-
-use super::super::gpu::eq_systems_methods_cpu::LUDecomposition;
-
-use super::super::gpu::eq_systems_methods_cpu::gauss_seidel_cpu;
-
-use super::super::gpu::eq_systems_methods_cpu::jacobi_method_cpu;
-
-use super::super::gpu::matrix_inversion::matrix_inversion;
-
 use super::element::Element;
 use super::point::Point;
 use super::solver;
 use super::structures::{Matrix, Vector, LU};
+use anyhow::Result;
 
 pub struct ImplicitSolver {
     pub f_const: Vec<Vector>,
     pub f_const_eclipse: Vec<Vector>,
     pub a_lu: LU,
-    pub a: Matrix,
     pub d: Matrix,
     pub h: Matrix,
     temp: Vector,
     points: Vec<Point>,
-    pub matrix_mult: MatrixMult,
 }
 
 impl ImplicitSolver {
@@ -64,43 +41,29 @@ impl ImplicitSolver {
         let d = &m / time_step - (1.0 - theta) * &k;
         let a = &m / time_step + theta * &k;
         println!("Building LU decomposition");
-        //let a_lu_dec = lu_decomposition(a.clone());
 
         let a_lu = a.clone().lu();
-        let a_inverse = matrix_inversion(a.clone()).expect("Oh no2...");
-        let a_inverse2 = a.clone().try_inverse().expect("f");
 
-        let mut ok = true;
-        for (u, v) in a_inverse2.iter().zip(a_inverse.iter()) {
-            if (u - v) > f64::EPSILON {
-                ok = false;
-                println!("{}, {}", u, v);
-                break;
-            }
-        }
-
-        match ok {
-            true => println!("Validation OK"),
-            false => panic!("Inverse OH no---"),
-        };
-        let matrix_mult = compile_kernel(&temp, &h, &f_const[0], &d, &a_inverse).expect("Oh no...");
-
-        println!("FEM Engine built successfully");
+        println!("Implicit Solver built successfully");
 
         ImplicitSolver {
             f_const,
             f_const_eclipse,
             a_lu,
-            a,
             d,
             h,
             temp,
             points,
-            matrix_mult,
         }
     }
 
-    pub fn step(&mut self, is_in_eclipse: bool, f_index: usize) {
+    // pub fn run_for(&mut self, steps: usize, in_eclipse: bool, f_index: usize) {
+    //     for s in 0..steps {
+    //         self.step(in_eclipse, f_index);
+    //     }
+    // }
+    //
+    pub fn step(&mut self, in_eclipse: bool, f_index: usize) -> Result<()> {
         //System:
         // A * Tn+1 = D * Tn + (1 - theta) * Fn + theta * Fn+1
         // Since Fn+1 == Fn, then the system is simplified
@@ -109,7 +72,7 @@ impl ImplicitSolver {
         solver::fourth_power(&mut t_4);
 
         let mut f = &self.h * t_4;
-        if is_in_eclipse {
+        if in_eclipse {
             f += &self.f_const_eclipse[f_index];
         } else {
             f += &self.f_const[f_index];
@@ -118,13 +81,15 @@ impl ImplicitSolver {
         let b = &self.d * &self.temp + f;
 
         self.temp = self.a_lu.solve(&b).expect("Oh no...");
+
+        Ok(())
     }
 
     pub fn points(&self) -> &Vec<Point> {
         &self.points
     }
 
-    pub fn temperature(&self) -> Vector {
-        self.temp.clone()
+    pub fn temperature(&mut self) -> Result<&Vector> {
+        Ok(&self.temp)
     }
 }

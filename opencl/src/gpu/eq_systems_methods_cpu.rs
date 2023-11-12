@@ -1,5 +1,3 @@
-use nalgebra::ComplexField;
-
 use crate::fem::structures::{Matrix, Vector};
 
 pub fn jacobi_method_cpu(a: Matrix, b: Vector) -> Vector {

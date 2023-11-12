@@ -1,9 +1,8 @@
 use super::engine::{FEMEngine, Solver};
-use super::implicit_solver::ImplicitSolver;
-
 use super::parser;
-
-use super::explicit_solver::ExplicitSolver;
+use super::{
+    explicit_solver::ExplicitSolver, gpu_solver::GPUSolver, implicit_solver::ImplicitSolver,
+};
 use anyhow::Result;
 
 pub fn run_solver(config_path: &String) -> Result<()> {
@@ -23,19 +22,24 @@ pub fn run_solver(config_path: &String) -> Result<()> {
             &problem.elements,
             problem.parameters.time_step,
         )),
+        "GPU" => Solver::GPU(GPUSolver::new(
+            &problem.elements,
+            problem.parameters.time_step,
+        )),
         _ => panic!("Solver not recognized"),
     };
 
     let points = match &solver {
         Solver::Explicit(s) => s.points().clone(),
         Solver::Implicit(s) => s.points().clone(),
+        Solver::GPU(s) => s.points().clone(),
     };
 
     let snapshot_period = problem.parameters.snapshot_period;
 
     let mut engine = FEMEngine::new(problem.parameters, solver);
 
-    let temp_results = engine.run_gpu()?;
+    let temp_results = engine.run()?;
 
     println!("{:#?}", &temp_results.last());
 

@@ -1,6 +1,7 @@
 use super::solver;
 use super::structures::{Matrix, Vector, LU};
 use super::{element::Element, point::Point};
+use anyhow::Result;
 
 pub struct ExplicitSolver {
     pub m_lu: LU,
@@ -44,7 +45,7 @@ impl ExplicitSolver {
         let h = l - e;
 
         let m_lu = m.lu();
-        println!("FEM Engine built successfully");
+        println!("Explicit Solver built successfully");
 
         ExplicitSolver {
             m_lu,
@@ -57,15 +58,15 @@ impl ExplicitSolver {
         }
     }
 
-    pub fn temperature(&self) -> Vector {
-        self.temp.clone()
+    pub fn temperature(&mut self) -> Result<&Vector> {
+        Ok(&self.temp)
     }
 
     pub fn points(&self) -> &Vec<Point> {
         &self.points
     }
 
-    pub fn step(&mut self, time_step: f64, is_in_eclipse: bool, f_index: usize) {
+    pub fn step(&mut self, time_step: f64, is_in_eclipse: bool, f_index: usize) -> Result<()> {
         let mut t_4 = self.temp.clone();
         solver::fourth_power(&mut t_4);
 
@@ -79,5 +80,7 @@ impl ExplicitSolver {
         let x = &self.m_lu.solve(&b).expect("Oh no...");
 
         self.temp = time_step * x + &self.temp;
+
+        Ok(())
     }
 }

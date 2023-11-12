@@ -95,17 +95,15 @@ impl FEMEngine {
 
     fn update_f(&mut self, step: usize) -> Result<()> {
         let time = step as f64 * self.time_step;
-        let orbit_time = time % (self.orbit_period);
+        let orbit_time = time % (self.orbit_parameters.orbit_period);
         let in_eclipse = self.is_in_eclipse(orbit_time);
 
-        let orbit_division_time = self.orbit_period / self.orbit_divisions as f64;
-
-        let f_index = self.calculate_f_index(orbit_time);
+        self.update_f_index(orbit_time);
 
         match &mut self.solver {
-            Solver::Explicit(s) => s.update_f(f_index, in_eclipse)?,
-            Solver::Implicit(s) => s.update_f(f_index, in_eclipse)?,
-            Solver::GPU(s) => s.update_f(f_index, in_eclipse)?,
+            Solver::Explicit(s) => s.update_f(self.f_index, in_eclipse)?,
+            Solver::Implicit(s) => s.update_f(self.f_index, in_eclipse)?,
+            Solver::GPU(s) => s.update_f(self.f_index, in_eclipse)?,
         };
 
         Ok(())
@@ -149,8 +147,8 @@ impl FEMEngine {
         }
     }
 
-    fn calculate_f_index(&mut self, orbit_time: f64) {
-        let orbit_divisions = self.orbit_parameters.orbit_divisions;
+    fn update_f_index(&mut self, orbit_time: f64) {
+        let orbit_divisions = &self.orbit_parameters.orbit_divisions;
         let f_index = self.f_index;
         let next = (f_index + 1) % orbit_divisions.len();
         let next_start = orbit_divisions[next];
@@ -159,13 +157,13 @@ impl FEMEngine {
                 return;
             } else {
                 self.f_index = 0;
-                self.calculate_f_index(orbit_time);
+                self.update_f_index(orbit_time);
                 return;
             }
         }
         if orbit_time >= next_start || orbit_time < orbit_divisions[f_index] {
             self.f_index = next;
-            self.calculate_f_index(orbit_time);
+            self.update_f_index(orbit_time);
             return;
         } else {
             return;

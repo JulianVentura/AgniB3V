@@ -12,6 +12,8 @@ pub struct ImplicitSolver {
     pub h: Matrix,
     temp: Vector,
     points: Vec<Point>,
+    f_index: usize,
+    in_eclipse: bool,
 }
 
 impl ImplicitSolver {
@@ -54,29 +56,32 @@ impl ImplicitSolver {
             h,
             temp,
             points,
+            in_eclipse: false,
+            f_index: 0,
         }
     }
 
-    // pub fn run_for(&mut self, steps: usize, in_eclipse: bool, f_index: usize) {
-    //     for s in 0..steps {
-    //         self.step(in_eclipse, f_index);
-    //     }
-    // }
-    //
-    pub fn step(&mut self, in_eclipse: bool, f_index: usize) -> Result<()> {
+    pub fn step(&mut self) -> Result<()> {
         let mut t_4 = self.temp.clone();
         solver::fourth_power(&mut t_4);
 
         let mut f = &self.h * t_4;
-        if in_eclipse {
-            f += &self.f_const_eclipse[f_index];
+        if self.in_eclipse {
+            f += &self.f_const_eclipse[self.f_index];
         } else {
-            f += &self.f_const[f_index];
+            f += &self.f_const[self.f_index];
         }
 
         let b = &self.d * &self.temp + f;
 
         self.temp = self.a_lu.solve(&b).expect("Oh no...");
+
+        Ok(())
+    }
+
+    pub fn update_f(&mut self, f_index: usize, in_eclipse: bool) -> Result<()> {
+        self.f_index = f_index;
+        self.in_eclipse = in_eclipse;
 
         Ok(())
     }

@@ -9,8 +9,11 @@ pub struct ExplicitSolver {
     pub h: Matrix,
     f_const: Vec<Vector>,
     f_const_eclipse: Vec<Vector>,
+    f_index: usize,
+    in_eclipse: bool,
     temp: Vector,
     points: Vec<Point>,
+    time_step: f64,
 }
 
 #[allow(dead_code)]
@@ -23,7 +26,7 @@ pub struct FEMProblem {
 }
 
 impl ExplicitSolver {
-    pub fn new(elements: &Vec<Element>) -> Self {
+    pub fn new(elements: &Vec<Element>, time_step: f64) -> Self {
         let n_points = solver::calculate_number_of_points(elements);
         println!("Constructing global M matrix");
         let m = solver::construct_global_matrix(elements, n_points, |e: &Element| &e.m);
@@ -53,6 +56,9 @@ impl ExplicitSolver {
             h,
             f_const,
             f_const_eclipse,
+            time_step,
+            f_index: 0,
+            in_eclipse: false,
             temp,
             points,
         }
@@ -66,20 +72,27 @@ impl ExplicitSolver {
         &self.points
     }
 
-    pub fn step(&mut self, time_step: f64, is_in_eclipse: bool, f_index: usize) -> Result<()> {
+    pub fn update_f(&mut self, f_index: usize, in_eclipse: bool) -> Result<()> {
+        self.f_index = f_index;
+        self.in_eclipse = in_eclipse;
+
+        Ok(())
+    }
+
+    pub fn step(&mut self) -> Result<()> {
         let mut t_4 = self.temp.clone();
         solver::fourth_power(&mut t_4);
 
         let mut f = &self.h * &t_4;
-        if is_in_eclipse {
-            f += &self.f_const_eclipse[f_index];
+        if self.in_eclipse {
+            f += &self.f_const_eclipse[self.f_index];
         } else {
-            f += &self.f_const[f_index];
+            f += &self.f_const[self.f_index];
         }
         let b = f - &self.k * &self.temp;
         let x = &self.m_lu.solve(&b).expect("Oh no...");
 
-        self.temp = time_step * x + &self.temp;
+        self.temp = self.time_step * x + &self.temp;
 
         Ok(())
     }

@@ -21,6 +21,7 @@ pub struct FEMEngine {
     orbit_period: f64,
     orbit_divisions: u32,
     solver: Solver,
+    results: Vec<Vector>,
 }
 
 #[derive(Debug)]
@@ -40,23 +41,6 @@ pub struct FEMParameters {
     pub orbit: FEMOrbitParameters,
 }
 
-/*
-NEW API IDEA
-
-Engine:
-    - Controls the solver, sending it to run for a given time and obtaining partial results from it
-    - It stores the partial results (in the future it may persist on disk)
-
-XSolver:
-    - Runs the simulation for a given time provided by the Engine and it returns partial results after
-    - It knows when to switch view factors and simulate an eclipse
-    - It's general logic may be in a utils module or in a general solver.
-
-
-solver::run_for(time: f64) -> Vector
-
-*/
-
 impl FEMEngine {
     pub fn new(params: FEMParameters, solver: Solver) -> Self {
         //TODO add error handling
@@ -73,6 +57,14 @@ impl FEMEngine {
 
         println!("Eclipse fraction: {}", eclipse_fraction);
 
+        let steps = (params.simulation_time / params.time_step) as usize;
+        let snapshot_step_period = (params.snapshot_period / params.time_step) as usize;
+
+        let result_size = (steps / snapshot_step_period) as usize;
+
+        let mut results = Vec::default();
+        results.reserve(result_size);
+
         FEMEngine {
             simulation_time: params.simulation_time,
             time_step: params.time_step,
@@ -81,54 +73,71 @@ impl FEMEngine {
             orbit_period: params.orbit.orbit_period,
             orbit_divisions: params.orbit.orbit_divisions,
             solver,
+            results,
         }
     }
 
     pub fn run(&mut self) -> Result<Vec<Vector>> {
-        //TODO: Instead of storing results to memory, we should go to disk directly
-        let mut temp_results = Vec::new();
-
-        let steps = (self.simulation_time / self.time_step) as u32;
-        let snapshot_period = (self.snapshot_period / self.time_step) as u32;
+        let steps = (self.simulation_time / self.time_step) as usize;
+        let snapshot_period = (self.snapshot_period / self.time_step) as usize;
 
         println!("Running for {steps} steps");
 
-        //TODO: Change this to new API
-        //TODO: The eclipse and view factor array logic should be on the solver side
+        let mut step: usize = 0;
 
-        for step in 0..steps {
-            if step % snapshot_period == 0 {
-                let temp = match &mut self.solver {
-                    Solver::Explicit(s) => s.temperature()?,
-                    Solver::Implicit(s) => s.temperature()?,
-                    Solver::GPU(s) => s.temperature()?,
-                };
-                temp_results.push(temp.clone());
-            }
-
-            let time = step as f64 * self.time_step;
-            let orbit_time = time % (self.orbit_period);
-            let is_in_eclipse = orbit_time > (self.orbit_period * (1.0 - self.eclipse_fraction));
-
-            let f_index =
-                Self::calculate_f_index(orbit_time, self.orbit_period, self.orbit_divisions);
-
-            match &mut self.solver {
-                Solver::Explicit(s) => s.step(self.time_step, is_in_eclipse, f_index)?,
-                Solver::Implicit(s) => s.step(is_in_eclipse, f_index)?,
-                Solver::GPU(s) => s.step(is_in_eclipse, f_index)?,
-            };
+        while step < steps {
+            self.save_results(step, snapshot_period)?;
+            self.update_f(step)?;
+            self.execute_solver()?;
+            step += 1;
         }
 
-        let temp = match &mut self.solver {
-            Solver::Explicit(s) => s.temperature()?,
-            Solver::Implicit(s) => s.temperature()?,
-            Solver::GPU(s) => s.temperature()?,
+        self.save_results(step, snapshot_period)?;
+
+        //TODO: Optimize this clone
+        Ok(self.results.clone())
+    }
+
+    fn update_f(&mut self, step: usize) -> Result<()> {
+        let time = step as f64 * self.time_step;
+        let orbit_time = time % (self.orbit_period);
+        let in_eclipse = orbit_time > (self.orbit_period * (1.0 - self.eclipse_fraction));
+
+        let orbit_division_time = self.orbit_period / self.orbit_divisions as f64;
+
+        let f_index = (orbit_time / orbit_division_time) as usize;
+
+        match &mut self.solver {
+            Solver::Explicit(s) => s.update_f(f_index, in_eclipse)?,
+            Solver::Implicit(s) => s.update_f(f_index, in_eclipse)?,
+            Solver::GPU(s) => s.update_f(f_index, in_eclipse)?,
         };
 
-        temp_results.push(temp.clone());
+        Ok(())
+    }
 
-        Ok(temp_results)
+    fn execute_solver(&mut self) -> Result<()> {
+        match &mut self.solver {
+            Solver::Explicit(s) => s.step()?,
+            Solver::Implicit(s) => s.step()?,
+            Solver::GPU(s) => s.step()?,
+        };
+
+        Ok(())
+    }
+
+    fn save_results(&mut self, current_step: usize, snapshot_period: usize) -> Result<()> {
+        //TODO: Instead of storing results to memory, we should go to disk directly
+        if current_step % snapshot_period == 0 {
+            let temp = match &mut self.solver {
+                Solver::Explicit(s) => s.temperature()?,
+                Solver::Implicit(s) => s.temperature()?,
+                Solver::GPU(s) => s.temperature()?,
+            };
+            self.results.push(temp.clone());
+        }
+
+        Ok(())
     }
 
     fn is_multiple(dividend: f64, divisor: f64) -> bool {
@@ -147,13 +156,6 @@ impl FEMEngine {
         }
 
         eclipse_fraction
-    }
-
-    //TODO: Change confusing names
-    fn calculate_f_index(orbit_time: f64, orbit_period: f64, orbit_divisions: u32) -> usize {
-        let orbit_division_time = orbit_period / orbit_divisions as f64;
-
-        (orbit_time / orbit_division_time) as usize
     }
 }
 
@@ -233,57 +235,5 @@ mod tests {
         let precision = 0.01;
 
         assert_float_eq(eclipse_fraction, actual_eclipse_fraction, precision);
-    }
-
-    #[test]
-    fn test_calculate_f_index_1() {
-        let orbit_time = 0.0;
-        let orbit_period = 100.0;
-        let orbit_divisions = 10;
-
-        let f_index = FEMEngine::calculate_f_index(orbit_time, orbit_period, orbit_divisions);
-
-        let actual_f_index = 0;
-
-        assert_eq!(f_index, actual_f_index);
-    }
-
-    #[test]
-    fn test_calculate_f_index_2() {
-        let orbit_time = 11.0;
-        let orbit_period = 100.0;
-        let orbit_divisions = 10;
-
-        let f_index = FEMEngine::calculate_f_index(orbit_time, orbit_period, orbit_divisions);
-
-        let actual_f_index = 1;
-
-        assert_eq!(f_index, actual_f_index);
-    }
-
-    #[test]
-    fn test_calculate_f_index_3() {
-        let orbit_time = 25.0;
-        let orbit_period = 100.0;
-        let orbit_divisions = 10;
-
-        let f_index = FEMEngine::calculate_f_index(orbit_time, orbit_period, orbit_divisions);
-
-        let actual_f_index = 2;
-
-        assert_eq!(f_index, actual_f_index);
-    }
-
-    #[test]
-    fn test_calculate_f_index_4() {
-        let orbit_time = 20.0;
-        let orbit_period = 30.0;
-        let orbit_divisions = 5;
-
-        let f_index = FEMEngine::calculate_f_index(orbit_time, orbit_period, orbit_divisions);
-
-        let actual_f_index = 3;
-
-        assert_eq!(f_index, actual_f_index);
     }
 }

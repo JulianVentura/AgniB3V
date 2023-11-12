@@ -59,7 +59,7 @@ fn create_example(p1: Point, p2: Point, p3: Point, p4: Point) -> Result<Vec<Vect
     let snapshot_period = 1.0;
     let simulation_time = 20.0;
 
-    let solver = Solver::Explicit(ExplicitSolver::new(&vec![e1, e2]));
+    let solver = Solver::Explicit(ExplicitSolver::new(&vec![e1, e2], time_step));
     let mut engine = FEMEngine::new(
         FEMParameters {
             simulation_time,

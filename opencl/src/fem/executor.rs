@@ -17,7 +17,10 @@ pub fn run_solver(config_path: &String) -> Result<()> {
     );
 
     let solver = match config.solver.as_str() {
-        "Explicit" => Solver::Explicit(ExplicitSolver::new(&problem.elements)),
+        "Explicit" => Solver::Explicit(ExplicitSolver::new(
+            &problem.elements,
+            problem.parameters.time_step,
+        )),
         "Implicit" => Solver::Implicit(ImplicitSolver::new(
             &problem.elements,
             problem.parameters.time_step,

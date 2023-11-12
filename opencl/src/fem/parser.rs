@@ -76,7 +76,6 @@ struct ParserViewFactors {
 #[derive(Debug, Deserialize)]
 pub struct ParserGlobalProperties {
     beta_angle: f64,
-    orbit_height: f64,
     orbital_period: f64,
     albedo: f64,
     earth_ir: f64,
@@ -275,7 +274,6 @@ pub fn fem_problem_from_vtk(
 
     let orbit_parameters = FEMOrbitParameters {
         betha: global_properties.beta_angle,
-        altitude: global_properties.orbit_height,
         orbit_period: global_properties.orbital_period,
         orbit_divisions: orbit_divisions,
         eclipse_start: global_properties.eclipse_start,

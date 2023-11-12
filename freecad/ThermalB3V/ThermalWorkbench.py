@@ -1,7 +1,6 @@
 import FreeCAD
 import FreeCADGui
 import json
-import os
 
 class WorkbenchSettings:
     properties = {}
@@ -14,8 +13,10 @@ class WorkbenchSettings:
         obj.Proxy = self
         for prop, value in WorkbenchSettings.properties.items():
             if getattr(obj, prop, None) == None:
-                if type(value) == int or type(value) == float:
+                if type(value) == float:
                     obj.addProperty("App::PropertyFloat", prop)
+                elif type(value) == int:
+                    obj.addProperty("App::PropertyInteger", prop)
                 elif type(value) == bool:
                     obj.addProperty("App::PropertyBool", prop)
                 else:
@@ -68,14 +69,13 @@ class ThermalWorkbench(FreeCADGui.Workbench):
 
         # List of tools in the workbench toolbar
         thermalList = [
+            "THM_Create_Analysis",
             "THM_Global_Properties",
             "THM_Material_Editor",
             "THM_Export_Mesh",
         ]
         # TODO: implement FEM tools
         femList = [
-            "FEM_Analysis",
-            "FEM_MaterialEditor",
             "FEM_MeshGmshFromShape",
         ]
         self.appendToolbar("Document", workbenchInitList)

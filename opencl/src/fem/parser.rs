@@ -66,8 +66,9 @@ pub struct ParserPropertiesMaterials {
 }
 
 struct ParserViewFactors {
-    earth: Vec<Vector>,
-    sun: Vec<Vector>,
+    earth_ir: Vec<(Vector, f32)>,
+    earth_albedo: Vec<(Vector, f32)>,
+    sun: Vec<(Vector, f32)>,
     elements: Matrix,
 }
 
@@ -75,7 +76,6 @@ struct ParserViewFactors {
 #[derive(Debug, Deserialize)]
 pub struct ParserGlobalProperties {
     beta_angle: f64,
-    orbit_height: f64,
     orbital_period: f64,
     albedo: f64,
     earth_ir: f64,
@@ -85,6 +85,8 @@ pub struct ParserGlobalProperties {
     time_step: f64,
     snap_period: f64,
     simulation_time: f64,
+    eclipse_start: f64,
+    eclipse_end: f64,
 }
 
 #[derive(Debug, Deserialize)]
@@ -265,11 +267,17 @@ pub fn fem_problem_from_vtk(
     // global.properties.space_temperature
     // global.properties.initial_temperature
 
+    let mut orbit_divisions = vec![];
+    for i in 0..view_factors_parsed.earth_albedo.len() {
+        orbit_divisions.push(view_factors_parsed.earth_albedo[i].1 as f64);
+    }
+
     let orbit_parameters = FEMOrbitParameters {
         betha: global_properties.beta_angle,
-        altitude: global_properties.orbit_height,
         orbit_period: global_properties.orbital_period,
-        orbit_divisions: view_factors_parsed.earth.len() as u32,
+        orbit_divisions: orbit_divisions,
+        eclipse_start: global_properties.eclipse_start,
+        eclipse_end: global_properties.eclipse_end,
     };
 
     for (material_name, material_elements) in properties_json.materials.elements {
@@ -326,12 +334,17 @@ pub fn fem_problem_from_vtk(
                 view_factors_parsed.elements.row(parser_element_id as usize)[i];
         }
         let factors = ViewFactors {
-            earth: view_factors_parsed
-                .earth
+            earth_ir: view_factors_parsed
+                .earth_ir
                 .iter()
-                .map(|vec| vec[parser_element_id as usize])
+                .map(|(vec, _)| vec[parser_element_id as usize])
                 .collect(),
-            sun: view_factors_parsed.sun[0][parser_element_id as usize],
+            earth_albedo: view_factors_parsed
+                .earth_albedo
+                .iter()
+                .map(|(vec, _)| vec[parser_element_id as usize])
+                .collect(),
+            sun: view_factors_parsed.sun[0].0[parser_element_id as usize],
             elements: elements_view_factors,
         };
 
@@ -404,24 +417,6 @@ pub fn parse_config(config_path: &String) -> ParserConfig {
 
 const FACTOR: f64 = 1.0 / (1 << 16) as f64;
 
-fn deserialize_view_factors(filename: String) -> ParserViewFactors {
-    let mut file = File::open(filename).expect("Uooops");
-    let earth = deserialize_multiple_vectors(&mut file);
-    let sun = deserialize_multiple_vectors(&mut file);
-
-    //TODO: Since elements view factors do not change, we don't need an array here
-    //We should change the protocol
-    let mut elements_array = deserialize_multiple_matrices(&mut file);
-
-    let elements = elements_array.pop().expect("Elements view factors empty");
-
-    ParserViewFactors {
-        earth,
-        sun,
-        elements,
-    }
-}
-
 fn deserialize_matrix(file: &mut File) -> Matrix {
     let rows = file
         .read_u16::<BigEndian>()
@@ -444,33 +439,26 @@ fn deserialize_matrix(file: &mut File) -> Matrix {
     )
 }
 
-fn deserialize_vector(file: &mut File) -> Vector {
+fn deserialize_vector(file: &mut File) -> (Vector, f32) {
     let size = file
         .read_u16::<BigEndian>()
         .expect("Deserialize vector size");
+
+    let start_time = file
+        .read_f32::<BigEndian>()
+        .expect("Deserialize vector start time");
 
     let mut data: Vec<u16> = vec![0; size.into()];
 
     file.read_u16_into::<BigEndian>(&mut data)
         .expect("Read and parse matrix data");
 
-    Vector::from_row_iterator(size.into(), data.into_iter().map(|x| x as f64 * FACTOR))
+    let vec = Vector::from_row_iterator(size.into(), data.into_iter().map(|x| x as f64 * FACTOR));
+
+    (vec, start_time)
 }
 
-fn deserialize_multiple_matrices(file: &mut File) -> Vec<Matrix> {
-    let len = file
-        .read_u16::<BigEndian>()
-        .expect("Read number of matrices");
-    let mut matrices: Vec<_> = vec![];
-
-    for _ in 0..len {
-        matrices.push(deserialize_matrix(file));
-    }
-
-    matrices
-}
-
-fn deserialize_multiple_vectors(file: &mut File) -> Vec<Vector> {
+fn deserialize_multiple_vectors(file: &mut File) -> Vec<(Vector, f32)> {
     let len = file
         .read_u16::<BigEndian>()
         .expect("Read number of vectors");
@@ -481,4 +469,19 @@ fn deserialize_multiple_vectors(file: &mut File) -> Vec<Vector> {
     }
 
     vectors
+}
+
+fn deserialize_view_factors(filename: String) -> ParserViewFactors {
+    let mut file = File::open(filename).expect("Uooops");
+    let earth_ir = deserialize_multiple_vectors(&mut file);
+    let earth_albedo = deserialize_multiple_vectors(&mut file);
+    let sun = deserialize_multiple_vectors(&mut file);
+    let elements = deserialize_matrix(&mut file);
+
+    ParserViewFactors {
+        earth_ir,
+        earth_albedo,
+        sun,
+        elements,
+    }
 }

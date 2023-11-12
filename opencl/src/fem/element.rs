@@ -43,7 +43,8 @@ impl Default for MaterialProperties {
 
 #[derive(Clone, Debug)]
 pub struct ViewFactors {
-    pub earth: Vec<f64>,
+    pub earth_ir: Vec<f64>,
+    pub earth_albedo: Vec<f64>,
     pub sun: f64,
     pub elements: Vec<f64>,
 }
@@ -106,6 +107,8 @@ impl Element {
             earth_ir,
             &factors,
             generated_heat,
+            solar_intensity,
+            albedo_factor,
         );
 
         Element {
@@ -146,7 +149,8 @@ impl Element {
         };
 
         let factors = ViewFactors {
-            earth: vec![1.0],
+            earth_ir: vec![1.0],
+            earth_albedo: vec![1.0],
             sun: 1.0,
             elements: vec![0.1f64; n_elements],
         };
@@ -279,10 +283,11 @@ impl Element {
         albedo_factor: f64,
         generated_heat: f64,
     ) -> Vec<Vector> {
-        let earth = &factors.earth;
+        let earth_albedo = &factors.earth_albedo;
+        let earth_ir_vf = &factors.earth_ir;
         let mut f_vec: Vec<Vector> = vec![];
 
-        for earth_value in earth {
+        for i in 0..earth_albedo.len() {
             let f = Self::calculate_f(
                 area,
                 &properties,
@@ -292,7 +297,8 @@ impl Element {
                 betha,
                 albedo_factor,
                 generated_heat,
-                *earth_value,
+                earth_albedo[i],
+                earth_ir_vf[i],
             );
 
             f_vec.push(f);
@@ -307,17 +313,23 @@ impl Element {
         earth_ir: f64,
         factors: &ViewFactors,
         generated_heat: f64,
+        solar_intensity: f64,
+        albedo_factor: f64,
     ) -> Vec<Vector> {
-        let earth = &factors.earth;
+        let earth_albedo = &factors.earth_albedo;
+        let earth_ir_vf = &factors.earth_ir;
         let mut f_vec: Vec<Vector> = vec![];
 
-        for earth_value in earth {
+        for i in 0..earth_albedo.len() {
             let f = Self::calculate_f_eclipse(
                 area,
                 &properties,
                 earth_ir,
                 generated_heat,
-                *earth_value,
+                earth_albedo[i],
+                earth_ir_vf[i],
+                solar_intensity,
+                albedo_factor,
             );
 
             f_vec.push(f);
@@ -335,16 +347,19 @@ impl Element {
         betha: f64,
         albedo_factor: f64,
         generated_heat: f64,
-        earth_view_factor: f64,
+        earth_view_factor_albedo: f64,
+        earth_view_factor_ir: f64,
     ) -> Vector {
         //TODO: Add single node heat source
         // f += [nodo1.heat_source, nodo2.heat_source, nodo3.heat_source]
         //Note: probably that would make each element where that node is part add its heat source, so it would be duplicated
         let f = Vector::from_row_slice(&[1.0, 1.0, 1.0]);
 
-        let solar = properties.alpha_sun * solar_intensity * f64::sin(betha.into()) * factors.sun;
-        let ir = properties.alpha_ir * earth_view_factor * earth_ir;
-        let albedo = properties.alpha_sun * solar_intensity * albedo_factor * earth_view_factor;
+        let solar =
+            properties.alpha_sun * solar_intensity * f64::sin(betha.into()).abs() * factors.sun;
+        let ir = properties.alpha_ir * earth_view_factor_ir * earth_ir;
+        let albedo =
+            properties.alpha_sun * solar_intensity * albedo_factor * earth_view_factor_albedo;
 
         let magnitude = (generated_heat + solar + ir + albedo) * area / 3.0;
 
@@ -356,16 +371,21 @@ impl Element {
         properties: &MaterialProperties,
         earth_ir: f64,
         generated_heat: f64,
-        earth_view_factor: f64,
+        earth_view_factor_albedo: f64,
+        earth_view_factor_ir: f64,
+        solar_intensity: f64,
+        albedo_factor: f64,
     ) -> Vector {
         //TODO: Add single node heat source
         // f += [nodo1.heat_source, nodo2.heat_source, nodo3.heat_source]
         //Note: probably that would make each element where that node is part add its heat source, so it would be duplicated
         let f = Vector::from_row_slice(&[1.0, 1.0, 1.0]);
 
-        let ir = properties.alpha_ir * earth_view_factor * earth_ir;
+        let ir = properties.alpha_ir * earth_view_factor_ir * earth_ir;
+        let albedo =
+            properties.alpha_sun * solar_intensity * albedo_factor * earth_view_factor_albedo;
 
-        let magnitude = (generated_heat + ir) * area / 3.0;
+        let magnitude = (generated_heat + ir + albedo) * area / 3.0;
 
         magnitude * f
     }

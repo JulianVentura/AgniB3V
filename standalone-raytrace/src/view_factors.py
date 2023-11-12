@@ -8,9 +8,11 @@ RAY_DISPLACEMENT = 1e-4
 #prenumbra_fraction is the fraction of the umbra that is considered penumbra
 def albedo_edge(ray_sun_dot_product, penumbra_fraction=0):
 	min_albedo_dot_product = np.cos((1 - penumbra_fraction)*(np.pi/2))
-	albedo_full_indices = ray_sun_dot_product > 0
-	ray_sun_dot_product = np.abs(np.clip(ray_sun_dot_product, -min_albedo_dot_product, 0))
-	ray_sun_dot_product[albedo_full_indices] = 1
+	albedo_light_indices = ray_sun_dot_product > 0
+	albedo_umbra_indices = ray_sun_dot_product < -min_albedo_dot_product
+	ray_sun_dot_product[albedo_umbra_indices] = 0
+	ray_sun_dot_product[albedo_light_indices] = 1
+	ray_sun_dot_product = np.abs(ray_sun_dot_product)
 	return ray_sun_dot_product
 
 def element_earth(mesh, earth_direction, sun_direction, penumbra_fraction=0.05, ray_amount=1000):
@@ -22,6 +24,7 @@ def element_earth(mesh, earth_direction, sun_direction, penumbra_fraction=0.05, 
 	"""
 	element_normals = trimesh.triangles.normals(mesh.triangles)[0]
 	view_factors = np.zeros(utils.element_amount(mesh.triangles))
+	albedo_coefficients = np.zeros(utils.element_amount(mesh.triangles))
 
 	for element_idx in range(utils.element_amount(mesh.triangles)):
 		emitting_element = mesh.triangles[element_idx]
@@ -54,13 +57,16 @@ def element_earth(mesh, earth_direction, sun_direction, penumbra_fraction=0.05, 
 		#aparent_area_coefficient = np.sum(ray_normal_dot_product / np.linalg.norm(not_hit_ray_directions, axis=1))/(not_hit_ray_directions.size // 3)
 
 		#Albedo
-		ray_sun_dot_product = -not_hit_ray_directions @ sun_direction[:,np.newaxis]
-		albedo = np.sum(albedo_edge(ray_sun_dot_product, penumbra_fraction))/(not_hit_ray_directions.size // 3)
-
+		if(not_hit_ray_directions.size > 0):
+			ray_sun_dot_product = -not_hit_ray_directions @ sun_direction[:,np.newaxis]
+			albedo = np.sum(albedo_edge(ray_sun_dot_product, penumbra_fraction=penumbra_fraction))/(not_hit_ray_directions.size // 3)
+		else:
+			albedo = 0
+		
 		#aparent_area_coefficient * albedo * view_factor
-		view_factors[element_idx] = albedo * view_factor
-
-	return view_factors
+		view_factors[element_idx] = albedo
+		albedo_coefficients[element_idx] = view_factor
+	return view_factors, albedo_coefficients
 
 def element_sun(mesh, sun_direction):
 	"""
@@ -95,7 +101,7 @@ def _filter_reflected_rays_by_element_absorptance(absorptance, hit_points, hit_r
 	return _hit_points, _hit_ray_ids, _hit_element_ids, hit_element_ids[absorbed_rays]
 
 
-def element_element(mesh, get_material_props, ray_amount, max_reflections_amount, internal_emission):
+def element_element(mesh, absorptance_by_element, ray_amount, max_reflections_amount, internal_emission):
 	"""
 	Receives a trimesh mesh object, a function that returns the material properties of an element,
 	the amount of rays to be casted, the maximum amount of reflections and a boolean that
@@ -105,11 +111,6 @@ def element_element(mesh, get_material_props, ray_amount, max_reflections_amount
 	"""
 	element_normals = trimesh.triangles.normals(mesh.triangles)[0]
 	view_factors = np.zeros((len(mesh.triangles), len(mesh.triangles)))
-	
-	absorptance = np.zeros(len(mesh.triangles))
-	for element_idx in range(len(mesh.triangles)):
-		element_material = get_material_props(element_idx)
-		absorptance[element_idx] = element_material['absorptance']
 
 	for element_idx in range(len(mesh.triangles)):
 		emitting_element = mesh.triangles[element_idx]
@@ -129,7 +130,7 @@ def element_element(mesh, get_material_props, ray_amount, max_reflections_amount
 			visualization.view_raycast(mesh, element_idx, ray_origins, ray_directions)
 
 		hit_element_ids, hit_ray_ids, hit_points = mesh.ray.intersects_id(ray_origins, ray_directions, return_locations=True, multiple_hits=False)
-		hit_points, hit_ray_ids, hit_element_ids, absorbed_element_ids =_filter_reflected_rays_by_element_absorptance(absorptance, hit_points, hit_ray_ids, hit_element_ids)
+		hit_points, hit_ray_ids, hit_element_ids, absorbed_element_ids =_filter_reflected_rays_by_element_absorptance(absorptance_by_element, hit_points, hit_ray_ids, hit_element_ids)
 		for absorbed_ray_id in absorbed_element_ids:
 			view_factors_row[absorbed_ray_id] += 1
 		
@@ -144,7 +145,7 @@ def element_element(mesh, get_material_props, ray_amount, max_reflections_amount
 				visualization.view_raycast(mesh, element_idx, ray_origins, ray_directions)
 
 			hit_element_ids, hit_ray_ids, hit_points = mesh.ray.intersects_id(hit_points, ray_directions, return_locations=True, multiple_hits=False)
-			hit_points, hit_ray_ids, hit_element_ids, absorbed_element_ids =_filter_reflected_rays_by_element_absorptance(absorptance, hit_points, hit_ray_ids, hit_element_ids)
+			hit_points, hit_ray_ids, hit_element_ids, absorbed_element_ids =_filter_reflected_rays_by_element_absorptance(absorptance_by_element, hit_points, hit_ray_ids, hit_element_ids)
 			hit_points += RAY_DISPLACEMENT*element_normals[hit_element_ids]
 
 			for absorbed_element_id in absorbed_element_ids:

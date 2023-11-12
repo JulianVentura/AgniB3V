@@ -64,6 +64,14 @@ def plot_temperature_by_id(id, results):
         temperatures.append(result[id])
         times.append(time)
 
+    plt.xlabel("Time", fontsize=12)
+    plt.ylabel("Temperature", fontsize=12)
+    plt.title(f"Temperatures of Node {id} Over Time", fontsize=14)
+    plt.grid(
+        True, linestyle="--", alpha=0.5
+    )  # Adding grid lines with specific style and transparency
+    plt.xticks(rotation=45)  # Rotating x-axis labels for better visibility
+    plt.tight_layout()  # Adjusting layout for better spacing
     plt.plot(times, temperatures, label=f"ID {id}")
     plt.show()
 
@@ -85,7 +93,7 @@ def plot_all_temperatures(results):
 
     plt.xlabel("Time", fontsize=12)
     plt.ylabel("Temperature", fontsize=12)
-    plt.title("Temperatures of IDs Over Time", fontsize=14)
+    plt.title("All Temperatures Over Time", fontsize=14)
     plt.grid(
         True, linestyle="--", alpha=0.5
     )  # Adding grid lines with specific style and transparency

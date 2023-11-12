@@ -204,8 +204,8 @@ def parse_gmat(report_filename, eclipse_filename) -> GMATParameters:
         if float(elapsed_time) < float(period):
             n_steps += 1
 
-    altitude: float = parameters["Sat.Altitude"]
-    beta_angle: float = parameters["BetaAngle"]
+    altitude: float = float(parameters["Sat.Altitude"])
+    beta_angle: float = float(parameters["BetaAngle"])
     sun_position = np.array([
         float(parameters["Sun.X"]),
         float(parameters["Sun.Y"]),

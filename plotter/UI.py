@@ -35,10 +35,10 @@ class MainWindow(QWidget):
         self.combo_box = QComboBox()
         self.combo_box.addItems(
             [
-                "All Temperatures By Time",
-                "Temperature By Time",
-                "Average Temperature By Time",
-                "Standard Deviation By Time",
+                "All Temperatures Over Time",
+                "Temperature Over Time",
+                "Average Temperature Over Time",
+                "Standard Deviation Over Time",
             ]
         )
         self.layout.addWidget(self.combo_box)
@@ -70,15 +70,15 @@ class MainWindow(QWidget):
     def show_graph(self):
         graph_type = self.combo_box.currentText()
 
-        if graph_type == "All Temperatures By Time":
+        if graph_type == "All Temperatures Over Time":
             plot_all_temperatures(self.results)
-        elif graph_type == "Temperature By Time":
+        elif graph_type == "Temperature Over Time":
             num, ok = QInputDialog.getInt(self, "ID Selector", "Enter node ID:")
             if ok and num >= 0:
                 plot_temperature_by_id(num, self.results)
-        elif graph_type == "Average Temperature By Time":
+        elif graph_type == "Average Temperature Over Time":
             plot_average_temperature(self.results)
-        elif graph_type == "Standard Deviation By Time":
+        elif graph_type == "Standard Deviation Over Time":
             plot_std_temperature(self.results)
 
     def open_file_dialog(self):

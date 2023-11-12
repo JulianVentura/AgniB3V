@@ -169,8 +169,8 @@ def parse_eclipse_locator(eclipse_locator_filename, parameters):
     for idx, p in enumerate(header):
         if p in GMAT_ECLIPSE_NAMES:
             idx_from_param[p] = idx
-    # Find the Event Number 2 of type Umbra
 
+    # Find the Event Number 2 of type Umbra
     type_id = idx_from_param["Type"]
     event_number_id = idx_from_param["Event Number"]
 

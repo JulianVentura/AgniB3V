@@ -3,7 +3,14 @@ import json
 from src import properties_atlas, vtk_io, view_factors, visualization, serializer
 import numpy as np
 
-def op_process_view_factors(mesh_file_path, properties_file_path, orbit_report_file_path, orbit_eclipse_file_path, view_factors_file_path):
+
+def op_process_view_factors(
+    mesh_file_path,
+    properties_file_path,
+    orbit_report_file_path,
+    orbit_eclipse_file_path,
+    view_factors_file_path,
+):
     """
     Receives the mesh file path (vtk), the properties file path (json) and GMAT
     report and eclipse locator files (txt)
@@ -20,44 +27,49 @@ def op_process_view_factors(mesh_file_path, properties_file_path, orbit_report_f
         len(mesh.triangles),
         properties_file_path,
         orbit_report_file_path,
-        orbit_eclipse_file_path
+        orbit_eclipse_file_path,
     )
     earth_ray_amount = properties.global_properties["earth_ray_amount"]
     element_ray_amount = properties.global_properties["element_ray_amount"]
-    element_max_reflections_amount = properties.global_properties["element_max_reflections_amount"]
+    element_max_reflections_amount = properties.global_properties[
+        "element_max_reflections_amount"
+    ]
     internal_emission = properties.global_properties["internal_emission"]
-    sun_direction = np.array([
-        properties.orbit_properties.sun_position.x,
-        properties.orbit_properties.sun_position.y,
-        properties.orbit_properties.sun_position.z,
-    ])
+    sun_direction = np.array(
+        [
+            properties.orbit_properties.sun_position.x,
+            properties.orbit_properties.sun_position.y,
+            properties.orbit_properties.sun_position.z,
+        ]
+    )
 
     print("Calculating sun view factors")
     element_sun_view_factors = [view_factors.element_sun(mesh, sun_direction)]
 
     print("Calculating element-element view factors")
-    element_element_view_factors = [view_factors.element_element(
+    element_element_view_factors = [
+        view_factors.element_element(
             mesh,
             properties.absortance_by_element,
             element_ray_amount,
             element_max_reflections_amount,
             internal_emission,
-     )]
-    
+        )
+    ]
+
     print("Calculating earth view factors")
     element_earth_view_factors = []
     for step in range(len(properties.orbit_properties.elapsed_secs)):
         print("Step", step)
-        earth_direction = -np.array([
-            properties.orbit_properties.sat_position[step].x,
-            properties.orbit_properties.sat_position[step].y,
-            properties.orbit_properties.sat_position[step].z,
-        ])
+        earth_direction = -np.array(
+            [
+                properties.orbit_properties.sat_position[step].x,
+                properties.orbit_properties.sat_position[step].y,
+                properties.orbit_properties.sat_position[step].z,
+            ]
+        )
         earth_view_factors, earth_albedo_coefficients = view_factors.element_earth(
-            mesh,
-            earth_direction,
-            sun_direction,
-            ray_amount=earth_ray_amount
+            mesh, earth_direction, sun_direction, ray_amount=earth_ray_amount
         )
         earth_view_factors *= earth_albedo_coefficients
         element_earth_view_factors.append(earth_view_factors)
@@ -67,9 +79,10 @@ def op_process_view_factors(mesh_file_path, properties_file_path, orbit_report_f
         view_factors_file_path,
         element_earth_view_factors,
         element_sun_view_factors,
-        element_element_view_factors
+        element_element_view_factors,
     )
     print("Done")
+
 
 def op_visualize_view_factors(mesh_file_path, properties_file_path, element_id):
     """
@@ -104,15 +117,19 @@ def op_show_help(argv):
     Receives the argv list and prints a help message.
     """
     print("Use:")
-    print(f"  python3 {argv[0]} process <mesh_file_path> <properties_file_path> <gmat_report_file_path> <gmat_eclipse_file_path> <view_factors_file_path>")
-    print(f"  python3 {argv[0]} viewvf <mesh_file_path> <properties_file_path> <element_id>")
+    print(
+        f"  python3 {argv[0]} process <mesh_file_path> <properties_file_path> <gmat_report_file_path> <gmat_eclipse_file_path> <view_factors_file_path>"
+    )
+    print(
+        f"  python3 {argv[0]} viewvf <mesh_file_path> <properties_file_path> <element_id>"
+    )
     print(f"  python3 {argv[0]} viewm <mesh_file_path> <properties_file_path>")
 
 
 def main():
     """
     Reads from the argv and expect a command as a first argument.
-    
+
     The commands are:
         process: given a mesh file, a properties file and gmat report and eclipse files
         it calculates the view factors.
@@ -129,8 +146,22 @@ def main():
         return
 
     match sys.argv:
-        case [_, "process", mesh_file_path, properties_file_path, gmat_report_file_path, gmat_eclipse_file_path, view_factors_file_path]:
-            op_process_view_factors(mesh_file_path, properties_file_path, gmat_report_file_path, gmat_eclipse_file_path, view_factors_file_path)
+        case [
+            _,
+            "process",
+            mesh_file_path,
+            properties_file_path,
+            gmat_report_file_path,
+            gmat_eclipse_file_path,
+            view_factors_file_path,
+        ]:
+            op_process_view_factors(
+                mesh_file_path,
+                properties_file_path,
+                gmat_report_file_path,
+                gmat_eclipse_file_path,
+                view_factors_file_path,
+            )
         case [_, "viewvf", mesh_file_path, properties_file_path, element_id]:
             op_visualize_view_factors(mesh_file_path, properties_file_path, element_id)
         case [_, "viewm", mesh_file_path, properties_file_path]:

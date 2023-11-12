@@ -65,7 +65,7 @@ impl GPUSolver {
 
         let h = l - e;
 
-        //Implicit matrixes
+        //Implicit matrices
         let theta = 0.5;
         println!("Constructing D matrix");
         let d = &m / time_step - (1.0 - theta) * &k;
@@ -176,7 +176,7 @@ impl GPUSolver {
         let size_h = h.len() as i32;
         let size_d = d.len() as i32;
         let size_a_inverse = a_inverse.len() as i32;
-        //TODO: Optimize buffer creation
+
         let buffer_t = Buffer::<f64>::builder()
             .queue(session.queue.clone())
             .flags(flags::MEM_READ_WRITE)
@@ -188,14 +188,14 @@ impl GPUSolver {
             .queue(session.queue.clone())
             .flags(flags::MEM_READ_WRITE)
             .len(size_t)
-            .copy_host_slice(vec![0.0; size_t as usize].as_slice())
+            .fill_val(0.0)
             .build()?;
 
         let buffer_f = Buffer::<f64>::builder()
             .queue(session.queue.clone())
             .flags(flags::MEM_READ_WRITE)
             .len(size_t)
-            .copy_host_slice(vec![0.0; size_t as usize].as_slice())
+            .fill_val(0.0)
             .build()?;
 
         let buffer_h = Buffer::<f64>::builder()
@@ -223,7 +223,7 @@ impl GPUSolver {
             .queue(session.queue.clone())
             .flags(flags::MEM_READ_WRITE)
             .len(size_t)
-            .copy_host_slice(vec![0.0; size_t as usize].as_slice())
+            .fill_val(0.0)
             .build()?;
 
         let buffer_a_inverse = Buffer::<f64>::builder()

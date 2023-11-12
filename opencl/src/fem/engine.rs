@@ -1,4 +1,4 @@
-use super::constants::EARTH_RADIOUS; //TODO: Translate this properly
+use super::constants::EARTH_RADIUS;
 use super::structures::Vector;
 use super::{
     explicit_solver::ExplicitSolver, gpu_solver::GPUSolver, implicit_solver::ImplicitSolver,
@@ -138,11 +138,11 @@ impl FEMEngine {
     fn calculate_eclipse_fraction(altitude: f64, betha: f64) -> f64 {
         let mut eclipse_fraction = 0.0;
 
-        let betha_eclipse_begin = f64::asin(EARTH_RADIOUS / (EARTH_RADIOUS + altitude));
+        let betha_eclipse_begin = f64::asin(EARTH_RADIUS / (EARTH_RADIUS + altitude));
 
         if betha < betha_eclipse_begin {
-            let upper = f64::sqrt(altitude * altitude + 2.0 * EARTH_RADIOUS * altitude);
-            let lower = (EARTH_RADIOUS + altitude) * f64::cos(betha);
+            let upper = f64::sqrt(altitude * altitude + 2.0 * EARTH_RADIUS * altitude);
+            let lower = (EARTH_RADIUS + altitude) * f64::cos(betha);
             eclipse_fraction = 1.0 / 180.0_f64.to_radians() * f64::acos(upper / lower);
         }
 

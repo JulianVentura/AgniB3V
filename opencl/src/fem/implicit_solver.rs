@@ -64,10 +64,6 @@ impl ImplicitSolver {
     // }
     //
     pub fn step(&mut self, in_eclipse: bool, f_index: usize) -> Result<()> {
-        //System:
-        // A * Tn+1 = D * Tn + (1 - theta) * Fn + theta * Fn+1
-        // Since Fn+1 == Fn, then the system is simplified
-        // TODO: Change f vector if radiation is included
         let mut t_4 = self.temp.clone();
         solver::fourth_power(&mut t_4);
 

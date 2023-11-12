@@ -98,21 +98,7 @@ impl GPUSolver {
     //Here we are writing on buffers on every step iteration
     //we instead could be just writing when the f constant changes
 
-    pub fn step(&mut self, in_eclipse: bool, f_index: usize) -> Result<()> {
-        if in_eclipse {
-            self.buffers
-                .buffer_f_const
-                .cmd()
-                .write(self.f_const_eclipse[f_index].as_slice())
-                .enq()?;
-        } else {
-            self.buffers
-                .buffer_f_const
-                .cmd()
-                .write(self.f_const[f_index].as_slice())
-                .enq()?;
-        }
-
+    pub fn step(&mut self) -> Result<()> {
         unsafe {
             self.kernels.kernel_t_4.enq()?;
             self.kernels.kernel_f.enq()?;
@@ -127,6 +113,24 @@ impl GPUSolver {
 
     pub fn points(&self) -> &Vec<Point> {
         &self.points
+    }
+
+    pub fn update_f(&mut self, f_index: usize, in_eclipse: bool) -> Result<()> {
+        if in_eclipse {
+            self.buffers
+                .buffer_f_const
+                .cmd()
+                .write(self.f_const_eclipse[f_index].as_slice())
+                .enq()?;
+        } else {
+            self.buffers
+                .buffer_f_const
+                .cmd()
+                .write(self.f_const[f_index].as_slice())
+                .enq()?;
+        }
+
+        Ok(())
     }
 
     pub fn temperature(&mut self) -> Result<&Vector> {

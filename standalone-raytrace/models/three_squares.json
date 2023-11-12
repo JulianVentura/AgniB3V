@@ -3,6 +3,7 @@
         "beta_angle": 31.0,
         "orbit_height": 299.0,
         "orbital_period": 6000.0,
+        "orbit_divisions": 30,
         "albedo": 0.2,
         "earth_ir": 225.0,
         "solar_constant": 1361.0,

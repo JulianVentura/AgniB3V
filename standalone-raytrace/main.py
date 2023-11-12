@@ -4,6 +4,19 @@ from src import properties_atlas, vtk_io, view_factors, visualization, serialize
 import numpy as np
 
 
+def _is_closest_orbit_point(step, elapsed_secs, target_time):
+    if step == len(elapsed_secs) - 1:
+        return True
+    curr_elapsed_seconds = elapsed_secs[step]
+    next_elapsed_seconds = elapsed_secs[step + 1]
+
+    if next_elapsed_seconds > target_time and np.abs(
+        target_time - curr_elapsed_seconds
+    ) < np.abs(target_time - next_elapsed_seconds):
+        return True
+    return False
+
+
 def op_process_view_factors(
     mesh_file_path,
     properties_file_path,
@@ -35,9 +48,18 @@ def op_process_view_factors(
         "element_max_reflections_amount"
     ]
     internal_emission = properties.global_properties["internal_emission"]
-    sun_direction = properties.orbit_properties.sun_position
+    orbit_divisions = properties.global_properties["orbit_divisions"]
+    division_time = properties.orbit_properties.period / orbit_divisions
+    elapsed_secs = properties.orbit_properties.elapsed_secs
+
+    if orbit_divisions > len(elapsed_secs):
+        print(
+            f"Error: Orbit divisions ({orbit_divisions}) is greater than GMAT data rows ({len(elapsed_secs)})"
+        )
+        sys.exit(1)
 
     print("Calculating sun view factors")
+    sun_direction = properties.orbit_properties.sun_position
     element_sun_view_factors = [
         (
             view_factors.element_sun(mesh, sun_direction),
@@ -57,17 +79,26 @@ def op_process_view_factors(
     print("Calculating earth view factors")
     element_earth_ir_view_factors = []
     element_earth_albedo_view_factors = []
-    for step, elapsed_seconds in enumerate(properties.orbit_properties.elapsed_secs):
+    division_number = 0
+    for step in range(len(elapsed_secs)):
+        if not _is_closest_orbit_point(step, elapsed_secs, division_time * division_number):
+            continue
+
         earth_direction = -properties.orbit_properties.sat_position[step]
         earth_view_factors, earth_albedo_coefficients = view_factors.element_earth(
             mesh, earth_direction, sun_direction, ray_amount=earth_ray_amount
         )
-        element_earth_ir_view_factors.append((earth_view_factors, elapsed_seconds))
+        element_earth_ir_view_factors.append((earth_view_factors, elapsed_secs[step]))
         element_earth_albedo_view_factors.append(
-            (earth_view_factors * earth_albedo_coefficients, elapsed_seconds)
+            (earth_view_factors * earth_albedo_coefficients, elapsed_secs[step])
         )
-        print(f"{(step + 1)/len(properties.orbit_properties.elapsed_secs)*100:>5.1f}%")
 
+        division_number += 1
+        if division_number == orbit_divisions:
+            break
+        print(f"{(division_number*100)/orbit_divisions:>5.1f}%")
+    print(f"{100:>5.1f}%")
+    print(f"Orbit was divided into {division_number} points")
     print("Writing output files")
     properties.dump(properties_file_path)
     serializer.serialize_view_factors(

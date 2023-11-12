@@ -35,46 +35,40 @@ def op_process_view_factors(
         "element_max_reflections_amount"
     ]
     internal_emission = properties.global_properties["internal_emission"]
-    sun_direction = np.array(
-        [
-            properties.orbit_properties.sun_position.x,
-            properties.orbit_properties.sun_position.y,
-            properties.orbit_properties.sun_position.z,
-        ]
-    )
+    sun_direction = properties.orbit_properties.sun_position
 
     print("Calculating sun view factors")
-    element_sun_view_factors = [view_factors.element_sun(mesh, sun_direction)]
-
-    print("Calculating element-element view factors")
-    element_element_view_factors = [
-        view_factors.element_element(
-            mesh,
-            properties.absortance_by_element,
-            element_ray_amount,
-            element_max_reflections_amount,
-            internal_emission,
+    element_sun_view_factors = [
+        (
+            view_factors.element_sun(mesh, sun_direction),
+            properties.orbit_properties.elapsed_secs[0],
         )
     ]
+
+    print("Calculating element-element view factors")
+    element_element_view_factors = view_factors.element_element(
+        mesh,
+        properties.absortance_by_element,
+        element_ray_amount,
+        element_max_reflections_amount,
+        internal_emission,
+    )
 
     print("Calculating earth view factors")
     element_earth_ir_view_factors = []
     element_earth_albedo_view_factors = []
-    for step in range(len(properties.orbit_properties.elapsed_secs)):
-        print("Step", step)
-        earth_direction = -np.array(
-            [
-                properties.orbit_properties.sat_position[step].x,
-                properties.orbit_properties.sat_position[step].y,
-                properties.orbit_properties.sat_position[step].z,
-            ]
-        )
+    for step, elapsed_seconds in enumerate(properties.orbit_properties.elapsed_secs):
+        earth_direction = -properties.orbit_properties.sat_position[step]
         earth_view_factors, earth_albedo_coefficients = view_factors.element_earth(
             mesh, earth_direction, sun_direction, ray_amount=earth_ray_amount
         )
-        element_earth_ir_view_factors.append(earth_view_factors)
-        element_earth_albedo_view_factors.append(earth_view_factors * earth_albedo_coefficients)
+        element_earth_ir_view_factors.append((earth_view_factors, elapsed_seconds))
+        element_earth_albedo_view_factors.append(
+            (earth_view_factors * earth_albedo_coefficients, elapsed_seconds)
+        )
+        print(f"{(step + 1)/len(properties.orbit_properties.elapsed_secs)*100:>5.1f}%")
 
+    print("Writing output files")
     properties.dump(properties_file_path)
     serializer.serialize_view_factors(
         view_factors_file_path,

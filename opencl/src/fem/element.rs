@@ -345,7 +345,8 @@ impl Element {
         //TODO: Define constant value
         let constant = 1.0;
 
-        let solar = properties.alpha_sun * solar_intensity * f64::sin(betha.into()) * factors.sun;
+        let solar =
+            properties.alpha_sun * solar_intensity * f64::sin(betha.into()).abs() * factors.sun;
         let ir = properties.alpha_ir * constant * earth_view_factor * earth_ir;
         let albedo = properties.alpha_sun * solar_intensity * albedo_factor * earth_view_factor;
 

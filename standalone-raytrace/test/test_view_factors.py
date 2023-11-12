@@ -113,11 +113,10 @@ def test_penumbra_full_umbra():
 def _element_element_backwards_pyramid(properties_path, ray_amount):
     mesh = vtk_io.load_vtk(BACKWARDS_PYRAMID_GEOMETRY_PATH)
     properties = properties_atlas.PropertiesAtlas(utils.element_amount(mesh.triangles), properties_path)
-    return view_factors.element_element(mesh, properties, ray_amount, 50, False)
+    return view_factors.element_element(mesh, properties.absortance_by_element, ray_amount, 50, False)
 
 def test_element_element_backwards_pyramid_view_factors_rows_sum_one():
     element_element_view_factors = _element_element_backwards_pyramid(BACKWARDS_PYRAMID_PROPERTIES_PATH_NO_REFLECTIONS, 10000)
-    print(element_element_view_factors)
     for element_id in range(len(element_element_view_factors)):
         row = np.delete(element_element_view_factors[element_id], element_id)
         row_sum = np.sum(row)
@@ -166,7 +165,7 @@ def test_element_element_backwards_pyramid_view_factors_half_reflections_half_ab
 def _element_element_backwards_diamond(properties_path, ray_amount):
     mesh = vtk_io.load_vtk(BACKWARDS_DIAMOND_GEOMETRY_PATH)
     properties = properties_atlas.PropertiesAtlas(utils.element_amount(mesh.triangles), properties_path)
-    return view_factors.element_element(mesh, properties, ray_amount, 50, True)
+    return view_factors.element_element(mesh, properties.absortance_by_element, ray_amount, 50, True)
 
 def test_element_element_backwards_diamond_view_factors_sum_one_half():
     element_element_view_factors = _element_element_backwards_diamond(BACKWARDS_DIAMOND_PROPERTIES_PATH, 10000)

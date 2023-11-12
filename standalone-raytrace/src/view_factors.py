@@ -101,7 +101,7 @@ def _filter_reflected_rays_by_element_absorptance(absorptance, hit_points, hit_r
 	return _hit_points, _hit_ray_ids, _hit_element_ids, hit_element_ids[absorbed_rays]
 
 
-def element_element(mesh, props, ray_amount, max_reflections_amount, internal_emission):
+def element_element(mesh, absorptance_by_element, ray_amount, max_reflections_amount, internal_emission):
 	"""
 	Receives a trimesh mesh object, a function that returns the material properties of an element,
 	the amount of rays to be casted, the maximum amount of reflections and a boolean that
@@ -111,7 +111,6 @@ def element_element(mesh, props, ray_amount, max_reflections_amount, internal_em
 	"""
 	element_normals = trimesh.triangles.normals(mesh.triangles)[0]
 	view_factors = np.zeros((len(mesh.triangles), len(mesh.triangles)))
-	absorptance = props.get_absorptance_by_element()
 
 	for element_idx in range(len(mesh.triangles)):
 		emitting_element = mesh.triangles[element_idx]
@@ -131,7 +130,7 @@ def element_element(mesh, props, ray_amount, max_reflections_amount, internal_em
 			visualization.view_raycast(mesh, element_idx, ray_origins, ray_directions)
 
 		hit_element_ids, hit_ray_ids, hit_points = mesh.ray.intersects_id(ray_origins, ray_directions, return_locations=True, multiple_hits=False)
-		hit_points, hit_ray_ids, hit_element_ids, absorbed_element_ids =_filter_reflected_rays_by_element_absorptance(absorptance, hit_points, hit_ray_ids, hit_element_ids)
+		hit_points, hit_ray_ids, hit_element_ids, absorbed_element_ids =_filter_reflected_rays_by_element_absorptance(absorptance_by_element, hit_points, hit_ray_ids, hit_element_ids)
 		for absorbed_ray_id in absorbed_element_ids:
 			view_factors_row[absorbed_ray_id] += 1
 		
@@ -146,7 +145,7 @@ def element_element(mesh, props, ray_amount, max_reflections_amount, internal_em
 				visualization.view_raycast(mesh, element_idx, ray_origins, ray_directions)
 
 			hit_element_ids, hit_ray_ids, hit_points = mesh.ray.intersects_id(hit_points, ray_directions, return_locations=True, multiple_hits=False)
-			hit_points, hit_ray_ids, hit_element_ids, absorbed_element_ids =_filter_reflected_rays_by_element_absorptance(absorptance, hit_points, hit_ray_ids, hit_element_ids)
+			hit_points, hit_ray_ids, hit_element_ids, absorbed_element_ids =_filter_reflected_rays_by_element_absorptance(absorptance_by_element, hit_points, hit_ray_ids, hit_element_ids)
 			hit_points += RAY_DISPLACEMENT*element_normals[hit_element_ids]
 
 			for absorbed_element_id in absorbed_element_ids:

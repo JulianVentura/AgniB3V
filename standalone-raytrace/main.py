@@ -1,16 +1,9 @@
 import sys
 import json
-from src import properties_atlas, vtk_io, view_factors, visualization, serializer, gmat_parser
+from src import properties_atlas, vtk_io, view_factors, visualization, serializer
 import numpy as np
 
-def _add_gmat_params(properties, gmat_params):
-    properties.add_global_prop("beta_angle", gmat_params.beta_angle)
-    properties.add_global_prop("orbital_period", gmat_params.period)
-    start, end = gmat_params.eclipse_start_finish
-    properties.add_global_prop("eclipse_start", start)
-    properties.add_global_prop("eclipse_end", end)
-    
-def op_process_view_factors(mesh_file_path, properties_file_path, gmat_report_file_path, gmat_eclipse_file_path, view_factors_file_path):
+def op_process_view_factors(mesh_file_path, properties_file_path, orbit_report_file_path, orbit_eclipse_file_path, view_factors_file_path):
     """
     Receives the mesh file path (vtk), the properties file path (json) and GMAT
     report and eclipse locator files (txt)
@@ -18,19 +11,25 @@ def op_process_view_factors(mesh_file_path, properties_file_path, gmat_report_fi
     output_path file.
     """
     print("Starting process of view factors")
-    mesh = vtk_io.load_vtk(mesh_file_path)
-    properties = properties_atlas.PropertiesAtlas(len(mesh.triangles), properties_file_path)
-    earth_ray_amount = properties.get_global_prop("earth_ray_amount")
-    element_ray_amount = properties.get_global_prop("element_ray_amount")
-    element_max_reflections_amount = properties.get_global_prop("element_max_reflections_amount")
-    internal_emission = properties.get_global_prop("internal_emission")
 
-    gmat_params = gmat_parser.parse_gmat(gmat_report_file_path, gmat_eclipse_file_path)
-    _add_gmat_params(properties, gmat_params)
+    print(f"Loading mesh")
+    mesh = vtk_io.load_vtk(mesh_file_path)
+
+    print(f"Loading properties")
+    properties = properties_atlas.PropertiesAtlas(
+        len(mesh.triangles),
+        properties_file_path,
+        orbit_report_file_path,
+        orbit_eclipse_file_path
+    )
+    earth_ray_amount = properties.global_properties["earth_ray_amount"]
+    element_ray_amount = properties.global_properties["element_ray_amount"]
+    element_max_reflections_amount = properties.global_properties["element_max_reflections_amount"]
+    internal_emission = properties.global_properties["internal_emission"]
     sun_direction = np.array([
-        gmat_params.sun_position.x,
-        gmat_params.sun_position.y,
-        gmat_params.sun_position.z
+        properties.orbit_properties.sun_position.x,
+        properties.orbit_properties.sun_position.y,
+        properties.orbit_properties.sun_position.z,
     ])
 
     print("Calculating sun view factors")
@@ -39,7 +38,7 @@ def op_process_view_factors(mesh_file_path, properties_file_path, gmat_report_fi
     print("Calculating element-element view factors")
     element_element_view_factors = [view_factors.element_element(
             mesh,
-            properties,
+            properties.absortance_by_element,
             element_ray_amount,
             element_max_reflections_amount,
             internal_emission,
@@ -47,12 +46,12 @@ def op_process_view_factors(mesh_file_path, properties_file_path, gmat_report_fi
     
     print("Calculating earth view factors")
     element_earth_view_factors = []
-    for step in range(4): #range(len(gmat_params.elapsed_secs)):
+    for step in range(len(properties.orbit_properties.elapsed_secs)):
         print("Step", step)
         earth_direction = -np.array([
-            gmat_params.sat_position[step].x,
-            gmat_params.sat_position[step].y,
-            gmat_params.sat_position[step].z,
+            properties.orbit_properties.sat_position[step].x,
+            properties.orbit_properties.sat_position[step].y,
+            properties.orbit_properties.sat_position[step].z,
         ])
         earth_view_factors, earth_albedo_coefficients = view_factors.element_earth(
             mesh,

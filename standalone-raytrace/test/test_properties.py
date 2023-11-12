@@ -9,7 +9,7 @@ def test_properties_loading():
     properties = properties_atlas.PropertiesAtlas(len(mesh.triangles), ICOSPHERE_PROPERTIES_PATH)
     
     for element_id in range(utils.element_amount(mesh.triangles)):
-        material = properties.get_material_props(element_id)
+        material = properties.get_element_material(element_id)
         if element_id <= 9:
             assert material["test_id"] == 0
             assert material["alpha_ir"] == 0.75
@@ -19,16 +19,9 @@ def test_properties_loading():
             assert material["alpha_ir"] == 0.25
             assert material["color"] == [0,255,0,255]
 
-def test_property_add():
-    mesh = vtk_io.load_vtk(ICOSPHERE_GEOMETRY_PATH)
-    properties = properties_atlas.PropertiesAtlas(len(mesh.triangles), ICOSPHERE_PROPERTIES_PATH)
-    properties.add_prop("test", test_property)
-    assert properties.properties_json["test"] == test_property
-
 def test_property_dump():
     mesh = vtk_io.load_vtk(ICOSPHERE_GEOMETRY_PATH)
     properties = properties_atlas.PropertiesAtlas(len(mesh.triangles), ICOSPHERE_PROPERTIES_PATH)
-    properties.add_prop("test", test_property)
     properties.dump(ICOSPHERE_OUTPUT_PROPERTIES_PATH)
     
     output_properties_file = open(ICOSPHERE_OUTPUT_PROPERTIES_PATH)

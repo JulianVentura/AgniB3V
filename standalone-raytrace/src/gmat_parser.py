@@ -1,4 +1,5 @@
 from typing import Any
+import numpy as np
 import math
 import dateparser
 
@@ -64,8 +65,8 @@ class GMATParameters:
     def __init__(
         self,
         beta_angle: float,
-        sun_position: Position,
-        sat_position: list[Position],
+        sun_position: np.array,
+        sat_position: list[np.array],
         elapsed_secs: list[float],
         altitude: float,
         eclipse_start_finish: tuple[float, float],
@@ -129,7 +130,7 @@ def parse_report_file(report_filename):
     for line in file.readlines():
         lines.append(line)
 
-    header = translate_parameters(split_line(lines[0]))  # lines[0].strip().split()
+    header = translate_parameters(split_line(lines[0]))
 
     idx_from_param = {}
 
@@ -140,7 +141,7 @@ def parse_report_file(report_filename):
     parameters: dict[str, Any] = {p: list() for p in idx_from_param.keys()}
 
     for line in lines[1::]:
-        values = split_line(line)  # line.strip().split()
+        values = split_line(line)
         for p in INTERNAL_PARAMETERS:
             parameters[p].append(values[idx_from_param[p]])
 
@@ -169,8 +170,8 @@ def parse_eclipse_locator(eclipse_locator_filename, parameters):
     for idx, p in enumerate(header):
         if p in GMAT_ECLIPSE_NAMES:
             idx_from_param[p] = idx
-    # Find the Event Number 2 of type Umbra
 
+    # Find the Event Number 2 of type Umbra
     type_id = idx_from_param["Type"]
     event_number_id = idx_from_param["Event Number"]
 
@@ -203,22 +204,22 @@ def parse_gmat(report_filename, eclipse_filename) -> GMATParameters:
         if float(elapsed_time) < float(period):
             n_steps += 1
 
-    altitude: float = parameters["Sat.Altitude"]
-    beta_angle: float = parameters["BetaAngle"]
-    sun_position = Position(
+    altitude: float = float(parameters["Sat.Altitude"])
+    beta_angle: float = float(parameters["BetaAngle"])
+    sun_position = np.array([
         float(parameters["Sun.X"]),
         float(parameters["Sun.Y"]),
         float(parameters["Sun.Z"]),
-    )
+    ])
     sat_position = [
-        Position(
+        np.array([
             float(parameters["Sat.X"][i]),
             float(parameters["Sat.Y"][i]),
             float(parameters["Sat.Z"][i]),
-        )
+        ])
         for i in range(n_steps)
     ]
-    elapsed_secs = [parameters["ElapsedSecs"][i] for i in range(n_steps)]
+    elapsed_secs = [float(parameters["ElapsedSecs"][i]) for i in range(n_steps)]
 
     return GMATParameters(
         beta_angle,
@@ -229,27 +230,3 @@ def parse_gmat(report_filename, eclipse_filename) -> GMATParameters:
         eclipse_start_and_finish,
         period,
     )
-
-
-if __name__ == "__main__":
-    params = parse_gmat(
-        "./GMAT/R2022a/output/ReportFile1.txt",
-        "./GMAT/R2022a/output/EclipseLocator1.txt",
-    )
-
-    print(f"Beta Angle: {params.beta_angle}")
-    print("Sun position: ")
-    print(f"  X={params.sun_position.x}")
-    print(f"  Y={params.sun_position.y}")
-    print(f"  Z={params.sun_position.z}")
-    print(f"Altitude: {params.altitude}")
-    print(f"Eclipse: {params.eclipse_start_finish}")
-    print(f"Period: {params.period}")
-
-    for step in range(5):  # range(len(params.elapsed_secs)):
-        print(f"Step {step}: ")
-        print("  Sat position:")
-        print(f"   X={params.sat_position[step].x}")
-        print(f"   Y={params.sat_position[step].y}")
-        print(f"   Z={params.sat_position[step].z}")
-        print(f"  Elapsed seconds: {params.elapsed_secs[step]}")

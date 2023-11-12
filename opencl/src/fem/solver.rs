@@ -240,13 +240,15 @@ mod tests {
         };
 
         let f1 = ViewFactors {
-            earth: vec![1.0],
+            earth_ir: vec![1.0],
+            earth_albedo: vec![1.0],
             sun: 1.0,
             elements: vec![0.1, 0.3],
         };
 
         let f2 = ViewFactors {
-            earth: vec![1.0],
+            earth_ir: vec![1.0],
+            earth_albedo: vec![1.0],
             sun: 1.0,
             elements: vec![0.2, 0.4],
         };

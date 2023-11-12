@@ -460,12 +460,13 @@ fn deserialize_multiple_vectors(file: &mut File) -> Vec<(Vector, f32)> {
 
 fn deserialize_view_factors(filename: String) -> ParserViewFactors {
     let mut file = File::open(filename).expect("Uooops");
-    let earth = deserialize_multiple_vectors(&mut file);
+    let _earth_ir = deserialize_multiple_vectors(&mut file);
+    let earth_albedo = deserialize_multiple_vectors(&mut file);
     let sun = deserialize_multiple_vectors(&mut file);
     let elements = deserialize_matrix(&mut file);
 
     ParserViewFactors {
-        earth,
+        earth: earth_albedo,
         sun,
         elements,
     }

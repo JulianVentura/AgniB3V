@@ -3,11 +3,9 @@ use std::collections::HashSet;
 use super::constants::BOLTZMANN;
 use super::structures::{Matrix, Vector};
 use super::{element::Element, point::Point};
+use std::cmp::max;
 
 pub fn calculate_number_of_points(elements: &Vec<Element>) -> usize {
-    use std::cmp::max;
-
-    //Right now its ok, but we have to make sure the global ids are sequential (and start from 1)
     let mut size: u32 = 0;
     for e in elements {
         size = max(
@@ -24,7 +22,6 @@ pub fn construct_points_array(elements: &Vec<Element>, n_points: usize) -> Vec<P
     points.reserve_exact(n_points);
 
     points.resize(n_points, Default::default());
-    // If we dont fill the vector with default values, we will get an error when trying to access an element
 
     // TODO: This is not very efficient, we can check if the point already exists
     for e in elements {

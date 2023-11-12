@@ -10,12 +10,14 @@ def process_entry(x):
 
 def serialize_view_factors(
     path: str,
-    earth_view_factors: list[np.ndarray],
+    earth_ir_view_factors: list[np.ndarray],
+    earth_albedo_view_factors: list[np.ndarray],
     sun_view_factors: list[np.ndarray],
     element_view_factors: list[np.matrix],
 ):
     file = open(path, "wb")
-    serialize_multiple(file, earth_view_factors, serialize_vector)
+    serialize_multiple(file, earth_ir_view_factors, serialize_vector)
+    serialize_multiple(file, earth_albedo_view_factors, serialize_vector)
     serialize_multiple(file, sun_view_factors, serialize_vector)
     serialize_multiple(file, element_view_factors, serialize_matrix)
     file.close()

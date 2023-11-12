@@ -22,7 +22,6 @@ pub struct FEMEngine {
 #[derive(Debug)]
 pub struct FEMOrbitParameters {
     pub betha: f64,
-    pub altitude: f64,
     pub orbit_period: f64,
     pub orbit_divisions: Vec<f64>,
     pub eclipse_start: f64,

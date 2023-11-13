@@ -85,4 +85,9 @@ GLOBAL_PROPERTIES_INPUTS = {
         "unit": "",
         "value": 200,
     },
+    "OrbitDivisions": {
+        "label": "Orbit divisions",
+        "unit": "",
+        "value": 20,
+    },
 }

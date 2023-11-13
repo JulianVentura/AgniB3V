@@ -104,10 +104,10 @@ fn compare_results(
     Ok(())
 }
 
-fn run_test(test_number: u32) -> Result<()> {
+fn run_test_solver(test_number: u32, solver: &str) -> Result<()> {
     let config_path = format!(
-        "Unit_tests/Test_{}/test_{}_config.json",
-        test_number, test_number
+        "Unit_tests/Test_{}/test_{}_config_{}.json",
+        test_number, test_number, solver
     );
     let actual_results_path = format!(
         "Unit_tests/Test_{}/test_{}_results",
@@ -128,6 +128,13 @@ fn run_test(test_number: u32) -> Result<()> {
 
     remove_dir_all(format!("{}/{}_results", results_path, new_results_name))?;
 
+    Ok(())
+}
+
+fn run_test(test_number: u32) -> Result<()> {
+    run_test_solver(test_number, "implicit")?;
+    run_test_solver(test_number, "explicit")?;
+    run_test_solver(test_number, "gpu")?;
     Ok(())
 }
 

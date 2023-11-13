@@ -1,10 +1,8 @@
-use super::constants::EARTH_RADIUS;
 use super::structures::Vector;
 use super::{
     explicit_solver::ExplicitSolver, gpu_solver::GPUSolver, implicit_solver::ImplicitSolver,
 };
 use anyhow::Result;
-use nalgebra::SimdBool;
 
 //TODO: Check how much slower the solver gets if we use a dyn (dynamic dispatch) over the Solver
 //object
@@ -170,26 +168,42 @@ impl FEMEngine {
         }
     }
 }
-/*
+
 #[cfg(test)]
 mod tests {
-    use crate::fem::engine::FEMEngine;
+    use crate::fem::engine::Solver;
 
-    fn assert_float_eq(value_1: f64, value_2: f64, precision: f64) {
-        assert!(
-            (value_1 - value_2).abs() < precision,
-            "value1 {} != {}",
-            value_1,
-            value_2
-        );
+    use crate::fem::engine::FEMEngine;
+    use crate::fem::engine::FEMOrbitParameters;
+    use crate::fem::explicit_solver::ExplicitSolver;
+
+    fn create_fem_engine(start: f64, end: f64, orbit_divisions: Vec<f64>) -> FEMEngine {
+        let orbit = FEMOrbitParameters {
+            betha: 0.0,
+            orbit_period: 6000.0,
+            eclipse_start: start,
+            eclipse_end: end,
+            orbit_divisions: orbit_divisions,
+        };
+        let solver = Solver::Explicit(ExplicitSolver::new(&vec![], 0.0));
+        FEMEngine {
+            simulation_time: 1.0,
+            time_step: 1.0,
+            snapshot_period: 1.0,
+            orbit_parameters: orbit,
+            solver: solver,
+            results: vec![],
+            f_index: 0,
+        }
     }
 
     #[test]
     fn test_is_in_eclipse_1() {
         let start = 1000.0;
         let end = 2000.0;
+        let engine = create_fem_engine(start, end, vec![0.0]);
         let time = 1500.0;
-        let is_in_eclipse = FEMEngine::is_in_eclipse(start, end, time);
+        let is_in_eclipse = engine.is_in_eclipse(time);
         assert!(is_in_eclipse);
     }
 
@@ -197,8 +211,9 @@ mod tests {
     fn test_is_in_eclipse_2() {
         let start = 1000.0;
         let end = 2000.0;
+        let engine = create_fem_engine(start, end, vec![0.0]);
         let time = 500.0;
-        let is_in_eclipse = FEMEngine::is_in_eclipse(start, end, time);
+        let is_in_eclipse = engine.is_in_eclipse(time);
         assert!(!is_in_eclipse);
     }
 
@@ -206,8 +221,9 @@ mod tests {
     fn test_is_in_eclipse_3() {
         let start = 1000.0;
         let end = 2000.0;
+        let engine = create_fem_engine(start, end, vec![0.0]);
         let time = 2500.0;
-        let is_in_eclipse = FEMEngine::is_in_eclipse(start, end, time);
+        let is_in_eclipse = engine.is_in_eclipse(time);
         assert!(!is_in_eclipse);
     }
 
@@ -215,8 +231,9 @@ mod tests {
     fn test_is_in_eclipse_4() {
         let start = 1000.0;
         let end = 2000.0;
+        let engine = create_fem_engine(start, end, vec![0.0]);
         let time = 2000.0;
-        let is_in_eclipse = FEMEngine::is_in_eclipse(start, end, time);
+        let is_in_eclipse = engine.is_in_eclipse(time);
         assert!(is_in_eclipse);
     }
 
@@ -224,8 +241,9 @@ mod tests {
     fn test_is_in_eclipse_5() {
         let start = 1000.0;
         let end = 2000.0;
+        let engine = create_fem_engine(start, end, vec![0.0]);
         let time = 1000.0;
-        let is_in_eclipse = FEMEngine::is_in_eclipse(start, end, time);
+        let is_in_eclipse = engine.is_in_eclipse(time);
         assert!(is_in_eclipse);
     }
 
@@ -233,8 +251,9 @@ mod tests {
     fn test_is_in_eclipse_6() {
         let start = 3000.0;
         let end = 2000.0;
+        let engine = create_fem_engine(start, end, vec![0.0]);
         let time = 2500.0;
-        let is_in_eclipse = FEMEngine::is_in_eclipse(start, end, time);
+        let is_in_eclipse = engine.is_in_eclipse(time);
         assert!(!is_in_eclipse);
     }
 
@@ -242,8 +261,9 @@ mod tests {
     fn test_is_in_eclipse_7() {
         let start = 3000.0;
         let end = 2000.0;
+        let engine = create_fem_engine(start, end, vec![0.0]);
         let time = 1500.0;
-        let is_in_eclipse = FEMEngine::is_in_eclipse(start, end, time);
+        let is_in_eclipse = engine.is_in_eclipse(time);
         assert!(is_in_eclipse);
     }
 
@@ -251,8 +271,9 @@ mod tests {
     fn test_is_in_eclipse_8() {
         let start = 3000.0;
         let end = 2000.0;
+        let engine = create_fem_engine(start, end, vec![0.0]);
         let time = 3500.0;
-        let is_in_eclipse = FEMEngine::is_in_eclipse(start, end, time);
+        let is_in_eclipse = engine.is_in_eclipse(time);
         assert!(is_in_eclipse);
     }
 
@@ -260,8 +281,9 @@ mod tests {
     fn test_is_in_eclipse_9() {
         let start = 3000.0;
         let end = 2000.0;
+        let engine = create_fem_engine(start, end, vec![0.0]);
         let time = 3000.0;
-        let is_in_eclipse = FEMEngine::is_in_eclipse(start, end, time);
+        let is_in_eclipse = engine.is_in_eclipse(time);
         assert!(is_in_eclipse);
     }
 
@@ -269,152 +291,173 @@ mod tests {
     fn test_is_in_eclipse_10() {
         let start = 3000.0;
         let end = 2000.0;
+        let engine = create_fem_engine(start, end, vec![0.0]);
         let time = 2000.0;
-        let is_in_eclipse = FEMEngine::is_in_eclipse(start, end, time);
+        let is_in_eclipse = engine.is_in_eclipse(time);
         assert!(is_in_eclipse);
     }
 
     #[test]
-    fn test_calculate_f_index_1() {
+    fn test_update_f_index_1() {
         let orbit_time = 5.0;
         let f_index = 0;
         let orbit_divisions = vec![0.0, 10.0, 20.0];
 
-        let f_index = FEMEngine::calculate_f_index(orbit_time, f_index, &orbit_divisions);
+        let mut engine = create_fem_engine(1000.0, 2000.0, orbit_divisions);
+        engine.f_index = f_index;
+        engine.update_f_index(orbit_time);
 
         let actual_f_index = 0;
 
-        assert_eq!(f_index, actual_f_index);
+        assert_eq!(engine.f_index, actual_f_index);
     }
 
     #[test]
-    fn test_calculate_f_index_2() {
+    fn test_update_f_index_2() {
         let orbit_time = 11.0;
         let f_index = 0;
         let orbit_divisions = vec![0.0, 10.0, 20.0];
 
-        let f_index = FEMEngine::calculate_f_index(orbit_time, f_index, &orbit_divisions);
+        let mut engine = create_fem_engine(1000.0, 2000.0, orbit_divisions);
+        engine.f_index = f_index;
+        engine.update_f_index(orbit_time);
 
         let actual_f_index = 1;
 
-        assert_eq!(f_index, actual_f_index);
+        assert_eq!(engine.f_index, actual_f_index);
     }
 
     #[test]
-    fn test_calculate_f_index_3() {
+    fn test_update_f_index_3() {
         let orbit_time = 12.0;
         let f_index = 1;
         let orbit_divisions = vec![0.0, 10.0, 20.0];
 
-        let f_index = FEMEngine::calculate_f_index(orbit_time, f_index, &orbit_divisions);
+        let mut engine = create_fem_engine(1000.0, 2000.0, orbit_divisions);
+        engine.f_index = f_index;
+        engine.update_f_index(orbit_time);
 
         let actual_f_index = 1;
 
-        assert_eq!(f_index, actual_f_index);
+        assert_eq!(engine.f_index, actual_f_index);
     }
 
     #[test]
-    fn test_calculate_f_index_4() {
+    fn test_update_f_index_4() {
         let orbit_time = 21.0;
         let f_index = 1;
         let orbit_divisions = vec![0.0, 10.0, 20.0];
 
-        let f_index = FEMEngine::calculate_f_index(orbit_time, f_index, &orbit_divisions);
+        let mut engine = create_fem_engine(1000.0, 2000.0, orbit_divisions);
+        engine.f_index = f_index;
+        engine.update_f_index(orbit_time);
 
         let actual_f_index = 2;
 
-        assert_eq!(f_index, actual_f_index);
+        assert_eq!(engine.f_index, actual_f_index);
     }
 
     #[test]
-    fn test_calculate_f_index_5() {
+    fn test_update_f_index_5() {
         let orbit_time = 25.0;
         let f_index = 2;
         let orbit_divisions = vec![0.0, 10.0, 20.0];
 
-        let f_index = FEMEngine::calculate_f_index(orbit_time, f_index, &orbit_divisions);
+        let mut engine = create_fem_engine(1000.0, 2000.0, orbit_divisions);
+        engine.f_index = f_index;
+        engine.update_f_index(orbit_time);
 
         let actual_f_index = 2;
 
-        assert_eq!(f_index, actual_f_index);
+        assert_eq!(engine.f_index, actual_f_index);
     }
 
     #[test]
-    fn test_calculate_f_index_6() {
+    fn test_update_f_index_6() {
         let orbit_time = 3.0;
         let f_index = 2;
         let orbit_divisions = vec![0.0, 10.0, 20.0];
 
-        let f_index = FEMEngine::calculate_f_index(orbit_time, f_index, &orbit_divisions);
+        let mut engine = create_fem_engine(1000.0, 2000.0, orbit_divisions);
+        engine.f_index = f_index;
+        engine.update_f_index(orbit_time);
 
         let actual_f_index = 0;
 
-        assert_eq!(f_index, actual_f_index);
+        assert_eq!(engine.f_index, actual_f_index);
     }
 
     #[test]
-    fn test_calculate_f_index_7() {
+    fn test_update_f_index_7() {
         let orbit_time = 25.0;
         let f_index = 0;
         let orbit_divisions = vec![0.0, 10.0, 20.0];
 
-        let f_index = FEMEngine::calculate_f_index(orbit_time, f_index, &orbit_divisions);
+        let mut engine = create_fem_engine(1000.0, 2000.0, orbit_divisions);
+        engine.f_index = f_index;
+        engine.update_f_index(orbit_time);
 
         let actual_f_index = 2;
 
-        assert_eq!(f_index, actual_f_index);
+        assert_eq!(engine.f_index, actual_f_index);
     }
 
     #[test]
-    fn test_calculate_f_index_8() {
+    fn test_update_f_index_8() {
         let orbit_time = 15.0;
         let f_index = 2;
         let orbit_divisions = vec![0.0, 10.0, 20.0];
 
-        let f_index = FEMEngine::calculate_f_index(orbit_time, f_index, &orbit_divisions);
+        let mut engine = create_fem_engine(1000.0, 2000.0, orbit_divisions);
+        engine.f_index = f_index;
+        engine.update_f_index(orbit_time);
 
         let actual_f_index = 1;
 
-        assert_eq!(f_index, actual_f_index);
+        assert_eq!(engine.f_index, actual_f_index);
     }
 
     #[test]
-    fn test_calculate_f_index_9() {
+    fn test_update_f_index_9() {
         let orbit_time = 45.0;
         let f_index = 1;
         let orbit_divisions = vec![0.0, 10.0, 20.0, 30.0, 40.0];
 
-        let f_index = FEMEngine::calculate_f_index(orbit_time, f_index, &orbit_divisions);
+        let mut engine = create_fem_engine(1000.0, 2000.0, orbit_divisions);
+        engine.f_index = f_index;
+        engine.update_f_index(orbit_time);
 
         let actual_f_index = 4;
 
-        assert_eq!(f_index, actual_f_index);
+        assert_eq!(engine.f_index, actual_f_index);
     }
 
     #[test]
-    fn test_calculate_f_index_10() {
+    fn test_update_f_index_10() {
         let orbit_time = 25.0;
         let f_index = 3;
         let orbit_divisions = vec![0.0, 10.0, 20.0, 30.0, 40.0];
 
-        let f_index = FEMEngine::calculate_f_index(orbit_time, f_index, &orbit_divisions);
+        let mut engine = create_fem_engine(1000.0, 2000.0, orbit_divisions);
+        engine.f_index = f_index;
+        engine.update_f_index(orbit_time);
 
         let actual_f_index = 2;
 
-        assert_eq!(f_index, actual_f_index);
+        assert_eq!(engine.f_index, actual_f_index);
     }
 
     #[test]
-    fn test_calculate_f_index_11() {
+    fn test_update_f_index_11() {
         let orbit_time = 5.0;
         let f_index = 2;
         let orbit_divisions = vec![0.0, 10.0, 20.0, 30.0, 40.0];
 
-        let f_index = FEMEngine::calculate_f_index(orbit_time, f_index, &orbit_divisions);
-
+        let mut engine = create_fem_engine(1000.0, 2000.0, orbit_divisions);
+        engine.f_index = f_index;
+        engine.update_f_index(orbit_time);
         let actual_f_index = 0;
 
-        assert_eq!(f_index, actual_f_index);
+        assert_eq!(engine.f_index, actual_f_index);
     }
 }
-*/

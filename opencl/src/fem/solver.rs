@@ -107,9 +107,11 @@ pub fn construct_global_vector_f_const_multiple_earth(
     n_points: usize,
 ) -> Vec<Vector> {
     let mut f_vec: Vec<Vector> = vec![];
-    for i in 0..elements[0].f.len() {
-        let f = construct_global_vector_f_const(elements, n_points, i);
-        f_vec.push(f);
+    if elements.len() > 0 {
+        for i in 0..elements[0].f.len() {
+            let f = construct_global_vector_f_const(elements, n_points, i);
+            f_vec.push(f);
+        }
     }
     f_vec
 }
@@ -119,9 +121,11 @@ pub fn construct_global_vector_f_const_eclipse_multiple_earth(
     n_points: usize,
 ) -> Vec<Vector> {
     let mut f_vec: Vec<Vector> = vec![];
-    for i in 0..elements[0].f_eclipse.len() {
-        let f = construct_global_vector_f_const_eclipse(elements, n_points, i);
-        f_vec.push(f);
+    if elements.len() > 0 {
+        for i in 0..elements[0].f_eclipse.len() {
+            let f = construct_global_vector_f_const_eclipse(elements, n_points, i);
+            f_vec.push(f);
+        }
     }
     f_vec
 }

@@ -10,7 +10,7 @@ fn run() -> Result<()> {
 
     if args.len() < 2 {
         eprintln!("Usage: {} config_path", args[0]);
-        std::process::exit(1);
+        std::process::exit(1); //TODO: Change this to return an error
     }
 
     let config_path = &args[1];

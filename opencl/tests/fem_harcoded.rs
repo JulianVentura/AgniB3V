@@ -59,7 +59,7 @@ fn create_example(p1: Point, p2: Point, p3: Point, p4: Point) -> Result<Vec<Vect
     let snapshot_period = 1.0;
     let simulation_time = 20.0;
 
-    let solver = Solver::Explicit(ExplicitSolver::new(&vec![e1, e2]));
+    let solver = Solver::Explicit(ExplicitSolver::new(&vec![e1, e2], time_step));
     let mut engine = FEMEngine::new(
         FEMParameters {
             simulation_time,
@@ -67,9 +67,10 @@ fn create_example(p1: Point, p2: Point, p3: Point, p4: Point) -> Result<Vec<Vect
             snapshot_period,
             orbit: FEMOrbitParameters {
                 betha: 0.1,
-                altitude: 2000.0,
                 orbit_period: 100.0,
-                orbit_divisions: 1,
+                orbit_divisions: vec![0.0],
+                eclipse_start: 10.0,
+                eclipse_end: 10.0,
             },
         },
         solver,

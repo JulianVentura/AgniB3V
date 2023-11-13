@@ -1,29 +1,19 @@
-use super::super::gpu::eq_systems_methods_cpu::lu_decomposition;
-use super::super::gpu::eq_systems_methods_cpu::lu_solve;
-
-use super::super::gpu::eq_systems_methods_cpu::LUDecomposition;
-
-use super::super::gpu::eq_systems_methods_cpu::gauss_seidel_cpu;
-
-use super::super::gpu::eq_systems_methods_cpu::jacobi_method_cpu;
-
-use super::super::gpu::jacobi_method::jacobi_method;
-
 use super::element::Element;
 use super::point::Point;
 use super::solver;
 use super::structures::{Matrix, Vector, LU};
+use anyhow::Result;
 
 pub struct ImplicitSolver {
-    f_const: Vec<Vector>,
-    f_const_eclipse: Vec<Vector>,
+    pub f_const: Vec<Vector>,
+    pub f_const_eclipse: Vec<Vector>,
     pub a_lu: LU,
-    pub a_lu_dec: LUDecomposition,
-    pub a: Matrix,
     pub d: Matrix,
     pub h: Matrix,
     temp: Vector,
     points: Vec<Point>,
+    f_index: usize,
+    in_eclipse: bool,
 }
 
 impl ImplicitSolver {
@@ -53,52 +43,54 @@ impl ImplicitSolver {
         let d = &m / time_step - (1.0 - theta) * &k;
         let a = &m / time_step + theta * &k;
         println!("Building LU decomposition");
-        let a_lu_dec = lu_decomposition(a.clone());
+
         let a_lu = a.clone().lu();
 
-        println!("FEM Engine built successfully");
+        println!("Implicit Solver built successfully");
 
         ImplicitSolver {
             f_const,
             f_const_eclipse,
             a_lu,
-            a_lu_dec,
-            a,
             d,
             h,
             temp,
             points,
+            in_eclipse: false,
+            f_index: 0,
         }
     }
 
-    pub fn step(&mut self, is_in_eclipse: bool, f_index: usize) {
-        //System:
-        // A * Tn+1 = D * Tn + (1 - theta) * Fn + theta * Fn+1
-        // Since Fn+1 == Fn, then the system is simplified
-        // TODO: Change f vector if radiation is included
+    pub fn step(&mut self) -> Result<()> {
         let mut t_4 = self.temp.clone();
         solver::fourth_power(&mut t_4);
 
         let mut f = &self.h * t_4;
-        if is_in_eclipse {
-            f += &self.f_const_eclipse[f_index];
+        if self.in_eclipse {
+            f += &self.f_const_eclipse[self.f_index];
         } else {
-            f += &self.f_const[f_index];
+            f += &self.f_const[self.f_index];
         }
 
         let b = &self.d * &self.temp + f;
 
-        //self.temp = self.a_lu.solve(&b).expect("Oh no...");
-        //self.temp = gauss_seidel_cpu(self.a.clone(), b);
-        //self.temp = jacobi_method(self.a.clone(), b).expect("Oh no...");
-        self.temp = lu_solve(&self.a_lu_dec, b);
+        self.temp = self.a_lu.solve(&b).expect("Oh no...");
+
+        Ok(())
+    }
+
+    pub fn update_f(&mut self, f_index: usize, in_eclipse: bool) -> Result<()> {
+        self.f_index = f_index;
+        self.in_eclipse = in_eclipse;
+
+        Ok(())
     }
 
     pub fn points(&self) -> &Vec<Point> {
         &self.points
     }
 
-    pub fn temperature(&self) -> Vector {
-        self.temp.clone()
+    pub fn temperature(&mut self) -> Result<&Vector> {
+        Ok(&self.temp)
     }
 }

@@ -3,11 +3,9 @@ use std::collections::HashSet;
 use super::constants::BOLTZMANN;
 use super::structures::{Matrix, Vector};
 use super::{element::Element, point::Point};
+use std::cmp::max;
 
 pub fn calculate_number_of_points(elements: &Vec<Element>) -> usize {
-    use std::cmp::max;
-
-    //Right now its ok, but we have to make sure the global ids are sequential (and start from 1)
     let mut size: u32 = 0;
     for e in elements {
         size = max(
@@ -24,7 +22,6 @@ pub fn construct_points_array(elements: &Vec<Element>, n_points: usize) -> Vec<P
     points.reserve_exact(n_points);
 
     points.resize(n_points, Default::default());
-    // If we dont fill the vector with default values, we will get an error when trying to access an element
 
     // TODO: This is not very efficient, we can check if the point already exists
     for e in elements {
@@ -110,9 +107,11 @@ pub fn construct_global_vector_f_const_multiple_earth(
     n_points: usize,
 ) -> Vec<Vector> {
     let mut f_vec: Vec<Vector> = vec![];
-    for i in 0..elements[0].f.len() {
-        let f = construct_global_vector_f_const(elements, n_points, i);
-        f_vec.push(f);
+    if elements.len() > 0 {
+        for i in 0..elements[0].f.len() {
+            let f = construct_global_vector_f_const(elements, n_points, i);
+            f_vec.push(f);
+        }
     }
     f_vec
 }
@@ -122,9 +121,11 @@ pub fn construct_global_vector_f_const_eclipse_multiple_earth(
     n_points: usize,
 ) -> Vec<Vector> {
     let mut f_vec: Vec<Vector> = vec![];
-    for i in 0..elements[0].f_eclipse.len() {
-        let f = construct_global_vector_f_const_eclipse(elements, n_points, i);
-        f_vec.push(f);
+    if elements.len() > 0 {
+        for i in 0..elements[0].f_eclipse.len() {
+            let f = construct_global_vector_f_const_eclipse(elements, n_points, i);
+            f_vec.push(f);
+        }
     }
     f_vec
 }
@@ -243,13 +244,15 @@ mod tests {
         };
 
         let f1 = ViewFactors {
-            earth: vec![1.0],
+            earth_ir: vec![1.0],
+            earth_albedo: vec![1.0],
             sun: 1.0,
             elements: vec![0.1, 0.3],
         };
 
         let f2 = ViewFactors {
-            earth: vec![1.0],
+            earth_ir: vec![1.0],
+            earth_albedo: vec![1.0],
             sun: 1.0,
             elements: vec![0.2, 0.4],
         };

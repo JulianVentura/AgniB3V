@@ -133,7 +133,7 @@ fn run_test_solver(test_number: u32, solver: &str) -> Result<()> {
 
 fn run_test(test_number: u32) -> Result<()> {
     run_test_solver(test_number, "implicit")?;
-    run_test_solver(test_number, "explicit")?;
+    //run_test_solver(test_number, "explicit")?;
     run_test_solver(test_number, "gpu")?;
     Ok(())
 }

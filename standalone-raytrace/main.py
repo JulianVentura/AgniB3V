@@ -81,7 +81,9 @@ def op_process_view_factors(
     element_earth_albedo_view_factors = []
     division_number = 0
     for step in range(len(elapsed_secs)):
-        if not _is_closest_orbit_point(step, elapsed_secs, division_time * division_number):
+        if not _is_closest_orbit_point(
+            step, elapsed_secs, division_time * division_number
+        ):
             continue
 
         earth_direction = -properties.orbit_properties.sat_position[step]

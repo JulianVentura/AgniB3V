@@ -18,6 +18,7 @@ class PropertiesAtlas:
         for material_name, material_elements in material_json_elements.items():
             material_idx = len(self.materials)
             self.materials.append(material_json_props[material_name])
+            self.materials[-1]["name"] = material_name
             for element_id in material_elements:
                 self.material_by_element[element_id] = material_idx
                 self.absortance_by_element[element_id] = self.materials[-1]["alpha_ir"]

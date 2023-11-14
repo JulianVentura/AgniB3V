@@ -2,7 +2,7 @@ import numpy as np
 from typing import Tuple
 import struct
 
-FACTOR = 1 << 16
+FACTOR = (1 << 16) - 1
 
 
 def process_entry(x):

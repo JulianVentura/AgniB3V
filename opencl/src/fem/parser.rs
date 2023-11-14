@@ -333,6 +333,7 @@ pub fn fem_problem_from_vtk(
             elements_view_factors[i] =
                 view_factors_parsed.elements.row(parser_element_id as usize)[i];
         }
+
         let factors = ViewFactors {
             earth_ir: view_factors_parsed
                 .earth_ir
@@ -415,7 +416,7 @@ pub fn parse_config(config_path: &String) -> ParserConfig {
     return config_json;
 }
 
-const FACTOR: f64 = 1.0 / (1 << 16) as f64;
+const FACTOR: f64 = 1.0 / ((1 << 16) - 1) as f64;
 
 fn deserialize_matrix(file: &mut File) -> Matrix {
     let rows = file
@@ -477,7 +478,6 @@ fn deserialize_view_factors(filename: String) -> ParserViewFactors {
     let earth_albedo = deserialize_multiple_vectors(&mut file);
     let sun = deserialize_multiple_vectors(&mut file);
     let elements = deserialize_matrix(&mut file);
-
     ParserViewFactors {
         earth_ir,
         earth_albedo,

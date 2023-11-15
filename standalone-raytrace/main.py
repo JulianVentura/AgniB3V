@@ -51,6 +51,7 @@ def op_process_view_factors(
     orbit_divisions = properties.global_properties["orbit_divisions"]
     division_time = properties.orbit_properties.period / orbit_divisions
     elapsed_secs = properties.orbit_properties.elapsed_secs
+    sun_direction = properties.orbit_properties.sun_position
 
     if orbit_divisions > len(elapsed_secs):
         print(
@@ -58,8 +59,10 @@ def op_process_view_factors(
         )
         sys.exit(1)
 
+    print("Setting up bodies")
+    view_factors.mesh_look_at(mesh, sun_direction)
+    
     print("Calculating sun view factors")
-    sun_direction = properties.orbit_properties.sun_position
     element_sun_view_factors = [
         (
             view_factors.element_sun(mesh, sun_direction),

@@ -155,3 +155,10 @@ def element_element(mesh, absorptance_by_element, ray_amount, max_reflections_am
 		view_factors[element_idx] = (view_factors_row)
 	
 	return view_factors
+
+def mesh_look_at(mesh, direction):
+	norm, phi, theta = utils.vector_spherical_cordinates(direction)
+	rot_matrix = trimesh.transformations.rotation_matrix(theta,  [1, 0, 0])
+	mesh.apply_transform(rot_matrix)
+	rot_matrix = trimesh.transformations.rotation_matrix(phi,  [0, 0, 1])
+	mesh.apply_transform(rot_matrix)

@@ -75,3 +75,21 @@ def reflected_rays(ray_directions, element_normals):
     return (
         ray_directions - 2 * ray_direction_element_normal_dot_product * element_normals
     )
+
+
+# 	 z
+#    |.
+#    |  θ : theta e [0, 2*PI]
+# 	 |_ _._ y
+# 	/  .
+#  /. φ : phi e [0, PI)
+# x
+def vector_spherical_cordinates(vector):
+    norm = np.linalg.norm(vector)
+    theta = np.arccos(vector[2] / norm)
+    phi = 0
+    if(vector[0] != 0 or vector[1] != 0):
+        phi = np.sign(vector[1]) * np.arccos(
+            vector[0] / np.sqrt(vector[0] ** 2 + vector[1] ** 2)
+        ) + np.pi/2
+    return norm, phi, theta

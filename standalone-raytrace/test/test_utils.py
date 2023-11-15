@@ -83,3 +83,24 @@ def test_orient_vector_towards_normal():
     utils.orient_vector_towards_normal(vectors, normal)
     expected_oriented_vectors = np.array([[1, 2, 0], [1, 0, 0], [1, 1, 0], [1, 2, 0]])
     assert np.array_equal(vectors, expected_oriented_vectors)
+
+
+def test_vector_spherical_coordinates():
+    cartesian_coords_vectors = np.array(
+        [[1, 1, 0], [3, 3, 0], [-1, 1, 0], [1, 0, 1], [2.5, 2.5, 3.5355339]]
+    )
+    expected_spherical_coords_vectors = [
+        [np.pi / 4, np.pi / 2],
+        [np.pi / 4, np.pi / 2],
+        [3 * np.pi / 4, np.pi / 2],
+        [0, np.pi / 4],
+        [np.pi / 4, np.pi / 4],
+    ]
+    for i in range(len(cartesian_coords_vectors)):
+        spherical_coords_vectors = utils.vector_spherical_cordinates(
+            cartesian_coords_vectors[i]
+        )
+        assert np.array_equal(
+            np.round(expected_spherical_coords_vectors[i], 5),
+            np.round(spherical_coords_vectors[1:], 5),
+        )

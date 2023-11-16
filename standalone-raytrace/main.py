@@ -1,6 +1,6 @@
 import sys
 import json
-from src import properties_atlas, vtk_io, view_factors, visualization, serializer
+from src import utils, properties_atlas, vtk_io, view_factors, visualization, serializer
 import numpy as np
 
 
@@ -51,7 +51,7 @@ def op_process_view_factors(
     orbit_divisions = properties.global_properties["orbit_divisions"]
     division_time = properties.orbit_properties.period / orbit_divisions
     elapsed_secs = properties.orbit_properties.elapsed_secs
-    sun_direction = properties.orbit_properties.sun_position
+    sun_direction = utils.normalize(properties.orbit_properties.sun_position)
 
     if orbit_divisions > len(elapsed_secs):
         print(
@@ -65,9 +65,7 @@ def op_process_view_factors(
     print("Calculating sun view factors")
     element_sun_view_factors = [
         (
-            view_factors.element_sun(
-                mesh, sun_direction / np.linalg.norm(sun_direction)
-            ),
+            view_factors.element_sun(mesh, sun_direction),
             properties.orbit_properties.elapsed_secs[0],
         )
     ]
@@ -91,7 +89,9 @@ def op_process_view_factors(
         ):
             continue
 
-        earth_direction = -properties.orbit_properties.sat_position[step]
+        earth_direction = utils.normalize(
+            -properties.orbit_properties.sat_position[step]
+        )
         earth_view_factors, earth_albedo_coefficients = view_factors.element_earth(
             mesh, earth_direction, sun_direction, ray_amount=earth_ray_amount
         )

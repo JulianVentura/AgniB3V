@@ -61,11 +61,13 @@ def op_process_view_factors(
 
     print("Setting up bodies")
     view_factors.mesh_look_at(mesh, sun_direction)
-    
+
     print("Calculating sun view factors")
     element_sun_view_factors = [
         (
-            view_factors.element_sun(mesh, sun_direction),
+            view_factors.element_sun(
+                mesh, sun_direction / np.linalg.norm(sun_direction)
+            ),
             properties.orbit_properties.elapsed_secs[0],
         )
     ]

@@ -104,3 +104,31 @@ def test_vector_spherical_coordinates():
             np.round(expected_spherical_coords_vectors[i], 5),
             np.round(spherical_coords_vectors[1:], 5),
         )
+
+
+def test_flip_vectors_around_axis():
+    vectors = [
+        np.array([[0, 1, 0], [0, 0, 1]]),
+        np.array([[1, 0, 0], [0, 0, 1]]),
+        np.array([[1, 0, 0], [0, 1, 0]]),
+        np.array([[1, 0, 0], [0, 0, 1]]),
+        np.array([[2, 3, 4], [5, 3, 4]]),
+    ]
+    axis = [
+        np.array([1, 0, 0]),
+        np.array([0, 1, 0]),
+        np.array([0, 0, 1]),
+        np.array([1, 1, 0]),
+        np.array([2, 3, 4]),
+    ]
+
+    expected_vectors = [
+        np.array([[0, -1, 0], [0, 0, -1]]),
+        np.array([[-1, 0, 0], [0, 0, -1]]),
+        np.array([[-1, 0, 0], [0, -1, 0]]),
+        np.array([[0, 1, 0], [0, 0, -1]]),
+        np.array([[2, 3, 4], [-0.17241379, 4.24137931, 5.65517241]]),
+    ]
+    for i in range(len(vectors)):
+        flipped_vectors = utils.flip_vectors_around_axis(axis[i], vectors[i])
+        assert np.allclose(flipped_vectors, expected_vectors[i])

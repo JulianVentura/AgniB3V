@@ -52,10 +52,12 @@ def element_earth(mesh, earth_direction, sun_direction, penumbra_fraction=0.05, 
 		mask[hit_ray_ids] = 0
 		not_hit_ray_directions = ray_directions[mask]
 
+		not_hit_ray_directions = utils.flip_vectors_around_axis(earth_direction, not_hit_ray_directions)
+
 		#Aparent area
 		#ray_normal_dot_product = not_hit_ray_directions @ emitting_element_normal[:,np.newaxis].flatten()
 		#aparent_area_coefficient = np.sum(ray_normal_dot_product / np.linalg.norm(not_hit_ray_directions, axis=1))/(not_hit_ray_directions.size // 3)
-
+		
 		#Albedo
 		if(not_hit_ray_directions.size > 0):
 			ray_sun_dot_product = -not_hit_ray_directions @ sun_direction[:,np.newaxis]

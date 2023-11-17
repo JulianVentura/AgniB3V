@@ -1,8 +1,8 @@
 {
     "global_properties": {
-        "beta_angle": 31.0,
+        "beta_angle": -23.07197787367823,
         "orbit_height": 299.0,
-        "orbital_period": 6000.0,
+        "orbital_period": 5828.516639879384,
         "orbit_divisions": 30,
         "albedo": 0.2,
         "earth_ir": 225.0,
@@ -17,7 +17,9 @@
         "snap_period": 3600.0,
         "element_ray_amount": 500,
         "element_max_reflections_amount": 3,
-        "earth_ray_amount": 200
+        "earth_ray_amount": 200,
+        "eclipse_start": 594.222360120616,
+        "eclipse_end": 2637.593360120617
     },
     "materials": {
         "properties": {
@@ -30,7 +32,13 @@
                 "alpha_sun": 4.0,
                 "alpha_ir": 0.75,
                 "initial_temperature": 6.0,
-                "color": [255,0,0,255]
+                "color": [
+                    255,
+                    0,
+                    0,
+                    255
+                ],
+                "name": "Aluminio"
             },
             "Cobre": {
                 "thermal_conductivity": 0.225,
@@ -41,12 +49,26 @@
                 "alpha_sun": 4.0,
                 "alpha_ir": 0.53,
                 "initial_temperature": 6.0,
-                "color": [0,255,0,255]
+                "color": [
+                    0,
+                    255,
+                    0,
+                    255
+                ],
+                "name": "Cobre"
             }
         },
         "elements": {
-            "Aluminio": [0,1,2,3],
-            "Cobre": [4,5]
+            "Aluminio": [
+                0,
+                1,
+                2,
+                3
+            ],
+            "Cobre": [
+                4,
+                5
+            ]
         }
     }
 }

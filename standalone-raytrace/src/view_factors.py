@@ -15,7 +15,7 @@ def albedo_edge(ray_sun_dot_product, penumbra_fraction=0):
 	ray_sun_dot_product = np.abs(ray_sun_dot_product)
 	return ray_sun_dot_product
 
-def element_earth(mesh, earth_direction, sun_direction, penumbra_fraction=0.05, ray_amount=1000):
+def element_earth(mesh, earth_direction, sun_direction, penumbra_fraction=0, ray_amount=1000):
 	"""
 	Receives a trimesh mesh object, a vector that represents the direction towards
 	the earth and the amount of rays to be casted.

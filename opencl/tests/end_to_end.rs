@@ -266,3 +266,22 @@ pub fn test_radiation_3() -> Result<()> {
 
     Ok(())
 }
+
+#[test]
+pub fn test_radiation_4() -> Result<()> {
+    /*
+    Only Radiation from elements to space
+     - Solar constant set to zero
+     - Albedo factor set to zero
+     - Earth IR set to zero
+    One cube of 1m
+     - Density: 2700 kg/m3
+     - Specific heat: 897 J/(K kg),
+     - Thermal conductivity: 237 W/(K m)
+     - Initial temperature: 473.15 K
+    */
+
+    run_test(9)?;
+
+    Ok(())
+}

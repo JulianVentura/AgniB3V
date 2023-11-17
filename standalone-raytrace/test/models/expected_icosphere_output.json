@@ -10,6 +10,7 @@
     "materials": {
         "properties": {
             "MaterialA": {
+                "name": "MaterialA",
                 "test_id": 0,
                 "alpha_ir": 0.75,
                 "color": [
@@ -20,6 +21,7 @@
                 ]
             },
             "MaterialB": {
+                "name": "MaterialB",
                 "test_id": 1,
                 "alpha_ir": 0.25,
                 "color": [

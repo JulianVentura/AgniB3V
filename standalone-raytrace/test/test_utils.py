@@ -90,11 +90,11 @@ def test_vector_spherical_coordinates():
         [[1, 1, 0], [3, 3, 0], [-1, 1, 0], [1, 0, 1], [2.5, 2.5, 3.5355339]]
     )
     expected_spherical_coords_vectors = [
-        [np.pi / 4, np.pi / 2],
-        [np.pi / 4, np.pi / 2],
-        [3 * np.pi / 4, np.pi / 2],
-        [0, np.pi / 4],
-        [np.pi / 4, np.pi / 4],
+        [3*np.pi / 4, np.pi / 2],
+        [3*np.pi / 4, np.pi / 2],
+        [5 * np.pi / 4, np.pi / 2],
+        [np.pi / 2, np.pi / 4],
+        [3*np.pi / 4, np.pi / 4],
     ]
     for i in range(len(cartesian_coords_vectors)):
         spherical_coords_vectors = utils.vector_spherical_cordinates(

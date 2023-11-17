@@ -93,7 +93,11 @@ def op_process_view_factors(
             -properties.orbit_properties.sat_position[step]
         )
         earth_view_factors, earth_albedo_coefficients = view_factors.element_earth(
-            mesh, earth_direction, sun_direction, ray_amount=earth_ray_amount
+            mesh,
+            earth_direction,
+            sun_direction,
+            penumbra_fraction=0,
+            ray_amount=earth_ray_amount,
         )
         element_earth_ir_view_factors.append((earth_view_factors, elapsed_secs[step]))
         element_earth_albedo_view_factors.append(

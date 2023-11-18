@@ -6,6 +6,8 @@ use super::{
 use anyhow::Result;
 
 pub fn run_solver(config_path: &String) -> Result<()> {
+    //TODO: Why is this being done here?
+    //Move this logic to parser
     let config = parser::parse_config(config_path);
     let results_folder = format!("{}/{}_results", config.results_path, config.results_name);
     let results_file = format!("{}_results", config.results_name);

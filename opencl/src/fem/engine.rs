@@ -108,6 +108,7 @@ impl FEMEngine {
     }
 
     fn execute_solver(&mut self) -> Result<()> {
+        //TODO: Future new API to include execute_for(steps)
         match &mut self.solver {
             Solver::Explicit(s) => s.step()?,
             Solver::Implicit(s) => s.step()?,
@@ -135,22 +136,26 @@ impl FEMEngine {
         (dividend / divisor).fract().abs() < 1e-12
     }
 
-    fn is_in_eclipse(&self, time: f64) -> bool {
+    //TODO: Maybe we should make the interval not including the end in order to reduce error on
+    //large step_sizes, like: [start, end)
+    fn is_in_eclipse(&self, orbit_time: f64) -> bool {
         let start = self.orbit_parameters.eclipse_start;
         let end = self.orbit_parameters.eclipse_end;
         if start <= end {
-            return time >= start && time <= end;
+            return orbit_time >= start && orbit_time <= end;
         } else {
-            return time <= end || time >= start;
+            return orbit_time <= end || orbit_time >= start;
         }
     }
 
     fn update_f_index(&mut self, orbit_time: f64) {
+        //TODO: We can make this a little more readable
         let orbit_divisions = &self.orbit_parameters.orbit_divisions;
         let f_index = self.f_index;
         let next = (f_index + 1) % orbit_divisions.len();
         let next_start = orbit_divisions[next];
         if next == 0 {
+            //TODO: We can invert this
             if orbit_time >= orbit_divisions[f_index] {
                 return;
             } else {
@@ -164,7 +169,7 @@ impl FEMEngine {
             self.update_f_index(orbit_time);
             return;
         } else {
-            return;
+            return; //TODO: Why???
         }
     }
 }
@@ -183,7 +188,7 @@ mod tests {
             orbit_period: 6000.0,
             eclipse_start: start,
             eclipse_end: end,
-            orbit_divisions: orbit_divisions,
+            orbit_divisions,
         };
         let solver = Solver::Explicit(ExplicitSolver::new(&vec![], 0.0));
         FEMEngine {
@@ -191,7 +196,7 @@ mod tests {
             time_step: 1.0,
             snapshot_period: 1.0,
             orbit_parameters: orbit,
-            solver: solver,
+            solver,
             results: vec![],
             f_index: 0,
         }

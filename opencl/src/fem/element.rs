@@ -285,6 +285,9 @@ impl Element {
     ) -> Vec<Vector> {
         let earth_albedo = &factors.earth_albedo;
         let earth_ir_vf = &factors.earth_ir;
+
+        //TODO: We can refactor this.
+        //Functional programming is easier to read and to optimize by compiler
         let mut f_vec: Vec<Vector> = vec![];
 
         for i in 0..earth_albedo.len() {

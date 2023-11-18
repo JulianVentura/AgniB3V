@@ -275,7 +275,7 @@ pub fn fem_problem_from_vtk(
     let orbit_parameters = FEMOrbitParameters {
         betha: global_properties.beta_angle,
         orbit_period: global_properties.orbital_period,
-        orbit_divisions: orbit_divisions,
+        orbit_divisions,
         eclipse_start: global_properties.eclipse_start,
         eclipse_end: global_properties.eclipse_end,
     };

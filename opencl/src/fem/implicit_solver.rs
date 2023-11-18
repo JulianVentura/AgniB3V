@@ -62,10 +62,12 @@ impl ImplicitSolver {
     }
 
     pub fn step(&mut self) -> Result<()> {
+        //TODO: Optimize this clone
         let mut t_4 = self.temp.clone();
         solver::fourth_power(&mut t_4);
 
         let mut f = &self.h * t_4;
+        //TODO: Merge both f_const vectors into one
         if self.in_eclipse {
             f += &self.f_const_eclipse[self.f_index];
         } else {

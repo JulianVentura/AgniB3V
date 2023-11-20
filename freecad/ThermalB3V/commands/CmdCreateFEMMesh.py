@@ -40,9 +40,9 @@ class CmdCreateFEMMesh:
         
     def GetResources(self):
         return {
-            'MenuText': ("Create Analysis"),
-            'ToolTip': ("Create Analysis"),
-            'Pixmap': iconPath("Analysis.svg"),
+            'MenuText': ("Create FEM Mesh"),
+            'ToolTip': ("Create FEM Mesh"),
+            'Pixmap': iconPath("FemMesh.svg"),
         }
     
     def getAnalysisObject(self, document):

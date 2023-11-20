@@ -15,10 +15,12 @@ class CmdCreateAnalysis:
 
     def IsActive(self):
         """
-        Show command as active if there is an active document
-        but config does not exists
+        Function to check if the command is active
         """
-        return bool(FreeCAD.activeDocument()) and bool(FreeCAD.activeDocument().getObject(CONFIG_GROUP))
+        isActiveDocument = bool(FreeCAD.activeDocument())
+        configExists = bool(FreeCAD.activeDocument().getObject(CONFIG_GROUP))
+        analysisExists = bool(self.getAnalysisObject(FreeCAD.activeDocument()))
+        return isActiveDocument and configExists and not analysisExists
         
     def GetResources(self):
         return {
@@ -26,3 +28,11 @@ class CmdCreateAnalysis:
             'ToolTip': ("Create Analysis"),
             'Pixmap': iconPath("Analysis.svg"),
         }
+    
+    def getAnalysisObject(self, document):
+        """Returns the Analysis object or None if it does not exist"""
+        objects = document.Objects
+        for object in objects:
+            if object.TypeId == "Fem::FemAnalysis":
+                return object
+        return None

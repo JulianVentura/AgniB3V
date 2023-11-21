@@ -42,7 +42,6 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         It is executed once in a FreeCAD session followed by the Activated function.
         """
         import commands.Commander as Commander
-        import femcommands.commands
         from constants.global_properties import GLOBAL_PROPERTIES_INPUTS        
 
         self.attributes = []
@@ -74,6 +73,7 @@ class ThermalWorkbench(FreeCADGui.Workbench):
             "THM_Material_Editor",
             "THM_Create_FEM_Mesh",
             "THM_Create_FEM_Mesh_Region",
+            "THM_Condition_Editor",
         ]
 
         # List of tools in the workbench toolbar

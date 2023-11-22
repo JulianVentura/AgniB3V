@@ -65,9 +65,8 @@ def element_earth(mesh, earth_direction, sun_direction, penumbra_fraction=0, ray
 		else:
 			albedo = 0
 		
-		#aparent_area_coefficient * albedo * view_factor
-		view_factors[element_idx] = albedo
-		albedo_coefficients[element_idx] = view_factor
+		view_factors[element_idx] = view_factor
+		albedo_coefficients[element_idx] = albedo
 	return view_factors, albedo_coefficients
 
 def element_sun(mesh, sun_direction):

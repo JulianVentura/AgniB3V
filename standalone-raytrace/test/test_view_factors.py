@@ -76,9 +76,7 @@ def _test_element_earth_view_factors_are_as_expected(penumbra_fraction):
     expected_view_factors[19] = expected_view_factors[15]
 
     for i in range(20):
-        assert _is_in_interval(
-            earth_albedo_coefficients[i], expected_view_factors[i], 0.06
-        )
+        assert _is_in_interval(earth_view_factors[i], expected_view_factors[i], 0.06)
 
 
 def test_element_earth_view_factors_are_as_expected_without_penumbra():
@@ -89,7 +87,7 @@ def test_element_earth_view_factors_are_as_expected_with_penumbra():
     _test_element_earth_view_factors_are_as_expected(0.5)
 
 
-def _test_penumbra(expected_lit_fractions, penumbra_fraction):
+def _test_earth_albedo(expected_lit_fractions, penumbra_fraction):
     SUBDIVISIONS = 16
     SUN_VECTOR = np.array([12, 0, 0])
     mesh = vtk_io.load_vtk(RING_GEOMETRY_PATH)
@@ -104,72 +102,72 @@ def _test_penumbra(expected_lit_fractions, penumbra_fraction):
             ray_amount=1000,
         )
         lit_fraction = (
-            np.sum(earth_albedo_coefficients > 0.1) / earth_albedo_coefficients.size
+            np.sum(earth_albedo_coefficients) / earth_albedo_coefficients.size
         )
-        assert _is_in_interval(lit_fraction, expected_lit_fractions[i], 0.06)
+        assert _is_in_interval(np.round(lit_fraction, 2), expected_lit_fractions[i], 0.05)
 
 
-def test_penumbra_full_umbra():
+def test_earth_albedo_full_umbra():
     expected_lit_fractions = [
         0.5,
+        0.43,
+        0.38,
+        0.33,
+        0.24,
+        0.17,
+        0.12,
+        0.07,
+        0.0,
+        0.07,
+        0.12,
+        0.17,
+        0.26,
+        0.33,
+        0.39,
+    ]
+    _test_earth_albedo(expected_lit_fractions, 0)
+
+
+def test_earth_albedo_half_umbra():
+    expected_lit_fractions = [
         0.5,
-        0.5,
+        0.44,
         0.4,
-        0.4,
-        0.3,
+        0.35,
+        0.28,
+        0.24,
         0.2,
-        0.0,
-        0.0,
-        0.0,
+        0.16,
+        0.09,
+        0.15,
         0.2,
-        0.3,
-        0.3,
-        0.4,
-        0.5,
+        0.24,
+        0.31,
+        0.35,
+        0.39,
     ]
-    _test_penumbra(expected_lit_fractions, 0)
+    _test_earth_albedo(expected_lit_fractions, 0.5)
 
 
-def test_penumbra_half_umbra():
+def test_earth_albedo_no_umbra():
     expected_lit_fractions = [
         0.5,
-        0.5,
-        0.5,
-        0.5,
-        0.5,
+        0.44,
+        0.39,
+        0.35,
+        0.29,
+        0.24,
+        0.2,
+        0.15,
+        0.1,
+        0.16,
+        0.2,
+        0.24,
+        0.3,
+        0.35,
         0.4,
-        0.3,
-        0.3,
-        0.0,
-        0.3,
-        0.3,
-        0.4,
-        0.4,
-        0.5,
-        0.5,
     ]
-    _test_penumbra(expected_lit_fractions, 0.5)
-
-
-def test_penumbra_full_umbra():
-    expected_lit_fractions = [
-        0.5,
-        0.5,
-        0.5,
-        0.5,
-        0.5,
-        0.5,
-        0.5,
-        0.5,
-        0.5,
-        0.5,
-        0.5,
-        0.5,
-        0.5,
-        0.5,
-        0.5,
-    ]
-    _test_penumbra(expected_lit_fractions, 1.0)
+    _test_earth_albedo(expected_lit_fractions, 1.0)
 
 
 def _element_element_backwards_pyramid(properties_path, ray_amount):

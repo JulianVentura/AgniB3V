@@ -2,12 +2,14 @@ import FreeCAD
 import os
 import json
 import re
+from utils.firstForCondition import firstForCondition
 from public.utils import iconPath
 from utils.CustomJsonEncoder import CustomJsonEncoder
 from ui.DialogExport import DialogExport
 from constants.material_properties import MATERIAL_PROPERTIES
+from constants.condition_properties import CONDITION_PROPERTIES
 import vtk
-from constants import CONFIG_GROUP
+from constants import CONDITIONS_GROUP, CONFIG_GROUP, MATERIALS_GROUP
 
 class CmdExportMesh:
     def __init__(self, workbench):
@@ -59,44 +61,26 @@ class CmdExportMesh:
             FreeCAD.Console.PrintError("No Materials found\n")
             return
         
+        FreeCAD.Console.PrintMessage("Getting condition objects\n")
+        conditionObjects = self.getConditionObjects(analysisObject)
+        if len(conditionObjects) == 0:
+            FreeCAD.Console.PrintWarning("No Conditions found\n")
+        
         # TODO: check if there is parts of the object with different materials
         # this can be done by checking if there are solid repeated or faces
         # repeated (for the faces we should check if there are solid and faces combined
         # and check the faces in the solid)
         # This is wrong, but user can set two materials to the same solid/face
 
-        elements = {}
-        properties = {}
-
-        FreeCAD.Console.PrintMessage("Getting elements with material\n")
-        for materialObject in materialObjects:
-            elementsWithMaterial = self.getElementsWithMaterial(materialObject)
-            if len(elementsWithMaterial) == 0:
-                FreeCAD.Console.PrintError(f"No elements found with material {materialObject.Label}\n")
-                return
- 
-            trianglesWithMaterial = self.getTrianglesFromElements(elementsWithMaterial, femMeshObject)
-            if len(trianglesWithMaterial) == 0:
-                FreeCAD.Console.PrintError(f"No triangles found with material {materialObject.Label}\n")
-                return
-            
-            # TODO: is better key to be the name, label, id or something else?
-            elements[materialObject.Name] = trianglesWithMaterial
-            properties[materialObject.Name] = self.getProperties(materialObject.Material)
-            if not properties[materialObject.Name]:
-                FreeCAD.Console.PrintError(f"Some of the material properties are missing in {materialObject.Label}\n")
-                # console the missing properties
-                for property in MATERIAL_PROPERTIES:
-                    if property not in materialObject.Material:
-                        FreeCAD.Console.PrintError(f"  Missing property: {property}\n")
-                return
+        materials = self.getElementAndProperties(femMeshObject, materialObjects, MATERIAL_PROPERTIES)
+        conditions = self.getElementAndProperties(femMeshObject, conditionObjects, CONDITION_PROPERTIES)
 
         # Writing path
         path = self.workbench.getExportPath()
         
         # Open file and write
         FreeCAD.Console.PrintMessage(f"Starting exporting to {path}\n")
-        self.writeMaterialAsJson(properties, elements, path)
+        self.writeMaterialAsJson(materials, conditions, path)
         self.writeFemMeshAsVtk(femMeshObject, path)
     
     def getAnalysisObject(self, document):
@@ -115,25 +99,40 @@ class CmdExportMesh:
                 return object
         return None
     
+    def getConditionObjects(self, analysisObject):
+        """Returns a list of condition objects"""
+        conditionsGroup = firstForCondition(
+            analysisObject.Group,
+            condition=lambda x: x.Name == CONDITIONS_GROUP,
+        )
+        conditionObjects = []
+        for object in conditionsGroup.Group:
+            if object.TypeId == "App::MaterialObjectPython":
+                conditionObjects.append(object)
+        return conditionObjects
+    
     def getMaterialObjects(self, analysisObject):
         """Returns a list of material objects"""
-        objects = analysisObject.Group
+        materialsGroup = firstForCondition(
+            analysisObject.Group,
+            condition=lambda x: x.Name == MATERIALS_GROUP,
+        )
         materialObjects = []
-        for object in objects:
+        for object in materialsGroup.Group:
             if object.TypeId == "App::MaterialObjectPython":
                 materialObjects.append(object)
         return materialObjects
     
-    def getProperties(self, material):
+    def getProperties(self, material, propertiesRequired):
         """Returns a dictionary of the neccessary properties of the material"""
         # Check if every material property exists in the material
-        for property in MATERIAL_PROPERTIES:
+        for property in propertiesRequired:
             if property not in material:
                 return None
 
         # Format the material properties to remove units
         materialWithoutUnits = {}
-        for property in MATERIAL_PROPERTIES:
+        for property in propertiesRequired:
             matches = re.findall(r"\d+.\d+|\d+", material[property])
             if matches:
                 materialWithoutUnits[property] = float(matches[0])
@@ -175,6 +174,37 @@ class CmdExportMesh:
                 FreeCAD.Console.PrintError(f"This could be causing an error on the mesh generation\n")
 
         return triangles
+
+    def getElementAndProperties(self, femMeshObject, materialObjects, propertiesRequired):
+        """Returns a dictionary with the elements and the properties of the materials"""
+        elements = {}
+        properties = {}
+
+        print(f"propertiesRequired: {propertiesRequired}")
+        for materialObject in materialObjects:
+            FreeCAD.Console.PrintMessage(f"Getting elements and properties for {materialObject.Label}\n")
+            elementsWithMaterial = self.getElementsWithMaterial(materialObject)
+            if len(elementsWithMaterial) == 0:
+                FreeCAD.Console.PrintError(f"No elements found with material {materialObject.Label}\n")
+                return
+ 
+            trianglesWithMaterial = self.getTrianglesFromElements(elementsWithMaterial, femMeshObject)
+            if len(trianglesWithMaterial) == 0:
+                FreeCAD.Console.PrintError(f"No triangles found with material {materialObject.Label}\n")
+                return
+            
+            # TODO: is better key to be the name, label, id or something else?
+            elements[materialObject.Name] = trianglesWithMaterial
+            properties[materialObject.Name] = self.getProperties(materialObject.Material, propertiesRequired)
+            if not properties[materialObject.Name]:
+                FreeCAD.Console.PrintError(f"Some of the material properties are missing in {materialObject.Label}\n")
+                # console the missing properties
+                for property in propertiesRequired:
+                    if property not in materialObject.Material:
+                        FreeCAD.Console.PrintError(f"  Missing property: {property}\n")
+                return
+        
+        return { "elements": elements, "properties": properties }
     
     def writeFemMeshAsVtk(self, femMeshObject, path):
         """Writes the mesh as a vtk file"""
@@ -202,7 +232,7 @@ class CmdExportMesh:
 
         FreeCAD.Console.PrintMessage(f"Exported mesh to file {meshPath}\n")
 
-    def writeMaterialAsJson(self, properties, elements, path):
+    def writeMaterialAsJson(self, materials, conditions, path):
         """Writes the material as a json file"""
         materialPath = os.path.join(path, "properties.json")
         globalProperties = self.workbench.getGlobalPropertiesValues()
@@ -213,10 +243,8 @@ class CmdExportMesh:
             json.dump(
                 {
                     "global_properties": globalProperties,
-                    "materials": {
-                        "properties": properties,
-                        "elements": elements
-                    }
+                    "materials": materials,
+                    "conditions": conditions,
                 },
                 file,
                 indent=4,

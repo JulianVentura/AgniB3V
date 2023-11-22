@@ -155,13 +155,11 @@ def op_show_help(argv):
     Receives the argv list and prints a help message.
     """
     print("Use:")
+    print(f"  python3 {argv[0]} process <files_directory_path>")
+    print(f"  python3 {argv[0]} viewm <files_directory_path>")
     print(
-        f"  python3 {argv[0]} process <mesh_file_path> <properties_file_path> <gmat_report_file_path> <gmat_eclipse_file_path> <view_factors_file_path>"
+        "  Files found in files_directory_path should be: mesh.vtk, properties.json, ReportFile1.txt and EclipseLocator1.txt"
     )
-    print(
-        f"  python3 {argv[0]} viewvf <mesh_file_path> <properties_file_path> <element_id>"
-    )
-    print(f"  python3 {argv[0]} viewm <mesh_file_path> <properties_file_path>")
 
 
 def main():
@@ -171,28 +169,30 @@ def main():
     The commands are:
         process: given a mesh file, a properties file and gmat report and eclipse files
         it calculates the view factors.
-        viewvf: creates visualization for the view factors of an element.
         viewm: creates visualization for the material of the mesh.
 
     For each command expect the following arguments:
-        process: mesh_file_path, properties_file_path, gmat_report_file_path, gmat_eclipse_file_path, view_factors_file_path
-        viewvf: mesh_file_path, properties_file_path, element_id
-        viewm: mesh_file_path, properties_file_path
+        process: files_directory_path
+        viewm: files_directory_path
+        Files found in files_directory_path should be: mesh.vtk, properties.json,
+        ReportFile1.txt and EclipseLocator1.txt
     """
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 3:
         op_show_help(sys.argv)
         return
 
-    match sys.argv:
-        case [
-            _,
-            "process",
-            mesh_file_path,
-            properties_file_path,
-            gmat_report_file_path,
-            gmat_eclipse_file_path,
-            view_factors_file_path,
-        ]:
+    [_, opcode, files_directory_path] = sys.argv
+
+    if files_directory_path[-1] != "/":
+        files_directory_path += "/"
+    mesh_file_path = files_directory_path + "mesh.vtk"
+    properties_file_path = files_directory_path + "properties.json"
+    gmat_report_file_path = files_directory_path + "ReportFile1.txt"
+    gmat_eclipse_file_path = files_directory_path + "EclipseLocator1.txt"
+    view_factors_file_path = files_directory_path + "view_factors.vf"
+
+    match opcode:
+        case "process":
             op_process_view_factors(
                 mesh_file_path,
                 properties_file_path,
@@ -200,12 +200,15 @@ def main():
                 gmat_eclipse_file_path,
                 view_factors_file_path,
             )
-        case [_, "viewvf", mesh_file_path, properties_file_path, element_id]:
-            op_visualize_view_factors(mesh_file_path, properties_file_path, element_id)
-        case [_, "viewm", mesh_file_path, properties_file_path]:
+
+        case "viewm":
             op_visualize_material(mesh_file_path, properties_file_path)
         case _:
             op_show_help(sys.argv)
+
+        # TODO: Read vf from processed files
+        # case "viewvf":
+        #    op_visualize_view_factors(mesh_file_path, properties_file_path, element_id)
 
 
 if __name__ == "__main__":

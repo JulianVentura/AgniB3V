@@ -14,10 +14,11 @@ class CmdInitializeProperties:
 
     def IsActive(self):
         """
-        Show command as active if there is an active document
-        but config does not exists
+        Function to check if the command is active
         """
-        return bool(FreeCAD.activeDocument()) and not bool(FreeCAD.activeDocument().getObject(CONFIG_GROUP))
+        isActiveDocument = bool(FreeCAD.activeDocument())
+        configExists = bool(FreeCAD.activeDocument().getObject(CONFIG_GROUP))
+        return isActiveDocument and not configExists
         
     def GetResources(self):
         return {

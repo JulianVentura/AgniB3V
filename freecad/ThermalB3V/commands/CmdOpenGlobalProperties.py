@@ -16,10 +16,11 @@ class CmdOpenGlobalProperties:
 
     def IsActive(self):
         """
-        Show command as active if there is an active document
-        and config exists
+        Function to check if the command is active
         """
-        return bool(FreeCAD.activeDocument()) and bool(FreeCAD.activeDocument().getObject(CONFIG_GROUP))
+        isActiveDocument = bool(FreeCAD.activeDocument())
+        configExists = bool(FreeCAD.activeDocument().getObject(CONFIG_GROUP))
+        return isActiveDocument and configExists
         
     def GetResources(self):
         return {

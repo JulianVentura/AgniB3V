@@ -1,7 +1,9 @@
 import FreeCAD
 from PySide2.QtWidgets import *
+from constants import CONDITIONS_GROUP
 from constants.condition_properties import CONDITION_PROPERTIES
 from public.utils import iconPath
+from utils.firstForCondition import firstForCondition
 from utils.camelCaseToLabel import camelCaseToLabel
 from utils.labelToCamelCase import labelToCamelCase
 import ObjectsFem
@@ -19,7 +21,12 @@ class WidgetConditions(QWidget):
     def __init__(self, parent, workbench, onClose):
         super().__init__(parent)
         self.workbench = workbench
-        self.conditions = self.getConditions(FreeCAD.ActiveDocument)
+        self.analysisObject = self.getAnalysisObject(FreeCAD.ActiveDocument)
+        self.conditionsGroup = firstForCondition(
+            self.analysisObject.Group,
+            condition=lambda x: x.Name == CONDITIONS_GROUP,
+        )
+        self.conditions = self.getConditions()
         self.onClose = onClose
         self.initUI()
     
@@ -109,11 +116,7 @@ class WidgetConditions(QWidget):
         Add a new condition to the list
         """
         activeDocument = FreeCAD.ActiveDocument
-        analysisObject = self.getAnalysisObject(activeDocument)
-        if analysisObject is None:
-            FreeCAD.Console.PrintError("Analysis object does not exist\n")
-            return
-
+        
         conditionLabel, ok = QInputDialog.getText(self, "Nueva Condición", "Nombre de la nueva condición:")
         newCondition = labelToCamelCase(conditionLabel)
         if (newCondition in self.conditions) or (newCondition == ""):
@@ -136,7 +139,7 @@ class WidgetConditions(QWidget):
             conditionObject.Material = mat
             self.conditions[newCondition] = conditionObject
             self.conditionList.addItem(camelCaseToLabel(newCondition))
-            analysisObject.addObject(conditionObject)
+            self.conditionsGroup.addObject(conditionObject)
 
     def addFreecadNeededProperties(self, mat):
         """
@@ -148,6 +151,18 @@ class WidgetConditions(QWidget):
         mat["ThermalConductivity"] = "0 W/m/K"
         mat["ThermalExpansionCoefficient"] = "0 um/m/K"
         mat["SpecificHeat"] = "0 J/kg/K"
+    
+    def getConditions(self):
+        """
+        Returns the conditions of the document
+        """
+        conditions = {}
+        objects = self.conditionsGroup.Group
+        for object in objects:
+            if object.TypeId == "App::MaterialObjectPython":
+                if "Label" in object.Material:
+                    conditions[object.Material["Label"]] = object
+        return conditions
 
     def getAnalysisObject(self, document):
         """
@@ -158,15 +173,3 @@ class WidgetConditions(QWidget):
             if object.TypeId == "Fem::FemAnalysis":
                 return object
         return None
-    
-    def getConditions(self, document):
-        """
-        Returns the conditions of the document
-        """
-        conditions = {}
-        objects = document.Objects
-        for object in objects:
-            if object.TypeId == "App::MaterialObjectPython":
-                if "Label" in object.Material:
-                    conditions[object.Material["Label"]] = object
-        return conditions

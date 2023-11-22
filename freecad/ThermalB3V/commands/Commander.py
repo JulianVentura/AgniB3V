@@ -6,6 +6,7 @@ from commands.CmdSelectDocument import CmdSelectDocument
 from commands.CmdMaterialEditor import CmdMaterialEditor
 from commands.CmdInitializeProperties import CmdInitializeProperties
 from commands.CmdCreateAnalysis import CmdCreateAnalysis
+from commands.CmdCreateFEMMesh import CmdCreateFEMMesh
 
 def addCommands(workbench):
     """
@@ -17,3 +18,4 @@ def addCommands(workbench):
     FreeCADGui.addCommand('THM_Material_Editor', CmdMaterialEditor(workbench))
     FreeCADGui.addCommand('THM_Initialize_Properties', CmdInitializeProperties(workbench))
     FreeCADGui.addCommand('THM_Create_Analysis', CmdCreateAnalysis())
+    FreeCADGui.addCommand('THM_Create_FEM_Mesh', CmdCreateFEMMesh())

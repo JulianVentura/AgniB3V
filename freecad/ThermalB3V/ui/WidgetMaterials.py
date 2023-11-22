@@ -38,7 +38,7 @@ class WidgetMaterials(QWidget):
         addButton.clicked.connect(self.addMaterial)
 
         # Create ok button
-        okButton = QPushButton('Cerrar', self)
+        okButton = QPushButton('Aceptar', self)
         okButton.setDefault(False)
         okButton.setAutoDefault(False)
         okButton.clicked.connect(self.onClose)

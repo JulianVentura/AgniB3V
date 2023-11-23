@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.widgets import Slider
 import sys
+import pandas as pd
 
 # We have to install pip and then meshio for it to work
 
@@ -27,6 +28,25 @@ def get_positions(vtk_path):
     for i, position in enumerate(meshio_mesh.points):
         positions[i] = position
     return positions
+
+
+def parse_results_xls(directory, xls_path, progress):
+    results_temperatures = {}
+    results_positions = {}
+    df = pd.read_excel(directory + "/" + xls_path)
+    times = df["Time, s"]
+    columns = []
+    for col in df.columns:
+        if "MAIN.T" in col:
+            columns.append(col)
+    for i, time in enumerate(times):
+        progress((i / len(times)) * 100)
+        temperatures = {}
+        for col in columns:
+            id = int(col.split(".")[1][1:])
+            temperatures[id] = df[col][i]
+        results_temperatures[time] = temperatures
+    return results_temperatures, results_positions
 
 
 def parse_results_vtk_series(directory, vtk_series_path, progress):

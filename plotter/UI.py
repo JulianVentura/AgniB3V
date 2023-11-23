@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import (
     QApplication,
     QWidget,
     QVBoxLayout,
+    QHBoxLayout,
     QLabel,
     QPushButton,
     QComboBox,
@@ -10,10 +11,12 @@ from PyQt5.QtWidgets import (
     QInputDialog,
     QMessageBox,
 )
+from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, QTimer
 from plotter import (
     plot_all_temperatures,
     parse_results_vtk_series,
+    parse_results_xls,
     plot_temperature_by_id,
     plot_average_temperature,
     plot_std_temperature,
@@ -47,6 +50,12 @@ class MainWindow(QWidget):
         self.layout.addWidget(self.file_button, alignment=Qt.AlignCenter)
         self.file_button.clicked.connect(self.open_file_dialog)
 
+        reload_icon = QIcon.fromTheme("view-refresh")
+        self.reload_button = QPushButton(reload_icon, "Reload")
+        self.layout.addWidget(self.reload_button, alignment=Qt.AlignCenter)
+        self.reload_button.clicked.connect(self.reload)
+        self.reload_button.hide()
+
         self.button = QPushButton("Show Graph")
         self.layout.addWidget(self.button, alignment=Qt.AlignCenter)
         self.button.clicked.connect(self.show_graph)
@@ -66,6 +75,7 @@ class MainWindow(QWidget):
         self.setWindowTitle("Graph Selector")
 
         self.results = None
+        self.file = None
 
     def show_graph(self):
         graph_type = self.combo_box.currentText()
@@ -91,13 +101,42 @@ class MainWindow(QWidget):
             "All Files (*);;Python Files (*.py)",
             options=options,
         )
+        self.get_results(file_name)
+
+        self.loader_label.hide()
+        self.reload_button.show()
+
+    def progress(self, percentage):
+        percentage = int(percentage)
+        self.loader_label.setText(f"Loading... {percentage} %")
+        self.loader_label.show()
+        QApplication.processEvents()
+
+    def reload(self):
+        self.loader_label.show()
+        file_name = self.file
+        self.get_results(file_name)
+        self.loader_label.hide()
+
+    def get_results(self, file_name):
         if file_name:
             try:
-                self.results = parse_results_vtk_series(
-                    os.path.dirname(file_name),
-                    os.path.basename(file_name),
-                    self.progress,
-                )[0]
+                extension = os.path.splitext(file_name)[1]
+                if extension == ".series":
+                    self.results = parse_results_vtk_series(
+                        os.path.dirname(file_name),
+                        os.path.basename(file_name),
+                        self.progress,
+                    )[0]
+                elif extension == ".xlsx":
+                    self.results = parse_results_xls(
+                        os.path.dirname(file_name),
+                        os.path.basename(file_name),
+                        self.progress,
+                    )[0]
+                else:
+                    raise Exception("Invalid file type")
+                self.file = file_name
                 self.file_label.setText("File Choosen: " + file_name)
                 self.file_label.show()
                 self.button.show()
@@ -107,14 +146,6 @@ class MainWindow(QWidget):
                     "Error",
                     e.args[0],
                 )
-
-        self.loader_label.hide()
-
-    def progress(self, percentage):
-        percentage = int(percentage)
-        self.loader_label.setText(f"Loading... {percentage} %")
-        self.loader_label.show()
-        QApplication.processEvents()
 
 
 if __name__ == "__main__":

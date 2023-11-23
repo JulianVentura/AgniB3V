@@ -72,25 +72,21 @@ class WidgetViewFactors(QWidget):
         Execute process to calculate the view factors
         """
         RAYTRACE_COMMAND = "process"
-        meshPath = path.join(self.workbench.getExportPath(), "mesh.vtk")
-        propsPath = path.join(self.workbench.getExportPath(), "mesh.json")
+        exportPath = self.workbench.getExportPath()
         raytracingPath = self.workbench.getRaytracePath()
 
-        if not path.isfile(meshPath):
-            FreeCAD.Console.PrintError(f"Mesh file {meshPath} not found\n")
-            return
-        if not path.isfile(propsPath):
-            FreeCAD.Console.PrintError(f"Props file {propsPath} not found\n")
+        if not path.isdir(exportPath):
+            FreeCAD.Console.PrintError(f"Export directory {exportPath} not found\n")
             return
         if not path.isfile(raytracingPath):
             FreeCAD.Console.PrintError(f"Raytracing file {raytracingPath} not found\n")
             return
         
-        FreeCAD.Console.PrintMessage(f"Reading mesh from {meshPath} and props from {propsPath}\n")
+        FreeCAD.Console.PrintMessage(f"Reading files from {exportPath}\n")
         FreeCAD.Console.PrintMessage(f"Raytracing file {raytracingPath}\n")
         FreeCAD.Console.PrintMessage("Calculating view factors...\n")
 
         # TODO: get result? Maybe could return different codes depending on the result
-        # python3 main.py process <meshPath> <propsPath>
-        subprocess.run(["python3", raytracingPath, RAYTRACE_COMMAND, meshPath, propsPath])
-        FreeCAD.Console.PrintMessage(f"View factors calculated and written to {propsPath}\n")
+        # python3 main.py process <exportPath>
+        subprocess.run(["python3", raytracingPath, RAYTRACE_COMMAND, exportPath])
+        FreeCAD.Console.PrintMessage(f"View factors calculated and written to {exportPath}\n")

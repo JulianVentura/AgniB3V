@@ -204,7 +204,7 @@ class CmdExportMesh:
 
     def writeMaterialAsJson(self, properties, elements, path):
         """Writes the material as a json file"""
-        materialPath = os.path.join(path, "mesh.json")
+        materialPath = os.path.join(path, "properties.json")
         globalProperties = self.workbench.getGlobalPropertiesValues()
         globalProperties = { key: globalProperties[key]["value"] for key in globalProperties }
 

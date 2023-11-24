@@ -79,6 +79,7 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         thermalList = [
             "THM_Global_Properties",
             "THM_Export_Mesh",
+            "THM_Execute_Plotter",
         ]
 
         self.appendToolbar("Document", workbenchInitList)

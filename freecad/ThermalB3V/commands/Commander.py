@@ -8,16 +8,18 @@ from commands.CmdInitializeProperties import CmdInitializeProperties
 from commands.CmdCreateAnalysis import CmdCreateAnalysis
 from commands.CmdCreateFEMMesh import CmdCreateFEMMesh
 from commands.CmdCreateFEMMeshRegion import CmdCreateFEMMeshRegion
+from commands.CmdExecutePlotter import CmdExecutePlotter
 
 def addCommands(workbench):
     """
     Add commands to the workbench
     """
     FreeCADGui.addCommand('THM_Select_Document', CmdSelectDocument(workbench))
-    FreeCADGui.addCommand('THM_Global_Properties', CmdOpenGlobalProperties(workbench))
-    FreeCADGui.addCommand('THM_Export_Mesh', CmdExportMesh(workbench))
-    FreeCADGui.addCommand('THM_Material_Editor', CmdMaterialEditor(workbench))
     FreeCADGui.addCommand('THM_Initialize_Properties', CmdInitializeProperties(workbench))
     FreeCADGui.addCommand('THM_Create_Analysis', CmdCreateAnalysis())
+    FreeCADGui.addCommand('THM_Material_Editor', CmdMaterialEditor(workbench))
     FreeCADGui.addCommand('THM_Create_FEM_Mesh', CmdCreateFEMMesh())
     FreeCADGui.addCommand('THM_Create_FEM_Mesh_Region', CmdCreateFEMMeshRegion())
+    FreeCADGui.addCommand('THM_Global_Properties', CmdOpenGlobalProperties(workbench))
+    FreeCADGui.addCommand('THM_Export_Mesh', CmdExportMesh(workbench))
+    FreeCADGui.addCommand('THM_Execute_Plotter', CmdExecutePlotter())

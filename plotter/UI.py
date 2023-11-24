@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import (
+from PySide2.QtWidgets import (
     QApplication,
     QWidget,
     QVBoxLayout,
@@ -11,8 +11,8 @@ from PyQt5.QtWidgets import (
     QInputDialog,
     QMessageBox,
 )
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import Qt, QTimer
+from PySide2.QtGui import QIcon
+from PySide2.QtCore import Qt, QTimer
 from plotter import (
     plot_all_temperatures,
     parse_results_vtk_series,

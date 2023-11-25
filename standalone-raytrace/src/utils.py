@@ -1,7 +1,7 @@
 import numpy as np
 import sys
 
-RAND_VECTOR_CENTER = np.array([0.5, 0.5, 0.5])
+
 
 
 def normalize(v):
@@ -46,8 +46,8 @@ def generate_random_points_in_element(element, amount):
 
 
 def generate_random_unit_vectors(amount):
-    random_vectors = np.random.rand(amount, 3) - RAND_VECTOR_CENTER
-    return random_vectors / np.linalg.norm(random_vectors)
+    random_vectors = np.random.normal(0, 1, (amount, 3))
+    return random_vectors / np.linalg.norm(random_vectors, axis=1)[:, np.newaxis]
 
 
 # TODO: If vector is ortogonal to normal it will be multiplied by zero

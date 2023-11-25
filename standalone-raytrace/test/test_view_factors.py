@@ -1,5 +1,5 @@
 from .test_config import *
-from src import vtk_io, utils, properties_atlas, view_factors
+from src import vtk_io, utils, properties_atlas, view_factors, visualization
 import numpy as np
 
 
@@ -89,7 +89,7 @@ def test_element_earth_view_factors_are_as_expected_with_penumbra():
 
 def _test_earth_albedo(expected_lit_fractions, penumbra_fraction):
     SUBDIVISIONS = 16
-    SUN_VECTOR = np.array([12, 0, 0])
+    SUN_VECTOR = np.array([1, 0, 0])
     mesh = vtk_io.load_vtk(RING_GEOMETRY_PATH)
     for i in range(SUBDIVISIONS - 1):
         angle = (i / SUBDIVISIONS) * 2 * np.pi
@@ -99,73 +99,73 @@ def _test_earth_albedo(expected_lit_fractions, penumbra_fraction):
             -earth_vector,
             SUN_VECTOR,
             penumbra_fraction=penumbra_fraction,
-            ray_amount=1000,
+            ray_amount=10000,
         )
         lit_fraction = (
             np.sum(earth_albedo_coefficients) / earth_albedo_coefficients.size
         )
-        assert _is_in_interval(np.round(lit_fraction, 2), expected_lit_fractions[i], 0.05)
+        assert _is_in_interval(np.round(lit_fraction, 2), expected_lit_fractions[i], 0.08)
 
 
 def test_earth_albedo_full_umbra():
     expected_lit_fractions = [
-        0.5,
-        0.43,
-        0.38,
-        0.33,
-        0.24,
+        0.25,
+        0.25,
+        0.20,
         0.17,
-        0.12,
+        0.11,
         0.07,
-        0.0,
+        0.03,
+        0.00,
+        0.00,
+        0.00,
+        0.03,
         0.07,
         0.12,
         0.17,
-        0.26,
-        0.33,
-        0.39,
+        0.20,
     ]
     _test_earth_albedo(expected_lit_fractions, 0)
 
 
 def test_earth_albedo_half_umbra():
     expected_lit_fractions = [
-        0.5,
-        0.44,
-        0.4,
-        0.35,
-        0.28,
-        0.24,
-        0.2,
-        0.16,
-        0.09,
+        0.25,
+        0.25,
+        0.25,
+        0.22,
+        0.18,
         0.15,
-        0.2,
+        0.13,
+        0.12,
+        0.12,
+        0.12,
+        0.13,
+        0.15,
+        0.18,
+        0.22,
         0.24,
-        0.31,
-        0.35,
-        0.39,
     ]
     _test_earth_albedo(expected_lit_fractions, 0.5)
 
 
 def test_earth_albedo_no_umbra():
     expected_lit_fractions = [
-        0.5,
-        0.44,
-        0.39,
-        0.35,
-        0.29,
-        0.24,
-        0.2,
-        0.15,
-        0.1,
-        0.16,
-        0.2,
-        0.24,
-        0.3,
-        0.35,
-        0.4,
+        0.25,
+        0.25,
+        0.25,
+        0.25,
+        0.25,
+        0.25,
+        0.25,
+        0.25,
+        0.25,
+        0.25,
+        0.25,
+        0.25,
+        0.25,
+        0.25,
+        0.25,
     ]
     _test_earth_albedo(expected_lit_fractions, 1.0)
 

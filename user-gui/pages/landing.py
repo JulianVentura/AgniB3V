@@ -1,6 +1,7 @@
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
+from utils.appState import AppState
 
 class LandingWidget(QWidget):
     def __init__(self, parent=None):
@@ -9,6 +10,9 @@ class LandingWidget(QWidget):
         self.setupUi()
 
     def setupUi(self):
+        """
+        Sets up the UI.
+        """
         mainLayout = QHBoxLayout(self)
         frame = QFrame(self)
         frame.setFrameShape(QFrame.StyledPanel)
@@ -24,6 +28,9 @@ class LandingWidget(QWidget):
         mainLayout.addWidget(frame)
         
     def getHeaderLayout(self, frame):
+        """
+        Returns the header layout.
+        """
         headerLayout = QHBoxLayout()
 
         horizontalSpacerLeft = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
@@ -42,6 +49,9 @@ class LandingWidget(QWidget):
         return headerLayout
     
     def getBodyLayout(self, frame):
+        """
+        Returns the body layout.
+        """
         bodyLayout = QVBoxLayout()
         verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
@@ -75,9 +85,14 @@ class LandingWidget(QWidget):
         directory = QFileDialog.getExistingDirectory(self, "Select Directory")
         if directory and self._validateDirectory(directory):
             # TODO: cargar proyecto
+            AppState().set("projectDirectory", directory)
             self.parent.setCurrentIndex(2)
 
     def _validateDirectory(self, directory):
+        """
+        Validates if the directory is valid.
+        That is, if it has the necessary files.
+        """
         # TODO: validar si es un directorio valido
         # es decir, que tenga los archivos necesarios
         return True

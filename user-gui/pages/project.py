@@ -2,6 +2,7 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 import subprocess
+from utils.appState import AppState
 
 class ProjectWidget(QWidget):
     def __init__(self, parent=None):
@@ -10,91 +11,129 @@ class ProjectWidget(QWidget):
         self.setupUi()
 
     def setupUi(self):
-        self.verticalLayout = QVBoxLayout(self)
-        self.frame = QFrame(self)
-        self.frame.setFrameShape(QFrame.StyledPanel)
-        self.frame.setFrameShadow(QFrame.Raised)
-        self.verticalLayout_5 = QVBoxLayout(self.frame)
-        self.horizontalLayout_4 = QHBoxLayout()
-        self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        """
+        Sets up the UI.
+        """
+        mainLayout = QVBoxLayout(self)
+        frame = QFrame(self)
+        frame.setFrameShape(QFrame.StyledPanel)
+        frame.setFrameShadow(QFrame.Raised)
+        verticalLayout = QVBoxLayout(frame)
+        goBackButton = QPushButton(frame)
+        goBackButton.setText(QCoreApplication.translate("Dialog", u"<", None))
+        goBackButton.setFixedSize(30, 30)
+        goBackButton.clicked.connect(self.goBack)
 
-        self.label = QLabel(self.frame)
+        headerLayout = self.getHeaderLayout(frame)
+        modelSectionLayout = self.getModelSectionLayout(frame)
+        processingSectionLayout = self.getProcessingSectionLayout(frame)
+        postprocessingSectionLayout = self.getPostprocessingSectionLayout(frame)
+
+        verticalLayout.addLayout(headerLayout)
+        verticalLayout.addLayout(modelSectionLayout)
+        verticalLayout.addLayout(processingSectionLayout)
+        verticalLayout.addLayout(postprocessingSectionLayout)
+        mainLayout.addWidget(frame)
+
+    def getHeaderLayout(self, frame):
+        """
+        Returns the header layout.
+        """
+        headerLayout = QHBoxLayout()
+
+        horizontalSpacerLeft = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        title = QLabel(frame)
         font = QFont()
         font.setPointSize(24)
-        self.label.setFont(font)
-        self.label.setText(QCoreApplication.translate("Dialog", u"Thermal B3V", None))
+        title.setFont(font)
+        title.setText(QCoreApplication.translate("Dialog", u"Thermal B3V", None))
 
-        self.horizontalSpacer_4 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        horizontalSpacerRight = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
-        self.verticalLayout_2 = QVBoxLayout()
-        self.label_2 = QLabel(self.frame)
-        self.label_2.setText(QCoreApplication.translate("Dialog", u"Modelado", None))
+        headerLayout.addItem(horizontalSpacerLeft)
+        headerLayout.addWidget(title)
+        headerLayout.addItem(horizontalSpacerRight)
+        return headerLayout
 
-        self.horizontalLayout = QHBoxLayout()
-        self.pushButton = QPushButton(self.frame)
-        self.pushButton.setText(QCoreApplication.translate("Dialog", u"FreeCAD", None))
-        self.pushButton.clicked.connect(self.openFreeCAD)
+    def getModelSectionLayout(self, frame):
+        """
+        Returns the model section layout.
+        """
+        verticalLayout = QVBoxLayout()
+        modelSectionLabel = QLabel(frame)
+        modelSectionLabel.setText(QCoreApplication.translate("Dialog", u"Modelado", None))
 
-        self.pushButton_2 = QPushButton(self.frame)
-        self.pushButton_2.setText(QCoreApplication.translate("Dialog", u"GMAT", None))
-        self.pushButton_2.clicked.connect(self.openGMAT)
+        horizontalLayout = QHBoxLayout()
+        freecadButton = QPushButton(frame)
+        freecadButton.setText(QCoreApplication.translate("Dialog", u"FreeCAD", None))
+        freecadButton.clicked.connect(self.openFreeCAD)
 
-        self.pushButton_3 = QPushButton(self.frame)
-        self.pushButton_3.setText(QCoreApplication.translate("Dialog", u"Visualizar Materiales", None))
-        self.pushButton_3.clicked.connect(self.visualizeMaterials)
+        gmatButton = QPushButton(frame)
+        gmatButton.setText(QCoreApplication.translate("Dialog", u"GMAT", None))
+        gmatButton.clicked.connect(self.openGMAT)
 
-        self.verticalLayout_3 = QVBoxLayout()
-        self.label_3 = QLabel(self.frame)
-        self.label_3.setText(QCoreApplication.translate("Dialog", u"Procesamiento", None))
+        visualizeMaterialButton = QPushButton(frame)
+        visualizeMaterialButton.setText(QCoreApplication.translate("Dialog", u"Visualizar Materiales", None))
+        visualizeMaterialButton.clicked.connect(self.visualizeMaterials)
 
-        self.horizontalLayout_2 = QHBoxLayout()
-        self.pushButton_4 = QPushButton(self.frame)
-        self.pushButton_4.setText(QCoreApplication.translate("Dialog", u"Calcular Factores de Vista", None))
-        self.pushButton_4.clicked.connect(self.calculateViewFactors)
+        verticalLayout.addWidget(modelSectionLabel)
+        horizontalLayout.addWidget(freecadButton)
+        horizontalLayout.addWidget(gmatButton)
+        horizontalLayout.addWidget(visualizeMaterialButton)
+        verticalLayout.addLayout(horizontalLayout)
+        return verticalLayout
 
-        self.pushButton_5 = QPushButton(self.frame)
-        self.pushButton_5.setText(QCoreApplication.translate("Dialog", u"Realizar Simulaci\u00f3n", None))
-        self.pushButton_5.clicked.connect(self.runSimulation)
+    def getProcessingSectionLayout(self, frame):
+        """
+        Returns the processing section layout.
+        """
+        verticalLayout = QVBoxLayout()
+        dialogSectionLabel = QLabel(frame)
+        dialogSectionLabel.setText(QCoreApplication.translate("Dialog", u"Procesamiento", None))
 
-        self.pushButton_6 = QPushButton(self.frame)
-        self.pushButton_6.setText(QCoreApplication.translate("Dialog", u"Calcular FV y Realizar Simulaci\u00f3n", None))
-        self.pushButton_6.clicked.connect(self.calculateViewFactorsAndRunSimulation)
+        horizontalLayout = QHBoxLayout()
+        calculateVFButton = QPushButton(frame)
+        calculateVFButton.setText(QCoreApplication.translate("Dialog", u"Calcular Factores de Vista", None))
+        calculateVFButton.clicked.connect(self.calculateViewFactors)
 
-        self.verticalLayout_4 = QVBoxLayout()
-        self.label_4 = QLabel(self.frame)
-        self.label_4.setText(QCoreApplication.translate("Dialog", u"Postprocesamiento", None))
+        solverButton = QPushButton(frame)
+        solverButton.setText(QCoreApplication.translate("Dialog", u"Realizar Simulaci\u00f3n", None))
+        solverButton.clicked.connect(self.runSimulation)
 
-        self.horizontalLayout_3 = QHBoxLayout()
-        self.pushButton_7 = QPushButton(self.frame)
-        self.pushButton_7.setText(QCoreApplication.translate("Dialog", u"ParaView", None))
-        self.pushButton_7.clicked.connect(self.openParaView)
+        solverAndVFButton = QPushButton(frame)
+        solverAndVFButton.setText(QCoreApplication.translate("Dialog", u"Calcular Factores de Vista y Realizar Simulaci\u00f3n", None))
+        solverAndVFButton.clicked.connect(self.calculateViewFactorsAndRunSimulation) 
 
-        self.pushButton_8 = QPushButton(self.frame)
-        self.pushButton_8.setText(QCoreApplication.translate("Dialog", u"Plotter", None))
-        self.pushButton_8.clicked.connect(self.openPlotter)
+        verticalLayout.addWidget(dialogSectionLabel)
+        horizontalLayout.addWidget(calculateVFButton)
+        horizontalLayout.addWidget(solverButton)
+        verticalLayout.addLayout(horizontalLayout)
+        verticalLayout.addWidget(solverAndVFButton)
+        return verticalLayout       
 
-        self.horizontalLayout_4.addItem(self.horizontalSpacer_3)
-        self.horizontalLayout_4.addWidget(self.label)
-        self.horizontalLayout_4.addItem(self.horizontalSpacer_4)
-        self.verticalLayout_5.addLayout(self.horizontalLayout_4)
-        self.verticalLayout_2.addWidget(self.label_2)
-        self.horizontalLayout.addWidget(self.pushButton)
-        self.horizontalLayout.addWidget(self.pushButton_2)
-        self.horizontalLayout.addWidget(self.pushButton_3)
-        self.verticalLayout_2.addLayout(self.horizontalLayout)
-        self.verticalLayout_5.addLayout(self.verticalLayout_2)
-        self.verticalLayout_3.addWidget(self.label_3)
-        self.horizontalLayout_2.addWidget(self.pushButton_4)
-        self.horizontalLayout_2.addWidget(self.pushButton_5)
-        self.horizontalLayout_2.addWidget(self.pushButton_6)
-        self.verticalLayout_3.addLayout(self.horizontalLayout_2)
-        self.verticalLayout_5.addLayout(self.verticalLayout_3)
-        self.verticalLayout_4.addWidget(self.label_4)
-        self.horizontalLayout_3.addWidget(self.pushButton_7)
-        self.horizontalLayout_3.addWidget(self.pushButton_8)
-        self.verticalLayout_4.addLayout(self.horizontalLayout_3)
-        self.verticalLayout_5.addLayout(self.verticalLayout_4)
-        self.verticalLayout.addWidget(self.frame)
+    def getPostprocessingSectionLayout(self, frame):
+        """
+        Returns the postprocessing section layout.
+        """
+        verticalLayout = QVBoxLayout()
+        postProcessingDialog = QLabel(frame)
+        postProcessingDialog.setText(QCoreApplication.translate("Dialog", u"Postprocesamiento", None))
+
+        horizontalLayout = QHBoxLayout()
+        paraviewButton = QPushButton(frame)
+        paraviewButton.setText(QCoreApplication.translate("Dialog", u"ParaView", None))
+        paraviewButton.clicked.connect(self.openParaView)
+
+        plotterButton = QPushButton(frame)
+        plotterButton.setText(QCoreApplication.translate("Dialog", u"Plotter", None))
+        plotterButton.clicked.connect(self.openPlotter)
+
+        verticalLayout.addWidget(postProcessingDialog)
+        horizontalLayout.addWidget(paraviewButton)
+        horizontalLayout.addWidget(plotterButton)
+        verticalLayout.addLayout(horizontalLayout)
+        return verticalLayout
 
     def openFreeCAD(self):
         """
@@ -113,7 +152,13 @@ class ProjectWidget(QWidget):
         """
         Opens material visualization.
         """
-        pass
+        cmd = [
+            "python3",
+            "/home/guidobotta/dev/tpp/TrabajoProfesional/standalone-raytrace/main.py",
+            "viewm",
+            AppState().get("projectDirectory"),
+        ]
+        subprocess.Popen(cmd)
 
     def calculateViewFactors(self):
         """
@@ -143,4 +188,14 @@ class ProjectWidget(QWidget):
         """
         Opens plotter application.
         """
-        pass
+        cmd = [
+            "python3",
+            "/home/guidobotta/dev/tpp/TrabajoProfesional/plotter/UI.py",
+        ]
+        subprocess.Popen(cmd)
+
+    def goBack(self):
+        """
+        Returns to the landing page.
+        """
+        self.parent.setCurrentIndex(0)

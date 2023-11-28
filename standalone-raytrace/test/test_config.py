@@ -30,4 +30,10 @@ RING_GEOMETRY_PATH = "./test/models/ring.vtk"
 
 ARROWS_GEOMETRY_PATH = "./test/models/arrows.vtk"
 
+GMAT_REPORT_FILE_PATH = "./test/models/gmat_report.txt"
+GMAT_ECLIPSE_LOCATOR_FILE_PATH = "./test/models/gmat_eclipse_locator.txt"
+GMAT_ECLIPSE_LOCATOR_FILE_PATH_NO_ECLIPSE = (
+    "./test/models/gmat_eclipse_locator_no_eclipse.txt"
+)
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))

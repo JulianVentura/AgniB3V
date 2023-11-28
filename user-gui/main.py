@@ -4,6 +4,7 @@ from PySide2.QtWidgets import *
 from pages.landing import LandingWidget
 from pages.project import ProjectWidget
 from pages.newProject import NewProjectWidget
+from utils.appState import AppState
 
 class PagesWidget(QStackedLayout):
     def __init__(self):
@@ -29,6 +30,7 @@ class MainWindow(QMainWindow):
             QCoreApplication.installTranslator(translator)
 
 if __name__ == "__main__":
+    AppState()
     app = QApplication([])
     window = MainWindow()
     app.exec_()

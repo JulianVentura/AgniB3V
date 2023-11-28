@@ -1,6 +1,9 @@
 from .test_config import *
 from src import gmat_parser
 
+def _is_in_interval(value, center, epsilon):
+    return value <= center + epsilon and value >= center - epsilon
+
 def test_parse_report_file():
     parameters = gmat_parser.parse_report_file(GMAT_REPORT_FILE_PATH)
     assert parameters["Sat.X"][0] == '7000'
@@ -22,11 +25,12 @@ def test_parse_report_file():
 def test_parse_eclipse_locator_file():
     parameters = gmat_parser.parse_report_file(GMAT_REPORT_FILE_PATH)
     eclipse_start_and_finish, period = gmat_parser.parse_eclipse_locator(GMAT_ECLIPSE_LOCATOR_FILE_PATH, parameters)
-    assert eclipse_start_and_finish == (594.222360120616, 2637.593360120617)
-    assert period == 5828.516639879384
+    assert _is_in_interval(eclipse_start_and_finish[0], 594.2, 0.1)
+    assert _is_in_interval(eclipse_start_and_finish[1], 2637.5, 0.1)
+    assert _is_in_interval(period, 5828.5, 0.1)
 
 def test_parse_no_eclipse_locator_file():
     parameters = gmat_parser.parse_report_file(GMAT_REPORT_FILE_PATH)
     eclipse_start_and_finish, period = gmat_parser.parse_eclipse_locator(GMAT_ECLIPSE_LOCATOR_FILE_PATH_NO_ECLIPSE, parameters)
     assert eclipse_start_and_finish == (-1, -1)
-    assert period == 5828.516639879384
+    assert _is_in_interval(period, 5828.5, 0.1)

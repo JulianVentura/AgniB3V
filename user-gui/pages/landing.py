@@ -2,6 +2,7 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 from utils.appState import AppState
+from utils.constants import ROUTES
 
 class LandingWidget(QWidget):
     def __init__(self, parent=None):
@@ -75,7 +76,8 @@ class LandingWidget(QWidget):
         """
         Redirects to the new project page.
         """
-        self.parent.setCurrentIndex(1)
+        AppState().addRoute(ROUTES["landing"])
+        self.parent.setCurrentIndex(ROUTES["newProject"])
 
     def onOpenProjectClicked(self):
         """
@@ -85,8 +87,9 @@ class LandingWidget(QWidget):
         directory = QFileDialog.getExistingDirectory(self, "Select Directory")
         if directory and self._validateDirectory(directory):
             # TODO: cargar proyecto
-            AppState().set("projectDirectory", directory)
-            self.parent.setCurrentIndex(2)
+            AppState().openProject(directory)
+            AppState().addRoute(ROUTES["landing"])
+            self.parent.setCurrentIndex(ROUTES["project"])
 
     def _validateDirectory(self, directory):
         """

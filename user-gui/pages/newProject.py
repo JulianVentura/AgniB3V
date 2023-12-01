@@ -3,6 +3,8 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 import os
 from utils.appState import AppState
+from utils.setUpNewProject import setUpNewProject
+from utils.constants import ROUTES
 
 class NewProjectWidget(QWidget):
     def __init__(self, parent=None):
@@ -19,7 +21,7 @@ class NewProjectWidget(QWidget):
         goBackButton = QPushButton(frame)
         goBackButton.setText(QCoreApplication.translate("Dialog", u"<", None))
         goBackButton.setFixedSize(30, 30)
-        goBackButton.clicked.connect(self.goBack)
+        goBackButton.clicked.connect(self.goToLanding)
 
         headerLayout = self.getHeaderLayout(frame)
         bodyLayout = self.getBodyLayout(frame)
@@ -122,19 +124,13 @@ class NewProjectWidget(QWidget):
         
         if not self._validateDirectoryAndName(directory, projectName):
             return
-        
-        # Create project directory
-        projectDirectory = os.path.join(directory, projectName)
-        try:
-            os.mkdir(projectDirectory)
-        except:
+        if not setUpNewProject(directory):
             QMessageBox.warning(self, "Error", "No se pudo crear el proyecto")
             return
         
-        # TODO: copiar templates
-        
         AppState().set("projectDirectory", directory)
-        self.parent.setCurrentIndex(2)
+        AppState().addRoute(ROUTES["newProject"])
+        self.parent.setCurrentIndex(ROUTES["project"])
 
     def _validateDirectoryAndName(self, directory, projectName) -> bool:
         """
@@ -160,8 +156,9 @@ class NewProjectWidget(QWidget):
         
         return True
     
-    def goBack(self):
+    def goToLanding(self):
         """
         Returns to the landing page.
         """
-        self.parent.setCurrentIndex(0)
+        AppState().resetRoutes()
+        self.parent.setCurrentIndex(ROUTES["landing"])

@@ -2,7 +2,9 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 import subprocess
+import os
 from utils.appState import AppState
+from utils.constants import ROUTES
 
 class ProjectWidget(QWidget):
     def __init__(self, parent=None):
@@ -19,21 +21,48 @@ class ProjectWidget(QWidget):
         frame.setFrameShape(QFrame.StyledPanel)
         frame.setFrameShadow(QFrame.Raised)
         verticalLayout = QVBoxLayout(frame)
-        goBackButton = QPushButton(frame)
-        goBackButton.setText(QCoreApplication.translate("Dialog", u"<", None))
-        goBackButton.setFixedSize(30, 30)
-        goBackButton.clicked.connect(self.goBack)
 
+        headerButtonsLayout = self.getHeaderButtonsLayout(frame)
         headerLayout = self.getHeaderLayout(frame)
         modelSectionLayout = self.getModelSectionLayout(frame)
         processingSectionLayout = self.getProcessingSectionLayout(frame)
         postprocessingSectionLayout = self.getPostprocessingSectionLayout(frame)
 
+        verticalLayout.addLayout(headerButtonsLayout)
         verticalLayout.addLayout(headerLayout)
         verticalLayout.addLayout(modelSectionLayout)
         verticalLayout.addLayout(processingSectionLayout)
         verticalLayout.addLayout(postprocessingSectionLayout)
         mainLayout.addWidget(frame)
+
+    def getHeaderButtonsLayout(self, frame):
+        """
+        Returns the header buttons layout.
+        """
+        headerButtonsLayout = QHBoxLayout()
+
+        goBackButton = QPushButton()
+        goBackButton.setText(QCoreApplication.translate("Dialog", u"<", None))
+        goBackButton.setFixedSize(30, 30)
+        goBackButton.clicked.connect(self.goToLanding)
+
+        rightButtonsLayout = QHBoxLayout()
+
+        configButton = QPushButton()
+        configButton.setText(QCoreApplication.translate("Dialog", u"\u2699", None))
+        configButton.setFixedSize(30, 30)
+        configButton.clicked.connect(self.configureProject)
+
+        directoryButton = QPushButton()
+        directoryButton.setText(QCoreApplication.translate("Dialog", u"\U0001F4C2", None))
+        directoryButton.setFixedSize(30, 30)
+        directoryButton.clicked.connect(self.openProjectDirectory)
+
+        rightButtonsLayout.addWidget(directoryButton)
+        rightButtonsLayout.addWidget(configButton)
+        headerButtonsLayout.addWidget(goBackButton, alignment=Qt.AlignLeft)
+        headerButtonsLayout.addLayout(rightButtonsLayout, alignment=Qt.AlignRight)
+        return headerButtonsLayout
 
     def getHeaderLayout(self, frame):
         """
@@ -146,7 +175,16 @@ class ProjectWidget(QWidget):
         """
         Opens GMAT application.
         """
-        pass
+        gmat_executable = AppState().globalConfiguration.getExecutable("gmat")
+        gmat_script = os.path.join(
+            AppState().get("projectDirectory"),
+            "gmat.script",
+        )
+        cmd = [
+            gmat_executable,
+            gmat_script,
+        ]
+        subprocess.Popen(cmd)
 
     def visualizeMaterials(self):
         """
@@ -154,7 +192,7 @@ class ProjectWidget(QWidget):
         """
         cmd = [
             "python3",
-            "/home/guidobotta/dev/tpp/TrabajoProfesional/standalone-raytrace/main.py",
+            AppState().globalConfiguration.getExecutable("preprocessor"),
             "viewm",
             AppState().get("projectDirectory"),
         ]
@@ -164,7 +202,13 @@ class ProjectWidget(QWidget):
         """
         Calculates view factors.
         """
-        pass
+        cmd = [
+            "python3",
+            AppState().globalConfiguration.getExecutable("preprocessor"),
+            "process",
+            AppState().get("projectDirectory"),
+        ]
+        subprocess.Popen(cmd)
 
     def runSimulation(self):
         """
@@ -182,7 +226,10 @@ class ProjectWidget(QWidget):
         """
         Opens ParaView application.
         """
-        pass
+        cmd = [
+            AppState().globalConfiguration.getExecutable("paraview"),
+        ]
+        subprocess.Popen(cmd)
 
     def openPlotter(self):
         """
@@ -190,12 +237,30 @@ class ProjectWidget(QWidget):
         """
         cmd = [
             "python3",
-            "/home/guidobotta/dev/tpp/TrabajoProfesional/plotter/UI.py",
+            AppState().globalConfiguration.getExecutable("plotter"),
         ]
         subprocess.Popen(cmd)
 
-    def goBack(self):
+    def goToLanding(self):
         """
         Returns to the landing page.
         """
-        self.parent.setCurrentIndex(0)
+        AppState().resetRoutes()
+        self.parent.setCurrentIndex(ROUTES["landing"])
+
+    def configureProject(self):
+        """
+        Opens project configuration dialog.
+        """
+        AppState().addRoute(ROUTES["project"])
+        self.parent.setCurrentIndex(ROUTES["configuration"])
+
+    def openProjectDirectory(self):
+        """
+        Opens project directory.
+        """
+        cmd = [
+            "nautilus",
+            AppState().projectDirectory,
+        ]
+        subprocess.Popen(cmd)

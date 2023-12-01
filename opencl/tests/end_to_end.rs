@@ -285,3 +285,30 @@ pub fn test_radiation_4() -> Result<()> {
 
     Ok(())
 }
+
+#[test]
+pub fn test_sun_1() -> Result<()> {
+    /*
+    One Cube of 1 m x 1 m x 1 m, thickness 5 cm.
+    Density 2700 kg/m3,
+    Specific Heat 900 J/(K kg) y
+    Thermal Conductivity 0 W/(K m)
+    Alpha sun = 1
+    Alpha_ir = 1
+    Initial Temperature 273.15 K
+    Sun Pointing
+    Albedo = 0
+    Earth_ir = 0
+    Solar constant = 1361 W/m2
+    SMA: 7000 km
+    ECC: 0
+    INC: 0
+    RAAN: 0
+    AOP: 0
+    TA: 0
+    */
+
+    run_test(10)?;
+
+    Ok(())
+}

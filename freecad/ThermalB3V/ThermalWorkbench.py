@@ -212,9 +212,18 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         
         FreeCAD.Console.PrintMessage("Loading export and document path\n")
         # Load export and document path
-        if (propValue := getattr(workbenchSettings, "exportPath", None)) != None:
+        if (propValue := getattr(workbenchSettings, "exportPath", None)):
             self.setExportPath(propValue)
-        if (propValue := getattr(workbenchSettings, "documentPath", None)) != None:
+        else:
+            self.setExportPath(FreeCAD.ActiveDocument.FileName)
+            WorkbenchSettings.addProperty("exportPath", self.exportPath)
+        if (propValue := getattr(workbenchSettings, "documentPath", None)):
             self.setDocumentPath(propValue)
+        else:
+            self.setDocumentPath(FreeCAD.ActiveDocument.FileName)
+            WorkbenchSettings.addProperty("documentPath", self.documentPath)
         if (propValue := getattr(workbenchSettings, "raytracePath", None)) != None:
             self.setRaytracePath(propValue)
+
+        WorkbenchSettings(workbenchSettings)
+        FreeCAD.ActiveDocument.recompute()

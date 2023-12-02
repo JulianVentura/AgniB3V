@@ -1,6 +1,7 @@
 import FreeCAD
 import FreeCADGui
 import json
+from os import path
 
 class WorkbenchSettings:
     properties = {}
@@ -214,13 +215,13 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         # Load export and document path
         if (propValue := getattr(workbenchSettings, "exportPath", None)):
             self.setExportPath(propValue)
-        else:
-            self.setExportPath(FreeCAD.ActiveDocument.FileName)
+        else:            
+            self.setExportPath(path.dirname(FreeCAD.ActiveDocument.FileName))
             WorkbenchSettings.addProperty("exportPath", self.exportPath)
         if (propValue := getattr(workbenchSettings, "documentPath", None)):
             self.setDocumentPath(propValue)
         else:
-            self.setDocumentPath(FreeCAD.ActiveDocument.FileName)
+            self.setDocumentPath(path.dirname(FreeCAD.ActiveDocument.FileName))
             WorkbenchSettings.addProperty("documentPath", self.documentPath)
         if (propValue := getattr(workbenchSettings, "raytracePath", None)) != None:
             self.setRaytracePath(propValue)

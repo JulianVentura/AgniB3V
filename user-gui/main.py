@@ -4,23 +4,24 @@ from PySide2.QtWidgets import *
 from pages.landing import LandingWidget
 from pages.project import ProjectWidget
 from pages.newProject import NewProjectWidget
+from pages.configuration import ConfigurationWidget
 from utils.appState import AppState
 
-class PagesWidget(QStackedLayout):
+class PagesWidget(QStackedWidget):
     def __init__(self):
         super().__init__()
         self.addWidget(LandingWidget(self))
         self.addWidget(NewProjectWidget(self))
         self.addWidget(ProjectWidget(self))
+        self.addWidget(ConfigurationWidget(self))
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.loadTranslations()
-        window = QWidget()
-        window.setLayout(PagesWidget())
-        self.setWindowTitle("User GUI")
-        self.setCentralWidget(window)
+        self.setWindowTitle("ThermalB3V")
+        self.resize(800, 600)
+        self.setCentralWidget(PagesWidget())
         self.show()
 
     def loadTranslations(self):

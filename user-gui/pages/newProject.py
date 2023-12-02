@@ -64,8 +64,8 @@ class NewProjectWidget(QWidget):
         projectNameLabel.setText(QCoreApplication.translate("Dialog", u"Nombre del Proyecto", None))
 
         lineEditLayout = QVBoxLayout()
-        directoryEdit = QLineEdit(frame)
-        projectNameEdit = QLineEdit(frame)
+        self.directoryEdit = QLineEdit(frame)
+        self.projectNameEdit = QLineEdit(frame)
 
         dirButtonFrame = QFrame(frame)
         dirButtonLayout = QVBoxLayout(dirButtonFrame)
@@ -89,8 +89,8 @@ class NewProjectWidget(QWidget):
         labelLayout.addWidget(directoryLabel)
         labelLayout.addWidget(projectNameLabel)
         horizontalLayout.addLayout(labelLayout)
-        lineEditLayout.addWidget(directoryEdit)
-        lineEditLayout.addWidget(projectNameEdit)
+        lineEditLayout.addWidget(self.directoryEdit)
+        lineEditLayout.addWidget(self.projectNameEdit)
         horizontalLayout.addLayout(lineEditLayout)
         dirButtonLayout.addWidget(directoryButton)
         horizontalLayout.addWidget(dirButtonFrame, 0, Qt.AlignTop)
@@ -110,7 +110,7 @@ class NewProjectWidget(QWidget):
         """
         directory = QFileDialog.getExistingDirectory(self, "Select Directory")
         if directory:
-            self.lineEdit.setText(directory)
+            self.directoryEdit.setText(directory)
     
     def onNewProject(self):
         """
@@ -118,17 +118,18 @@ class NewProjectWidget(QWidget):
         checks if the project name is valid and creates the project if it is.
         Finally, it redirects to the project page.
         """
-        # TODO: ver si vale la pena tener un estado global y cargar el proyecto
-        directory = self.lineEdit.text()
-        projectName = self.lineEdit_2.text()
+        directory = self.directoryEdit.text()
+        projectName = self.projectNameEdit.text()
         
         if not self._validateDirectoryAndName(directory, projectName):
             return
-        if not setUpNewProject(directory):
+        
+        newProjectDirectory = os.path.join(directory, projectName)
+        if not setUpNewProject(newProjectDirectory):
             QMessageBox.warning(self, "Error", "No se pudo crear el proyecto")
             return
         
-        AppState().set("projectDirectory", directory)
+        AppState().openProject(newProjectDirectory)
         AppState().addRoute(ROUTES["newProject"])
         self.parent.setCurrentIndex(ROUTES["project"])
 

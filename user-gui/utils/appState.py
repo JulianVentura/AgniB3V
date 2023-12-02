@@ -25,7 +25,6 @@ class AppState(metaclass=AppStateMeta):
         self.routes = []
     
     def popLastRoute(self) -> int:
-        print(self.routes)
         if len(self.routes) == 0:
             return 0
         return self.routes.pop()

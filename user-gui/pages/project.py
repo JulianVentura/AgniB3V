@@ -5,11 +5,13 @@ import subprocess
 import os
 from utils.appState import AppState
 from utils.constants import ROUTES
+from utils.getFileWithExtension import getFileWithExtension
 
 class ProjectWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__()
         self.parent = parent
+        self.appState = AppState()
         self.setupUi()
 
     def setupUi(self):
@@ -169,17 +171,16 @@ class ProjectWidget(QWidget):
         Opens FreeCAD application.
         """
         print("Opening FreeCAD")
-        subprocess.Popen(["Freecad"])
+        freecadFile = getFileWithExtension(".FCStd", self.appState.projectDirectory)
+        print(freecadFile)
+        subprocess.Popen(["Freecad", freecadFile])
 
     def openGMAT(self):
         """
         Opens GMAT application.
         """
-        gmat_executable = AppState().globalConfiguration.getExecutable("gmat")
-        gmat_script = os.path.join(
-            AppState().get("projectDirectory"),
-            "gmat.script",
-        )
+        gmat_executable = self.appState.globalConfiguration.getExecutable("gmat")
+        gmat_script = getFileWithExtension(".script", self.appState.projectDirectory)
         cmd = [
             gmat_executable,
             gmat_script,
@@ -192,9 +193,9 @@ class ProjectWidget(QWidget):
         """
         cmd = [
             "python3",
-            AppState().globalConfiguration.getExecutable("preprocessor"),
+            self.appState.globalConfiguration.getExecutable("preprocessor"),
             "viewm",
-            AppState().get("projectDirectory"),
+            self.appState.projectDirectory,
         ]
         subprocess.Popen(cmd)
 
@@ -204,9 +205,9 @@ class ProjectWidget(QWidget):
         """
         cmd = [
             "python3",
-            AppState().globalConfiguration.getExecutable("preprocessor"),
+            self.appState.globalConfiguration.getExecutable("preprocessor"),
             "process",
-            AppState().get("projectDirectory"),
+            self.appState.projectDirectory,
         ]
         subprocess.Popen(cmd)
 
@@ -227,7 +228,7 @@ class ProjectWidget(QWidget):
         Opens ParaView application.
         """
         cmd = [
-            AppState().globalConfiguration.getExecutable("paraview"),
+            self.appState.globalConfiguration.getExecutable("paraview"),
         ]
         subprocess.Popen(cmd)
 
@@ -237,7 +238,7 @@ class ProjectWidget(QWidget):
         """
         cmd = [
             "python3",
-            AppState().globalConfiguration.getExecutable("plotter"),
+            self.appState.globalConfiguration.getExecutable("plotter"),
         ]
         subprocess.Popen(cmd)
 
@@ -245,14 +246,14 @@ class ProjectWidget(QWidget):
         """
         Returns to the landing page.
         """
-        AppState().resetRoutes()
+        self.appState.resetRoutes()
         self.parent.setCurrentIndex(ROUTES["landing"])
 
     def configureProject(self):
         """
         Opens project configuration dialog.
         """
-        AppState().addRoute(ROUTES["project"])
+        self.appState.addRoute(ROUTES["project"])
         self.parent.setCurrentIndex(ROUTES["configuration"])
 
     def openProjectDirectory(self):
@@ -260,7 +261,7 @@ class ProjectWidget(QWidget):
         Opens project directory.
         """
         cmd = [
-            "nautilus",
-            AppState().projectDirectory,
+            self.appState.globalConfiguration.getExecutable("fileManager"),
+            self.appState.projectDirectory,
         ]
         subprocess.Popen(cmd)

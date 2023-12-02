@@ -7,6 +7,7 @@ from utils.constants import ROUTES
 class LandingWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__()
+        self.appState = AppState()
         self.parent = parent
         self.setupUi()
 
@@ -20,13 +21,39 @@ class LandingWidget(QWidget):
         frame.setFrameShadow(QFrame.Raised)
         verticalLayout = QVBoxLayout(frame)
 
+        headerButtonsLayout = self.getHeaderButtonsLayout(frame)
         headerLayout = self.getHeaderLayout(frame)
         bodyLayout = self.getBodyLayout(frame)
 
+        verticalLayout.addLayout(headerButtonsLayout)
         verticalLayout.addLayout(headerLayout)
-        verticalLayout.addLayout(bodyLayout)
+        verticalLayout.addLayout(bodyLayout, stretch=1)
 
         mainLayout.addWidget(frame)
+
+    def getHeaderButtonsLayout(self, frame):
+        """
+        Returns the header buttons layout.
+        """
+        headerButtonsLayout = QHBoxLayout()
+        rightButtonsLayout = QHBoxLayout()
+        rightButtonsLayout.setAlignment(Qt.AlignRight)
+
+        configButton = QPushButton()
+        configButton.setText(QCoreApplication.translate("Dialog", u"\u2699", None))
+        configButton.setFixedSize(30, 30)
+        configButton.clicked.connect(self.configureProject)
+
+        documentationButton = QPushButton()
+        icon = self.style().standardIcon(getattr(QStyle, "SP_FileDialogDetailedView"))
+        documentationButton.setIcon(icon)
+        documentationButton.setFixedSize(30, 30)
+        documentationButton.clicked.connect(self.openDocumentation)
+
+        rightButtonsLayout.addWidget(documentationButton)
+        rightButtonsLayout.addWidget(configButton)
+        headerButtonsLayout.addLayout(rightButtonsLayout, alignment=Qt.AlignRight)
+        return headerButtonsLayout
         
     def getHeaderLayout(self, frame):
         """
@@ -76,7 +103,7 @@ class LandingWidget(QWidget):
         """
         Redirects to the new project page.
         """
-        AppState().addRoute(ROUTES["landing"])
+        self.appState.addRoute(ROUTES["landing"])
         self.parent.setCurrentIndex(ROUTES["newProject"])
 
     def onOpenProjectClicked(self):
@@ -87,8 +114,8 @@ class LandingWidget(QWidget):
         directory = QFileDialog.getExistingDirectory(self, "Select Directory")
         if directory and self._validateDirectory(directory):
             # TODO: cargar proyecto
-            AppState().openProject(directory)
-            AppState().addRoute(ROUTES["landing"])
+            self.appState.openProject(directory)
+            self.appState.addRoute(ROUTES["landing"])
             self.parent.setCurrentIndex(ROUTES["project"])
 
     def _validateDirectory(self, directory):
@@ -99,3 +126,16 @@ class LandingWidget(QWidget):
         # TODO: validar si es un directorio valido
         # es decir, que tenga los archivos necesarios
         return True
+    
+    def configureProject(self):
+        """
+        Opens project configuration dialog.
+        """
+        self.appState.addRoute(ROUTES["landing"])
+        self.parent.setCurrentIndex(ROUTES["configuration"])
+
+    def openDocumentation(self):
+        """
+        Opens the documentation in the browser.
+        """
+        QDesktopServices.openUrl(QUrl("https://thermalb3v.github.io/", QUrl.TolerantMode))

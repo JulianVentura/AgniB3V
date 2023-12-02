@@ -32,9 +32,9 @@ class ProjectWidget(QWidget):
 
         verticalLayout.addLayout(headerButtonsLayout)
         verticalLayout.addLayout(headerLayout)
-        verticalLayout.addLayout(modelSectionLayout)
-        verticalLayout.addLayout(processingSectionLayout)
-        verticalLayout.addLayout(postprocessingSectionLayout)
+        verticalLayout.addLayout(modelSectionLayout, stretch=1)
+        verticalLayout.addLayout(processingSectionLayout, stretch=1)
+        verticalLayout.addLayout(postprocessingSectionLayout, stretch=1)
         mainLayout.addWidget(frame)
 
     def getHeaderButtonsLayout(self, frame):
@@ -55,12 +55,20 @@ class ProjectWidget(QWidget):
         configButton.setFixedSize(30, 30)
         configButton.clicked.connect(self.configureProject)
 
+        documentationButton = QPushButton()
+        icon = self.style().standardIcon(getattr(QStyle, "SP_FileDialogDetailedView"))
+        documentationButton.setIcon(icon)
+        documentationButton.setFixedSize(30, 30)
+        documentationButton.clicked.connect(self.openDocumentation)
+
         directoryButton = QPushButton()
-        directoryButton.setText(QCoreApplication.translate("Dialog", u"\U0001F4C2", None))
+        icon = self.style().standardIcon(getattr(QStyle, "SP_DirIcon"))
+        directoryButton.setIcon(icon)
         directoryButton.setFixedSize(30, 30)
         directoryButton.clicked.connect(self.openProjectDirectory)
 
         rightButtonsLayout.addWidget(directoryButton)
+        rightButtonsLayout.addWidget(documentationButton)
         rightButtonsLayout.addWidget(configButton)
         headerButtonsLayout.addWidget(goBackButton, alignment=Qt.AlignLeft)
         headerButtonsLayout.addLayout(rightButtonsLayout, alignment=Qt.AlignRight)
@@ -265,3 +273,9 @@ class ProjectWidget(QWidget):
             self.appState.projectDirectory,
         ]
         subprocess.Popen(cmd)
+
+    def openDocumentation(self):
+        """
+        Opens the documentation in the browser.
+        """
+        QDesktopServices.openUrl(QUrl("https://thermalb3v.github.io/", QUrl.TolerantMode))

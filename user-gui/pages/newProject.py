@@ -9,6 +9,7 @@ from utils.constants import ROUTES
 class NewProjectWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__()
+        self.appState = AppState()
         self.parent = parent
         self.setupUi()
 
@@ -18,17 +19,45 @@ class NewProjectWidget(QWidget):
         frame.setFrameShape(QFrame.StyledPanel)
         frame.setFrameShadow(QFrame.Raised)
         verticalLayout = QVBoxLayout(frame)
-        goBackButton = QPushButton(frame)
-        goBackButton.setText(QCoreApplication.translate("Dialog", u"<", None))
-        goBackButton.setFixedSize(30, 30)
-        goBackButton.clicked.connect(self.goToLanding)
 
+        headerButtonsLayout = self.getHeaderButtonsLayout(frame)
         headerLayout = self.getHeaderLayout(frame)
         bodyLayout = self.getBodyLayout(frame)
 
+        verticalLayout.addLayout(headerButtonsLayout)
         verticalLayout.addLayout(headerLayout)
         verticalLayout.addLayout(bodyLayout)
         mainLayout.addWidget(frame)
+
+    def getHeaderButtonsLayout(self, frame):
+        """
+        Returns the header buttons layout.
+        """
+        headerButtonsLayout = QHBoxLayout()
+        rightButtonsLayout = QHBoxLayout()
+        rightButtonsLayout.setAlignment(Qt.AlignRight)
+
+        goBackButton = QPushButton()
+        goBackButton.setText(QCoreApplication.translate("Dialog", u"<", None))
+        goBackButton.setFixedSize(30, 30)
+        goBackButton.clicked.connect(self.goToLanding)
+        
+        configButton = QPushButton()
+        configButton.setText(QCoreApplication.translate("Dialog", u"\u2699", None))
+        configButton.setFixedSize(30, 30)
+        configButton.clicked.connect(self.configureProject)
+
+        documentationButton = QPushButton()
+        icon = self.style().standardIcon(getattr(QStyle, "SP_FileDialogDetailedView"))
+        documentationButton.setIcon(icon)
+        documentationButton.setFixedSize(30, 30)
+        documentationButton.clicked.connect(self.openDocumentation)
+
+        rightButtonsLayout.addWidget(documentationButton)
+        rightButtonsLayout.addWidget(configButton)
+        headerButtonsLayout.addWidget(goBackButton, alignment=Qt.AlignLeft)
+        headerButtonsLayout.addLayout(rightButtonsLayout, alignment=Qt.AlignRight)
+        return headerButtonsLayout
 
     def getHeaderLayout(self, frame):
         """
@@ -129,8 +158,8 @@ class NewProjectWidget(QWidget):
             QMessageBox.warning(self, "Error", "No se pudo crear el proyecto")
             return
         
-        AppState().openProject(newProjectDirectory)
-        AppState().addRoute(ROUTES["newProject"])
+        self.appState.openProject(newProjectDirectory)
+        self.appState.addRoute(ROUTES["newProject"])
         self.parent.setCurrentIndex(ROUTES["project"])
 
     def _validateDirectoryAndName(self, directory, projectName) -> bool:
@@ -161,5 +190,18 @@ class NewProjectWidget(QWidget):
         """
         Returns to the landing page.
         """
-        AppState().resetRoutes()
+        self.appState.resetRoutes()
         self.parent.setCurrentIndex(ROUTES["landing"])
+        
+    def configureProject(self):
+        """
+        Opens project configuration dialog.
+        """
+        self.appState.addRoute(ROUTES["newProject"])
+        self.parent.setCurrentIndex(ROUTES["configuration"])
+
+    def openDocumentation(self):
+        """
+        Opens the documentation in the browser.
+        """
+        QDesktopServices.openUrl(QUrl("https://thermalb3v.github.io/", QUrl.TolerantMode))

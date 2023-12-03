@@ -1,6 +1,7 @@
 import numpy as np
 import json
 from . import gmat_parser
+from .custom_json_encoder import CustomJsonEncoder
 
 
 class PropertiesAtlas:
@@ -72,4 +73,10 @@ class PropertiesAtlas:
         if self.orbit_properties:
             self._add_global_orbit_properties()
         with open(output_path, "w", encoding="utf-8") as f:
-            json.dump(output_json, f, indent=4, ensure_ascii=True)
+            json.dump(
+                output_json,
+                f,
+                indent=4,
+                ensure_ascii=True,
+                cls=CustomJsonEncoder,
+            )

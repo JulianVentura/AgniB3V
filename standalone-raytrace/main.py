@@ -83,6 +83,7 @@ def op_process_view_factors(
     element_earth_ir_view_factors = []
     element_earth_albedo_view_factors = []
     division_number = 0
+
     for step in range(len(elapsed_secs)):
         if not _is_closest_orbit_point(
             step, elapsed_secs, division_time * division_number
@@ -92,18 +93,17 @@ def op_process_view_factors(
         earth_direction = utils.normalize(
             -properties.orbit_properties.sat_position[step]
         )
-        earth_view_factors, earth_albedo_coefficients = view_factors.element_earth(
+        ir_view_factors, albedo_view_factors = view_factors.element_earth(
             mesh,
             earth_direction,
             sun_direction,
             penumbra_fraction=0,
             ray_amount=earth_ray_amount,
         )
-        element_earth_ir_view_factors.append((earth_view_factors, elapsed_secs[step]))
+        element_earth_ir_view_factors.append((ir_view_factors, elapsed_secs[step]))
         element_earth_albedo_view_factors.append(
-            (earth_view_factors * earth_albedo_coefficients, elapsed_secs[step])
+            (albedo_view_factors, elapsed_secs[step])
         )
-
         division_number += 1
         if division_number == orbit_divisions:
             break

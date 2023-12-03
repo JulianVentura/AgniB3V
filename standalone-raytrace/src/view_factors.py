@@ -11,6 +11,13 @@ def albedo_edge(ray_sun_dot_product, penumbra_fraction=0):
 	albedo_umbra_indices = ray_sun_dot_product < -min_albedo_dot_product
 	ray_sun_dot_product[albedo_umbra_indices] = 0
 	return np.abs(ray_sun_dot_product)
+# def albedo_edge(ray_sun_dot_product, penumbra_fraction=0):
+# 	min_albedo_dot_product = np.cos((1 - penumbra_fraction)*(np.pi/2))
+# 	albedo_umbra_indices = ray_sun_dot_product < -min_albedo_dot_product
+# 	albedo_light_indices = ray_sun_dot_product >= -min_albedo_dot_product
+# 	ray_sun_dot_product[albedo_umbra_indices] = 0
+# 	ray_sun_dot_product[albedo_light_indices] = 1
+# 	return np.abs(ray_sun_dot_product)
 
 def element_earth(mesh, earth_direction, sun_direction, penumbra_fraction=0, ray_amount=1000):
 	"""
@@ -20,52 +27,51 @@ def element_earth(mesh, earth_direction, sun_direction, penumbra_fraction=0, ray
 	a list of the view factors.
 	"""
 	element_normals = trimesh.triangles.normals(mesh.triangles)[0]
-	view_factors = np.zeros(utils.element_amount(mesh.triangles))
-	albedo_coefficients = np.zeros(utils.element_amount(mesh.triangles))
+	ir_view_factors = np.zeros(utils.element_amount(mesh.triangles))
+	albedo_view_factors = np.zeros(utils.element_amount(mesh.triangles))
 
 	for element_idx in range(utils.element_amount(mesh.triangles)):
 		emitting_element = mesh.triangles[element_idx]
 		emitting_element_normal = element_normals[element_idx]
 	
-		#Facing away from earth's plane
-		if np.dot(emitting_element_normal, earth_direction) <= 0:
-			continue
+		#Skip elements facing away from earth's plane normal
+		#if np.dot(emitting_element_normal, earth_direction) < 0:
+		#	continue
 
 		ray_origins = utils.generate_random_points_in_element(emitting_element, ray_amount)
 		ray_directions = utils.generate_random_unit_vectors(ray_amount)
-		utils.orient_vector_towards_normal(ray_directions, earth_direction)
-
+		utils.orient_vector_towards_normal(ray_directions, emitting_element_normal)
 		ray_origins += ray_directions*RAY_DISPLACEMENT
 
 		if(DEBUG_VISUALIZATION_ENABLED):
 			visualization.view_raycast(mesh, element_idx, ray_origins, ray_directions)
 
-		hit_element_ids, hit_ray_ids = mesh.ray.intersects_id(ray_origins, ray_directions, return_locations=False, multiple_hits=False)
-		
-		#View factor (fraction of visible area)
-		view_factor = (ray_amount - hit_ray_ids.size)/ray_amount
-
+		_, hit_ray_ids = mesh.ray.intersects_id(ray_origins, ray_directions, return_locations=False, multiple_hits=False)
 		mask = np.ones(ray_amount, dtype=bool)
 		mask[hit_ray_ids] = 0
 		not_hit_ray_directions = ray_directions[mask]
-
 		not_hit_ray_directions = utils.flip_vectors_around_axis(earth_direction, not_hit_ray_directions)
 
-		#Aparent area
-		#ray_normal_dot_product = not_hit_ray_directions @ emitting_element_normal[:,np.newaxis].flatten()
-		#aparent_area_coefficient = np.sum(ray_normal_dot_product / np.linalg.norm(not_hit_ray_directions, axis=1))/(not_hit_ray_directions.size // 3)
-		
+		if(not_hit_ray_directions.size == 0):
+			ir_view_factors[element_idx] = 0
+			albedo_view_factors[element_idx] = 0
+			continue
+
+		ray_sat_dot_product = np.abs(not_hit_ray_directions @ (emitting_element_normal)[:,np.newaxis])
+
+		#IR
+		ray_earth_dot_product = not_hit_ray_directions @ (earth_direction)[:,np.newaxis]
+		ray_earth_dot_product[ray_earth_dot_product < 0] = 0
+		ir_view_factor = 2.35 * ray_earth_dot_product * ray_sat_dot_product
+		ir_view_factors[element_idx] = np.sum(ir_view_factor)/ray_amount
+	
 		#Albedo
-		if(not_hit_ray_directions.size > 0):
-			ray_sun_dot_product = not_hit_ray_directions @ (-sun_direction)[:,np.newaxis]
-			rays_in_light = albedo_edge(ray_sun_dot_product, penumbra_fraction=penumbra_fraction)
-			albedo = np.sum(rays_in_light)/rays_in_light.size
-		else:
-			albedo = 0
-		
-		view_factors[element_idx] = view_factor
-		albedo_coefficients[element_idx] = albedo
-	return view_factors, albedo_coefficients
+		ray_sun_dot_product = not_hit_ray_directions @ (-sun_direction)[:,np.newaxis]
+		rays_in_light = albedo_edge(ray_sun_dot_product, penumbra_fraction=penumbra_fraction)
+		albedo = ray_earth_dot_product * ray_sat_dot_product * rays_in_light # ray_sat_fraction * ray_earth_dot_product
+		albedo_view_factors[element_idx] =  np.sum(albedo)/ray_amount
+
+	return ir_view_factors, albedo_view_factors
 
 def element_sun(mesh, sun_direction):
 	"""

@@ -1,20 +1,5 @@
 # Dict of global properties inputs
 GLOBAL_PROPERTIES_INPUTS = {
-    "betaAngle": {
-        "label": "Beta angle",
-        "unit": "deg",
-        "value": 30.0,
-    },
-    "orbitHeight": {
-        "label": "Orbit height",
-        "unit": "km",
-        "value": 300.0,
-    },
-    "orbitalPeriod": {
-        "label": "Orbital period",
-        "unit": "s",
-        "value": 6000.0,
-    },
     "albedo": {
         "label": "Albedo factor",
         "unit": "",
@@ -40,16 +25,6 @@ GLOBAL_PROPERTIES_INPUTS = {
         "unit": "K",
         "value": 200.0,
     },
-    "sunDirection": {
-        "label": "Sun direction",
-        "unit": "",
-        "value": "0,0,1",
-    },
-    "earthDirection": {
-        "label": "Earth direction",
-        "unit": "",
-        "value": "0,0,-1",
-    },
     "internalEmission": {
         "label": "Internal emission",
         "unit": "",
@@ -63,17 +38,17 @@ GLOBAL_PROPERTIES_INPUTS = {
     "timeStep": {
         "label": "Time step",
         "unit": "s",
-        "value": 60.0,
+        "value": 10.0,
     },
     "snapPeriod": {
         "label": "Snap period",
         "unit": "s",
-        "value": 3600.0,
+        "value": 25.0,
     },
     "elementRayAmount": {
         "label": "Element ray amount",
         "unit": "",
-        "value": 500,
+        "value": 5000,
     },
     "elementMaxReflectionsAmount": {
         "label": "Element max reflections amount",
@@ -83,9 +58,9 @@ GLOBAL_PROPERTIES_INPUTS = {
     "earthRayAmount": {
         "label": "Earth ray amount",
         "unit": "",
-        "value": 200,
+        "value": 5000,
     },
-    "OrbitDivisions": {
+    "orbitDivisions": {
         "label": "Orbit divisions",
         "unit": "",
         "value": 20,

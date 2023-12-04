@@ -358,8 +358,7 @@ impl Element {
         //Note: probably that would make each element where that node is part add its heat source, so it would be duplicated
         let f = Vector::from_row_slice(&[1.0, 1.0, 1.0]);
 
-        let solar =
-            properties.alpha_sun * solar_intensity * f64::sin(betha.into()).abs() * factors.sun;
+        let solar = properties.alpha_sun * solar_intensity * factors.sun;
         let ir = properties.alpha_ir * earth_view_factor_ir * earth_ir;
         let albedo =
             properties.alpha_sun * solar_intensity * albedo_factor * earth_view_factor_albedo;

@@ -165,21 +165,23 @@ fn result_to_vtk(
 }
 
 pub fn fem_result_to_vtk(
-    directory_path: String,
-    file_name: String,
+    config: &ParserConfig,
     points: &Vec<Point>,
     elements: &Vec<Element>,
     results: &Vec<Vector>,
     snap_time: f64,
 ) -> Result<()> {
-    std::fs::create_dir_all(&directory_path)?;
+    let results_path = format!("{}/{}_results", config.results_path, config.results_name);
+    let results_name = format!("{}_results", config.results_name);
+
+    std::fs::create_dir_all(&results_path)?;
     for (i, result) in results.iter().enumerate() {
-        let file_path = format!("{}/{}_{}", directory_path, file_name, i);
+        let file_path = format!("{}/{}_{}", results_path, results_name, i);
         result_to_vtk(file_path, points, elements, result)?;
     }
     let mut files_data: Vec<VTKSeriesContent> = Vec::new();
     for (i, _) in results.iter().enumerate() {
-        let file_name = format!("{}_{}.vtk", file_name, i);
+        let file_name = format!("{}_{}.vtk", results_name, i);
         files_data.push(VTKSeriesContent {
             name: file_name,
             time: snap_time * i as f64,
@@ -190,18 +192,18 @@ pub fn fem_result_to_vtk(
         files: files_data,
     };
 
-    let vtk_series_path = format!("{}/{}.vtk.series", directory_path, file_name);
+    let vtk_series_path = format!("{}/{}.vtk.series", results_path, results_name);
     let file = File::create(vtk_series_path)?;
     serde_json::to_writer(file, &data)?;
 
     Ok(())
 }
 
-pub fn fem_problem_from_vtk(
-    vtk_file_path: String,
-    properties_file_path: String,
-    view_factors_path: String,
-) -> Result<FEMProblem> {
+pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
+    let vtk_file_path = &config.vtk_path;
+    let properties_file_path = &config.materials_path;
+    let view_factors_path = &config.view_factors_path;
+
     let vtk_file = Vtk::import(&vtk_file_path)
         .with_context(|| format!("Couldn't import vtk file: {vtk_file_path}"))?;
 

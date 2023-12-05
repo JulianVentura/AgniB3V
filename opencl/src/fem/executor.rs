@@ -1,29 +1,20 @@
-use crate::err;
-
 use super::element::Element;
 use super::engine::{FEMEngine, Solver};
 use super::parser;
 use super::{
     explicit_solver::ExplicitSolver, gpu_solver::GPUSolver, implicit_solver::ImplicitSolver,
 };
+use crate::err;
 use anyhow::{Context, Result};
 
 pub fn run_solver(config_path: &String) -> Result<()> {
-    //TODO: Why is this being done here?
-    //Move this logic to parser
     let config = parser::parse_config(config_path).with_context(|| "Couldn't parse config")?;
-    let results_folder = format!("{}/{}_results", config.results_path, config.results_name);
-    let results_file = format!("{}_results", config.results_name);
 
-    let problem = parser::fem_problem_from_vtk(
-        config.vtk_path.to_string(),
-        config.materials_path.to_string(),
-        config.view_factors_path.to_string(),
-    )
-    .with_context(|| "Couldn't load FEM problem")?;
+    let problem =
+        parser::fem_problem_from_vtk(&config).with_context(|| "Couldn't load FEM problem")?;
 
     let solver = build_solver(
-        config.solver.as_str(),
+        &config.solver,
         &problem.elements,
         problem.parameters.time_step,
     )
@@ -45,8 +36,7 @@ pub fn run_solver(config_path: &String) -> Result<()> {
         .with_context(|| "Couldn't run the FEM Engine")?;
 
     parser::fem_result_to_vtk(
-        results_folder,
-        results_file,
+        &config,
         &points,
         &problem.elements,
         &temp_results,

@@ -268,7 +268,8 @@ mod tests {
             betha,
             albedo_factor,
             0.0,
-        );
+        )
+        .unwrap();
 
         let e2 = Element::new(
             p2,
@@ -281,7 +282,8 @@ mod tests {
             betha,
             albedo_factor,
             0.0,
-        );
+        )
+        .unwrap();
 
         let mut l = solver::construct_l_matrix(&vec![e1, e2], 4);
 

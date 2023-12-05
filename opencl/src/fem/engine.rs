@@ -1,8 +1,10 @@
+use crate::err;
+use anyhow::Result;
+
 use super::structures::Vector;
 use super::{
     explicit_solver::ExplicitSolver, gpu_solver::GPUSolver, implicit_solver::ImplicitSolver,
 };
-use anyhow::Result;
 
 //TODO: Check how much slower the solver gets if we use a dyn (dynamic dispatch) over the Solver
 //object
@@ -41,14 +43,13 @@ pub struct FEMParameters {
 }
 
 impl FEMEngine {
-    pub fn new(params: FEMParameters, solver: Solver) -> Self {
-        //TODO add error handling
+    pub fn new(params: FEMParameters, solver: Solver) -> Result<Self> {
         if params.time_step > params.snapshot_period {
-            panic!("Snapshot period cannot be smaller than time step");
+            err!("Snapshot period cannot be smaller than time step");
         }
 
         if !Self::is_multiple(params.simulation_time, params.snapshot_period) {
-            panic!("Snapshot period must be multiple of simulation time");
+            err!("Snapshot period must be multiple of simulation time");
         }
 
         let steps = (params.simulation_time / params.time_step) as usize;
@@ -59,7 +60,7 @@ impl FEMEngine {
         let mut results = Vec::default();
         results.reserve(result_size);
 
-        FEMEngine {
+        Ok(FEMEngine {
             simulation_time: params.simulation_time,
             time_step: params.time_step,
             snapshot_period: params.snapshot_period,
@@ -67,7 +68,7 @@ impl FEMEngine {
             solver,
             results,
             f_index: 0,
-        }
+        })
     }
 
     pub fn run(&mut self) -> Result<Vec<Vector>> {
@@ -190,7 +191,7 @@ mod tests {
             eclipse_end: end,
             orbit_divisions,
         };
-        let solver = Solver::Explicit(ExplicitSolver::new(&vec![], 0.0));
+        let solver = Solver::Explicit(ExplicitSolver::new(&vec![], 0.0).unwrap());
         FEMEngine {
             simulation_time: 1.0,
             time_step: 1.0,

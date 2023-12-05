@@ -1,16 +1,15 @@
 pub mod fem;
 pub mod gpu;
+use anyhow::Result;
 use std::env;
 
-use anyhow::Result;
 use log::error;
 
 fn run() -> Result<()> {
     let args: Vec<String> = env::args().collect();
 
-    if args.len() < 2 {
-        eprintln!("Usage: {} config_path", args[0]);
-        std::process::exit(1); //TODO: Change this to return an error
+    if args.len() != 2 {
+        err!("Usage: <executable> <config_path>");
     }
 
     let config_path = &args[1];

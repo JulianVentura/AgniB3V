@@ -2,7 +2,7 @@ use super::element::Element;
 use super::point::Point;
 use super::solver;
 use super::structures::{Matrix, Vector, LU};
-use anyhow::Result;
+use anyhow::{Context, Result};
 
 pub struct ImplicitSolver {
     pub f_const: Vec<Vector>,
@@ -17,7 +17,7 @@ pub struct ImplicitSolver {
 }
 
 impl ImplicitSolver {
-    pub fn new(elements: &Vec<Element>, time_step: f64) -> Self {
+    pub fn new(elements: &Vec<Element>, time_step: f64) -> Result<Self> {
         let n_points = solver::calculate_number_of_points(elements);
         println!("Constructing global M matrix");
         let m = solver::construct_global_matrix(elements, n_points, |e: &Element| &e.m);
@@ -48,7 +48,7 @@ impl ImplicitSolver {
 
         println!("Implicit Solver built successfully");
 
-        ImplicitSolver {
+        Ok(ImplicitSolver {
             f_const,
             f_const_eclipse,
             a_lu,
@@ -58,7 +58,7 @@ impl ImplicitSolver {
             points,
             in_eclipse: false,
             f_index: 0,
-        }
+        })
     }
 
     pub fn step(&mut self) -> Result<()> {
@@ -76,8 +76,10 @@ impl ImplicitSolver {
 
         let b = &self.d * &self.temp + f;
 
-        self.temp = self.a_lu.solve(&b).expect("Oh no...");
-
+        self.temp = self
+            .a_lu
+            .solve(&b)
+            .with_context(|| "Couldn't solve linear system")?;
         Ok(())
     }
 

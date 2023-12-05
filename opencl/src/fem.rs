@@ -9,3 +9,4 @@ pub mod parser;
 pub mod point;
 pub mod solver;
 pub mod structures;
+pub mod error;

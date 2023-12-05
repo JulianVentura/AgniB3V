@@ -1,7 +1,7 @@
 use super::solver;
 use super::structures::{Matrix, Vector, LU};
 use super::{element::Element, point::Point};
-use anyhow::Result;
+use anyhow::{Context, Result};
 
 pub struct ExplicitSolver {
     pub m_lu: LU,
@@ -26,7 +26,7 @@ pub struct FEMProblem {
 }
 
 impl ExplicitSolver {
-    pub fn new(elements: &Vec<Element>, time_step: f64) -> Self {
+    pub fn new(elements: &Vec<Element>, time_step: f64) -> Result<Self> {
         let n_points = solver::calculate_number_of_points(elements);
         println!("Constructing global M matrix");
         let m = solver::construct_global_matrix(elements, n_points, |e: &Element| &e.m);
@@ -50,7 +50,7 @@ impl ExplicitSolver {
         let m_lu = m.lu();
         println!("Explicit Solver built successfully");
 
-        ExplicitSolver {
+        Ok(ExplicitSolver {
             m_lu,
             k,
             h,
@@ -61,7 +61,7 @@ impl ExplicitSolver {
             in_eclipse: false,
             temp,
             points,
-        }
+        })
     }
 
     pub fn temperature(&mut self) -> Result<&Vector> {
@@ -90,7 +90,10 @@ impl ExplicitSolver {
             f += &self.f_const[self.f_index];
         }
         let b = f - &self.k * &self.temp;
-        let x = &self.m_lu.solve(&b).expect("Oh no...");
+        let x = &self
+            .m_lu
+            .solve(&b)
+            .with_context(|| "Couldn't solve linear system")?;
 
         self.temp = self.time_step * x + &self.temp;
 

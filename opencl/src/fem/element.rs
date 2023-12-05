@@ -1,6 +1,9 @@
+use crate::err;
+
 use super::constants::BOLTZMANN;
 use super::point::Point;
 use super::structures::{Matrix, Vector};
+use anyhow::Result;
 
 #[derive(Debug)]
 pub struct Element {
@@ -61,10 +64,10 @@ impl Element {
         betha: f64,
         albedo_factor: f64,
         generated_heat: f64,
-    ) -> Self {
-        Self::check_point_length(&p1);
-        Self::check_point_length(&p2);
-        Self::check_point_length(&p3);
+    ) -> Result<Self> {
+        Self::check_point_length(&p1)?;
+        Self::check_point_length(&p2)?;
+        Self::check_point_length(&p3)?;
 
         let area: f64 = Self::calculate_area(&p1, &p2, &p3);
 
@@ -111,7 +114,7 @@ impl Element {
             albedo_factor,
         );
 
-        Element {
+        Ok(Element {
             p1,
             p2,
             p3,
@@ -124,10 +127,16 @@ impl Element {
             alpha_ir: properties.alpha_ir,
             view_factors: factors.elements,
             area,
-        }
+        })
     }
 
-    pub fn basic(p1: Point, p2: Point, p3: Point, generated_heat: f64, n_elements: usize) -> Self {
+    pub fn basic(
+        p1: Point,
+        p2: Point,
+        p3: Point,
+        generated_heat: f64,
+        n_elements: usize,
+    ) -> Result<Self> {
         let conductivity = 237.0;
         let density = 2700.0;
         let specific_heat = 900.0;
@@ -197,11 +206,12 @@ impl Element {
         edge1.dot(&edge2)
     }
 
-    fn check_point_length(point: &Point) {
-        //TODO: Add error handling
+    fn check_point_length(point: &Point) -> Result<()> {
         if point.position.len() != 3 {
-            panic!("Point length is not 3");
+            err!("Point with wrong dimensionality");
         }
+
+        Ok(())
     }
 
     fn calculate_k(

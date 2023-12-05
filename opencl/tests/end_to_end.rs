@@ -1,7 +1,7 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use opencl::fem::executor::run_solver;
 use serde::Deserialize;
-use std::{fs::remove_dir_all, fs::File, io::BufReader, path::PathBuf};
+use std::{fs::remove_dir_all, fs::File, io::BufReader};
 use vtkio::{
     model::{Attribute, DataSet, Piece},
     IOBuffer, Vtk,
@@ -40,14 +40,12 @@ fn get_vtk_results(vtk_file: Vtk) -> Vec<f64> {
     return vec![];
 }
 
-fn compare_vtk(file_path1: String, file_path2: String) -> Result<()> {
-    let file_path_buf = PathBuf::from(file_path1);
+fn compare_vtk(file_path1: &str, file_path2: &str) -> Result<()> {
     let vtk_file1 =
-        Vtk::import(&file_path_buf).expect(&format!("Failed to load file: {:?}", file_path_buf));
+        Vtk::import(&file_path1).with_context(|| format!("Couldn't load file: {file_path1}"))?;
 
-    let file_path_buf2 = PathBuf::from(file_path2);
     let vtk_file2 =
-        Vtk::import(&file_path_buf2).expect(&format!("Failed to load file: {:?}", file_path_buf2));
+        Vtk::import(&file_path2).with_context(|| format!("Couldn't load file: {file_path2}"))?;
 
     let vtk_1_results = get_vtk_results(vtk_file1);
     let vtk_2_results = get_vtk_results(vtk_file2);
@@ -66,6 +64,15 @@ fn compare_vtk(file_path1: String, file_path2: String) -> Result<()> {
     Ok(())
 }
 
+fn parse_json(path: &str) -> Result<VTKSeries> {
+    let file_reader =
+        BufReader::new(File::open(&path).with_context(|| format!("Couldn't read file {path}"))?);
+    let json_file: VTKSeries = serde_json::from_reader(file_reader)
+        .with_context(|| format!("Couldn't parse file {path}"))?;
+
+    Ok(json_file)
+}
+
 fn compare_results(
     actual_results: String,
     new_results: String,
@@ -75,14 +82,9 @@ fn compare_results(
     let actual_file = format!("{}/{}.vtk.series", actual_results, actual_results_name);
     let new_file = format!("{}/{}.vtk.series", new_results, new_results_name);
 
-    let actual_file_reader =
-        BufReader::new(File::open(&actual_file).expect("Couldn't read actual_file"));
-    let actual_file_json: VTKSeries =
-        serde_json::from_reader(actual_file_reader).expect("Couldn't parse actual_file");
-
-    let new_file_reader = BufReader::new(File::open(&new_file).expect("Couldn't read new_file"));
-    let new_file_json: VTKSeries =
-        serde_json::from_reader(new_file_reader).expect("Couldn't parse new_file");
+    let new_file_json = parse_json(&new_file).with_context(|| "Couldn't parse new json file")?;
+    let actual_file_json =
+        parse_json(&actual_file).with_context(|| "Couldn't parse actual json file")?;
 
     assert!(
         actual_file_json.files.len() == new_file_json.files.len(),
@@ -96,8 +98,8 @@ fn compare_results(
             0.01,
         );
         compare_vtk(
-            format!("{}/{}", actual_results, actual_file_json.files[i].name),
-            format!("{}/{}", new_results, new_file_json.files[i].name),
+            &format!("{}/{}", actual_results, actual_file_json.files[i].name),
+            &format!("{}/{}", new_results, new_file_json.files[i].name),
         )?;
     }
 

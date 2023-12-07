@@ -5,6 +5,8 @@ import numpy as np
 from matplotlib.widgets import Slider
 import sys
 import pandas as pd
+import re
+import xml.etree.ElementTree as ET
 
 # We have to install pip and then meshio for it to work
 
@@ -46,6 +48,31 @@ def parse_results_xls(directory, xls_path, progress):
             id = int(col.split(".")[1][1:])
             temperatures[id] = df[col][i]
         results_temperatures[time] = temperatures
+    return results_temperatures, results_positions
+
+
+def parse_results_xml(directory, path, progress):
+    with open(directory + "/" + path, encoding="utf-16") as file:
+        content = file.read()
+    content = re.sub(r"(\w+),\s", r"\1_", content)
+
+    results_temperatures = {}
+    results_positions = {}
+
+    root = ET.fromstring(content)
+    length = len(root.findall(".//series"))
+    for i, series in enumerate(root.findall(".//series")):
+        progress((i / length) * 100)
+        title = series.get("title")
+        id = int(title.split(".")[1][1:])
+
+        for point in series.findall(".//point"):
+            time_s = float(point.get("Time_s"))
+            if time_s not in results_temperatures:
+                results_temperatures[time_s] = {}
+            main = float(point.get(title))
+            results_temperatures[time_s][id] = main
+
     return results_temperatures, results_positions
 
 

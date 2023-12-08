@@ -6,6 +6,9 @@
         "paraview": "",
         "plotter": "/home/guidobotta/dev/tpp/TrabajoProfesional/plotter/UI.py",
         "preprocessor": "/home/guidobotta/dev/tpp/TrabajoProfesional/standalone-raytrace/main.py",
-        "solver": ""
+        "solver": "/home/guidobotta/dev/tpp/TrabajoProfesional/opencl/target/release/opencl"
+    },
+    "solver": {
+        "mode": "Implicit"
     }
 }

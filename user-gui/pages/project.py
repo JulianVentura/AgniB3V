@@ -178,10 +178,12 @@ class ProjectWidget(QWidget):
         """
         Opens FreeCAD application.
         """
-        print("Opening FreeCAD")
         freecadFile = getFileWithExtension(".FCStd", self.appState.projectDirectory)
-        print(freecadFile)
-        subprocess.Popen(["Freecad", freecadFile])
+        cmd = [
+            self.appState.globalConfiguration.getExecutable("freecad"),
+            freecadFile,
+        ]
+        subprocess.Popen(cmd)
 
     def openGMAT(self):
         """

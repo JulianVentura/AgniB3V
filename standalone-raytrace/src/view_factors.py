@@ -44,12 +44,9 @@ def element_earth(
 
         if DEBUG_VISUALIZATION_ENABLED:
             visualization.view_raycast(mesh, element_idx, ray_origins, ray_directions)
-
-        _, hit_ray_ids = mesh.ray.intersects_id(
-            ray_origins, ray_directions, return_locations=False, multiple_hits=False
-        )
+        hit_element_ids = mesh.ray.intersects_first(ray_origins, ray_directions)
         mask = np.ones(ray_amount, dtype=bool)
-        mask[hit_ray_ids] = 0
+        mask[hit_element_ids >= 0] = 0
         not_hit_ray_directions = ray_directions[mask]
         not_hit_ray_directions = utils.flip_vectors_around_axis(
             earth_direction, not_hit_ray_directions

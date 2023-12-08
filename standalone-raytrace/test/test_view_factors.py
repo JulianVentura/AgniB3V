@@ -46,89 +46,53 @@ def test_element_earth_visible_faces():
     earth_direction = np.array([1, 0, 0])
     sun_direction = np.array([1, 0, 0])
     mesh = vtk_io.load_vtk(ICOSPHERE_GEOMETRY_PATH)
-    earth_view_factors, earth_albedo_coefficients = view_factors.element_earth(
+    earth_view_factors, _ = view_factors.element_earth(
         mesh, earth_direction, sun_direction, 0.05, 10000
     )
+    earth_view_factors[earth_view_factors < 0.05 * view_factors.IR_SCALE_FACTOR] = 0
     earth_view_factors = np.ceil(earth_view_factors)
-    expected_visible_elements = np.array([0, 1, 4, 5, 6, 9, 10, 14, 15, 19])
-    expected_view_factors = np.zeros(20)
-    expected_view_factors[expected_visible_elements] = 1
+    expected_occluded_elements = np.array([7, 8, 12])
+    expected_view_factors = np.ones(20)
+    expected_view_factors[expected_occluded_elements] = 0
     assert np.array_equal(earth_view_factors, expected_view_factors)
-
-
-def _find_vertex_id(vertices, vertex):
-    for i in range(len(vertices)):
-        if np.array_equal(vertices[i], vertex):
-            return i
-    return -1
-
-
-def test_node_earth_view_factors():
-    earth_direction = np.array([-1, 0, 0])
-    sun_direction = np.array([0.17139427, -0.90390731, -0.3918872])
-    mesh = vtk_io.load_vtk(CUBE_GEOMETRY_PATH)
-    view_factors.mesh_look_at(mesh, earth_direction)
-    earth_view_factors, _ = view_factors.element_earth(
-        mesh, -earth_direction, sun_direction, 0.5, 30000
-    )
-    vertex_view_factors = np.zeros((mesh.vertices.size) // 3)
-    for element_id, triangle in enumerate(mesh.triangles):
-        element_view_factor = earth_view_factors[element_id]
-        for vertex in triangle:
-            vertex_id = _find_vertex_id(mesh.vertices, vertex)
-            vertex_view_factors[vertex_id] += element_view_factor / 3
-            if vertex_id == 13:
-                print(element_view_factor / 3)
-    print("VF ELEMENTOS")
-    print(earth_view_factors)
-    print("POTENCIA NODOS")
-    #not_interesting_vertices = [8,9,10,11,12,13,14,15,16,17,18,19,21,22,23,24,26,27,28,29,31,32,33,34,36,37,38,39,41,42,43,44,46,47,48,49]
-    for vertex_id, vertex_vf in enumerate(vertex_view_factors):
-            print(vertex_id, vertex_vf * 225 * 1 *(0.25))
-    assert False
-
-
-def test_node_albedo_view_factors():
-    earth_direction = np.array([-1.82089122e-01, 9.83282031e-01, -8.98924305e-07])
-    sun_direction = np.array([0.17139427, -0.90390731, -0.3918872])
-    mesh = vtk_io.load_vtk(CUBE_GEOMETRY_PATH)
-    view_factors.mesh_look_at(mesh, earth_direction)
-    _, albedo_view_factors = view_factors.element_earth(
-        mesh, earth_direction, sun_direction, 0.5, 30000
-    )
-    vertex_view_factors = np.zeros((mesh.vertices.size) // 3)
-    for element_id, triangle in enumerate(mesh.triangles):
-        element_view_factor = albedo_view_factors[element_id]
-        for vertex in triangle:
-            vertex_id = _find_vertex_id(mesh.vertices, vertex)
-            vertex_view_factors[vertex_id] += element_view_factor / 3
-    print("VF ELEMENTOS")
-    print(albedo_view_factors)
-    print("POTENCIA NODOS")
-    for vertex_id, vertex_vf in enumerate(vertex_view_factors):
-        print(vertex_id, vertex_vf * 1361 * 1 * 0.25 * 1)
-    assert False
 
 
 def _test_element_earth_view_factors_are_as_expected(penumbra_fraction):
     earth_direction = np.array([1, 0, 0])
     sun_direction = np.array([-1, 0, 0])
     mesh = vtk_io.load_vtk(ICOSPHERE_GEOMETRY_PATH)
-    earth_view_factors, earth_albedo_coefficients = view_factors.element_earth(
+    earth_view_factors, _ = view_factors.element_earth(
         mesh, earth_direction, sun_direction, penumbra_fraction, 10000
     )
-    expected_view_factors = np.zeros(20)
-    expected_view_factors[0] = 0.6
-    expected_view_factors[1] = 0.7
-    expected_view_factors[4] = expected_view_factors[0]
-    expected_view_factors[5] = 1.0
-    expected_view_factors[6] = 0.6
-    expected_view_factors[9] = expected_view_factors[6]
-    expected_view_factors[10] = 0.85
-    expected_view_factors[14] = expected_view_factors[10]
-    expected_view_factors[15] = 0.65
-    expected_view_factors[19] = expected_view_factors[15]
+    expected_view_factors = (
+        np.array(
+            [
+                0.10,
+                0.17,
+                0.10,
+                0.10,
+                0.09,
+                0.33,
+                0.10,
+                0.04,
+                0.04,
+                0.10,
+                0.25,
+                0.12,
+                0.0,
+                0.12,
+                0.25,
+                0.14,
+                0.13,
+                0.08,
+                0.12,
+                0.14,
+            ]
+        )
+        * view_factors.IR_SCALE_FACTOR
+    )
 
+    print(earth_view_factors / view_factors.IR_SCALE_FACTOR)
     for i in range(20):
         assert _is_in_interval(earth_view_factors[i], expected_view_factors[i], 0.06)
 
@@ -163,63 +127,63 @@ def _test_earth_albedo(expected_lit_fractions, penumbra_fraction):
 
 def test_earth_albedo_full_umbra():
     expected_lit_fractions = [
-        0.25,
-        0.25,
-        0.20,
-        0.17,
-        0.11,
-        0.07,
-        0.03,
-        0.00,
-        0.00,
-        0.00,
-        0.03,
-        0.07,
+        0.13,
         0.12,
-        0.17,
-        0.20,
+        0.10,
+        0.07,
+        0.04,
+        0.02,
+        0.01,
+        0.0,
+        0.0,
+        0.0,
+        0.01,
+        0.02,
+        0.04,
+        0.07,
+        0.10,
     ]
     _test_earth_albedo(expected_lit_fractions, 0)
 
 
 def test_earth_albedo_half_umbra():
     expected_lit_fractions = [
-        0.25,
-        0.25,
-        0.25,
-        0.22,
-        0.18,
-        0.15,
         0.13,
         0.12,
-        0.12,
-        0.12,
-        0.13,
-        0.15,
-        0.18,
-        0.22,
-        0.24,
+        0.11,
+        0.09,
+        0.07,
+        0.06,
+        0.05,
+        0.04,
+        0.04,
+        0.04,
+        0.05,
+        0.06,
+        0.07,
+        0.09,
+        0.11,
     ]
     _test_earth_albedo(expected_lit_fractions, 0.5)
 
 
 def test_earth_albedo_no_umbra():
     expected_lit_fractions = [
-        0.25,
-        0.25,
-        0.25,
-        0.25,
-        0.25,
-        0.25,
-        0.25,
-        0.25,
-        0.25,
-        0.25,
-        0.25,
-        0.25,
-        0.25,
-        0.25,
-        0.25,
+        0.13,
+        0.12,
+        0.11,
+        0.09,
+        0.08,
+        0.09,
+        0.11,
+        0.12,
+        0.13,
+        0.12,
+        0.11,
+        0.09,
+        0.08,
+        0.09,
+        0.11,
     ]
     _test_earth_albedo(expected_lit_fractions, 1.0)
 
@@ -230,7 +194,7 @@ def _element_element_backwards_pyramid(properties_path, ray_amount):
         utils.element_amount(mesh.triangles), properties_path
     )
     return view_factors.element_element(
-        mesh, properties.absortance_by_element, ray_amount, 50, False
+        mesh, properties.absortance_ir_by_element, ray_amount, 50, False
     )
 
 
@@ -327,7 +291,7 @@ def _element_element_backwards_diamond(properties_path, ray_amount):
         utils.element_amount(mesh.triangles), properties_path
     )
     return view_factors.element_element(
-        mesh, properties.absortance_by_element, ray_amount, 50, True
+        mesh, properties.absortance_ir_by_element, ray_amount, 50, True
     )
 
 

@@ -12,8 +12,7 @@ def normalize(v):
 def proportionalize(v):
     p = sum(v)
     return v / p
-
-
+    
 def element_amount(elements):
     return elements.size // 9
 
@@ -38,6 +37,9 @@ def is_point_in_element(element, point):
         and gamma <= 1
     )
 
+
+def array_dot(vector_array, vector):
+    return vector_array @ (vector)[:,np.newaxis]
 
 def generate_random_points_in_element(element, amount):
     random_weights = np.random.rand(amount, 3)

@@ -8,7 +8,6 @@ use ocl::{flags, Buffer, Context, Device, Kernel, Platform, Program, Queue};
 
 pub struct GPUSolver {
     pub f_const: Vec<Vector>,
-    pub f_const_eclipse: Vec<Vector>,
     pub d: Matrix,
     pub h: Matrix,
     program: OpenCLProgram,
@@ -55,10 +54,7 @@ impl GPUSolver {
         println!("Constructing global L matrix");
         let l = solver::construct_l_matrix(elements, n_points);
         println!("Constructing global flux vector");
-        let f_const = solver::construct_global_vector_f_const_multiple_earth(elements, n_points);
-        println!("Constructing global flux vector eclipse");
-        let f_const_eclipse =
-            solver::construct_global_vector_f_const_eclipse_multiple_earth(elements, n_points);
+        let f_const = solver::construct_global_vector_f_const_array(elements, n_points);
         println!("Constructing points array");
         let points = solver::construct_points_array(elements, n_points);
         let temp = Vector::from_vec(points.iter().map(|p| p.temperature).collect::<Vec<f64>>());
@@ -89,7 +85,6 @@ impl GPUSolver {
 
         Ok(GPUSolver {
             f_const,
-            f_const_eclipse,
             d,
             h,
             temp,
@@ -121,20 +116,12 @@ impl GPUSolver {
         &self.points
     }
 
-    pub fn update_f(&mut self, f_index: usize, in_eclipse: bool) -> Result<()> {
-        if in_eclipse {
-            self.buffers
-                .buffer_f_const
-                .cmd()
-                .write(self.f_const_eclipse[f_index].as_slice())
-                .enq()?;
-        } else {
-            self.buffers
-                .buffer_f_const
-                .cmd()
-                .write(self.f_const[f_index].as_slice())
-                .enq()?;
-        }
+    pub fn update_f(&mut self, f_index: usize) -> Result<()> {
+        self.buffers
+            .buffer_f_const
+            .cmd()
+            .write(self.f_const[f_index].as_slice())
+            .enq()?;
 
         Ok(())
     }

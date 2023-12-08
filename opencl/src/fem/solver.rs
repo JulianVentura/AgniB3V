@@ -102,65 +102,30 @@ pub fn construct_l_matrix(elements: &Vec<Element>, n_points: usize) -> Matrix {
     l * BOLTZMANN / 9.0
 }
 
-pub fn construct_global_vector_f_const_multiple_earth(
+pub fn construct_global_vector_f_const_array(
     elements: &Vec<Element>,
     n_points: usize,
 ) -> Vec<Vector> {
-    let mut f_vec: Vec<Vector> = vec![];
-    if elements.len() > 0 {
-        for i in 0..elements[0].f.len() {
-            let f = construct_global_vector_f_const(elements, n_points, i);
-            f_vec.push(f);
-        }
-    }
-    f_vec
+    let n_divisions = match elements.get(0) {
+        Some(e) => e.f.len(),
+        None => 0,
+    };
+
+    (0..n_divisions)
+        .map(|i| construct_global_vector_f_const(elements, n_points, |e: &Element| &e.f[i]))
+        .collect()
 }
 
-pub fn construct_global_vector_f_const_eclipse_multiple_earth(
+fn construct_global_vector_f_const(
     elements: &Vec<Element>,
     n_points: usize,
-) -> Vec<Vector> {
-    let mut f_vec: Vec<Vector> = vec![];
-    if elements.len() > 0 {
-        for i in 0..elements[0].f_eclipse.len() {
-            let f = construct_global_vector_f_const_eclipse(elements, n_points, i);
-            f_vec.push(f);
-        }
-    }
-    f_vec
-}
-
-pub fn construct_global_vector_f_const(
-    elements: &Vec<Element>,
-    n_points: usize,
-    i: usize,
+    key: impl Fn(&Element) -> &Vector,
 ) -> Vector {
     let mut f = Vector::zeros(n_points);
 
     for e in elements {
         let map = [e.p1.global_id, e.p2.global_id, e.p3.global_id];
-        let local_vector = &e.f[i];
-
-        for i in 0..3 {
-            let v = local_vector[i];
-            let new_i = map[i] as usize;
-            f[new_i] += v;
-        }
-    }
-
-    f
-}
-
-pub fn construct_global_vector_f_const_eclipse(
-    elements: &Vec<Element>,
-    n_points: usize,
-    i: usize,
-) -> Vector {
-    let mut f = Vector::zeros(n_points);
-
-    for e in elements {
-        let map = [e.p1.global_id, e.p2.global_id, e.p3.global_id];
-        let local_vector = &e.f_eclipse[i];
+        let local_vector = key(&e);
 
         for i in 0..3 {
             let v = local_vector[i];
@@ -217,7 +182,6 @@ mod tests {
         let alpha_sun = 1.0;
         let solar_intensity = 300.0;
         let earth_ir = 1.0;
-        let betha = 0.1;
         let albedo_factor = 0.1;
 
         let p1 = Point::new(Vector::from_row_slice(&[0.0, 0.0, 0.0]), 0.0, 0, 0);
@@ -257,6 +221,8 @@ mod tests {
             elements: vec![0.2, 0.4],
         };
 
+        let divisions = vec![(0, false)];
+
         let e1 = Element::new(
             p1.clone(),
             p2.clone(),
@@ -265,9 +231,9 @@ mod tests {
             f1,
             solar_intensity,
             earth_ir,
-            betha,
             albedo_factor,
             0.0,
+            &divisions,
         )
         .unwrap();
 
@@ -279,9 +245,9 @@ mod tests {
             f2,
             solar_intensity,
             earth_ir,
-            betha,
             albedo_factor,
             0.0,
+            &divisions,
         )
         .unwrap();
 

@@ -1,6 +1,7 @@
 from PySide2.QtWidgets import *
 from PySide2.QtCore import *
 from utils.appState import AppState
+from copy import deepcopy
 
 class ConfigurationWidget(QWidget):
     def __init__(self, parent=None):
@@ -23,7 +24,7 @@ class ConfigurationWidget(QWidget):
         verticalLayout.addLayout(headerButtonsLayout, 0)
 
         settings = AppState().getGlobalConfiguration()
-        self.newSettings = settings.copy()
+        self.newSettings = deepcopy(settings)
         for category in settings:
             verticalCategoryLayout = QVBoxLayout()
             verticalCategoryLayout.setContentsMargins(0, 20, 0, 0)
@@ -41,7 +42,9 @@ class ConfigurationWidget(QWidget):
 
                 propertyLineEdit = QLineEdit(frame)
                 propertyLineEdit.setText(settings[category][prop])
-                propertyLineEdit.textChanged.connect(lambda text, prop=prop: self.onTextChanged(category, prop, text))
+                propertyLineEdit.textChanged.connect(
+                    lambda text, category=category, prop=prop: self.onTextChanged(category, prop, text)
+                )
 
                 propertyLayout.addWidget(propertyLabel, 1)
                 propertyLayout.addWidget(propertyLineEdit, 7)
@@ -75,11 +78,9 @@ class ConfigurationWidget(QWidget):
         """
         Saves the configuration.
         """
-        settings = AppState().getGlobalConfiguration()
-        AppState().setGlobalConfiguration(settings)
+        AppState().setGlobalConfiguration(self.newSettings)
         
     def onTextChanged(self, category, prop, text):
-        print(category, prop, text)
         self.newSettings[category][prop] = text
 
     def goBack(self):

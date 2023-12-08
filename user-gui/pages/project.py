@@ -223,7 +223,13 @@ class ProjectWidget(QWidget):
         """
         Runs solver simulation.
         """
-        pass
+        cmd = [
+            self.appState.globalConfiguration.getExecutable("solver"),
+            self.appState.projectDirectory,
+            self.appState.globalConfiguration.getSolverConfiguration("mode"),
+        ]
+        print(cmd)
+        subprocess.Popen(cmd)
 
     def calculateViewFactorsAndRunSimulation(self):
         """

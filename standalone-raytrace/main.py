@@ -3,7 +3,6 @@ import json
 from src import utils, properties_atlas, vtk_io, view_factors, visualization, serializer
 import numpy as np
 
-
 def _is_closest_orbit_point(step, elapsed_secs, target_time):
     if step == len(elapsed_secs) - 1:
         return True
@@ -62,22 +61,25 @@ def op_process_view_factors(
     print("Setting up bodies")
     view_factors.mesh_look_at(mesh, sun_direction)
 
-    print("Calculating sun view factors")
-    element_sun_view_factors = [
-        (
-            view_factors.element_sun(mesh, sun_direction),
-            properties.orbit_properties.elapsed_secs[0],
-        )
-    ]
-
-    print("Calculating element-element view factors")
-    element_element_view_factors = view_factors.element_element(
+    print("Calculating element-element ir view factors")
+    element_element_ir_view_factors = view_factors.element_element(
         mesh,
-        properties.absortance_by_element,
+        properties.absortance_ir_by_element,
         element_ray_amount,
         element_max_reflections_amount,
         internal_emission,
     )
+
+    print("Calculating sun view factors")
+    element_sun_view_factors = [
+        (
+            view_factors.element_sun(
+                mesh,
+                sun_direction
+            ),
+            properties.orbit_properties.elapsed_secs[0],
+        )
+    ]
 
     print("Calculating earth view factors")
     element_earth_ir_view_factors = []
@@ -93,11 +95,12 @@ def op_process_view_factors(
         earth_direction = utils.normalize(
             -properties.orbit_properties.sat_position[step]
         )
+
         ir_view_factors, albedo_view_factors = view_factors.element_earth(
             mesh,
             earth_direction,
             sun_direction,
-            penumbra_fraction=0,
+            penumbra_fraction=0.0,
             ray_amount=earth_ray_amount,
         )
         element_earth_ir_view_factors.append((ir_view_factors, elapsed_secs[step]))
@@ -111,13 +114,14 @@ def op_process_view_factors(
     print(f"{100:>5.1f}%")
     print(f"Orbit was divided into {division_number} points")
     print("Writing output files")
+
     properties.dump(properties_file_path)
     serializer.serialize_view_factors(
         view_factors_file_path,
         element_earth_ir_view_factors,
         element_earth_albedo_view_factors,
         element_sun_view_factors,
-        element_element_view_factors,
+        element_element_ir_view_factors,
     )
     print("Done")
 

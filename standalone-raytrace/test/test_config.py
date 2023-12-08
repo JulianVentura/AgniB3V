@@ -30,6 +30,4 @@ RING_GEOMETRY_PATH = "./test/models/ring.vtk"
 
 ARROWS_GEOMETRY_PATH = "./test/models/arrows.vtk"
 
-CUBE_GEOMETRY_PATH = "./test/models/cube.vtk"
-
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))

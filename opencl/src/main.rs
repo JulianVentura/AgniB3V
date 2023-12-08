@@ -8,14 +8,15 @@ use log::error;
 fn run() -> Result<()> {
     let args: Vec<String> = env::args().collect();
 
-    if args.len() < 2 {
-        eprintln!("Usage: {} config_path", args[0]);
+    if args.len() != 3 {
+        eprintln!("Usage: {} <method> <directory_path>", args[0]);
         std::process::exit(1); //TODO: Change this to return an error
     }
 
-    let config_path = &args[1];
+    let directory_path = &args[1];
+    let method = &args[2];
 
-    fem::executor::run_solver(config_path)?;
+    fem::executor::run_solver(directory_path, method)?;
 
     Ok(())
 }

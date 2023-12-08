@@ -1,4 +1,21 @@
-<?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-<svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M11 16L15 12M15 12L11 8M15 12H3M4.51555 17C6.13007 19.412 8.87958 21 12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C8.87958 3 6.13007 4.58803 4.51555 7" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Creator: CorelDRAW X7 -->
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="210mm" height="297mm" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+viewBox="0 0 21000 29700"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+ <defs>
+  <style type="text/css">
+   <![CDATA[
+    .str1 {stroke:black;stroke-width:1763.89;stroke-linecap:round;stroke-linejoin:round}
+    .str0 {stroke:#EBECEC;stroke-width:1963.89;stroke-linecap:round;stroke-linejoin:round}
+    .fil0 {fill:none}
+   ]]>
+  </style>
+ </defs>
+ <g id="Capa_x0020_1">
+  <metadata id="CorelCorpID_0Corel-Layer"/>
+  <path class="fil0 str0" d="M9618 18378l3528 -3528m0 0l-3528 -3528m3528 3528l-10583 0m1336 4410c1424,2127 3849,3528 6601,3528 4384,0 7938,-3554 7938,-7938 0,-4384 -3554,-7937 -7938,-7937 -2752,0 -5177,1400 -6601,3527"/>
+  <path class="fil0 str1" d="M9618 18378l3528 -3528m0 0l-3528 -3528m3528 3528l-10583 0m1336 4410c1424,2127 3849,3528 6601,3528 4384,0 7938,-3554 7938,-7938 0,-4384 -3554,-7937 -7938,-7937 -2752,0 -5177,1400 -6601,3527"/>
+ </g>
 </svg>

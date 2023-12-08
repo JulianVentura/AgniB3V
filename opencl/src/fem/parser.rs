@@ -1,5 +1,6 @@
 use super::element::{Element, MaterialProperties, ViewFactors};
 use super::engine::{FEMOrbitParameters, FEMParameters};
+use super::orbit_manager::{OrbitManager, OrbitParameters};
 use super::point::Point;
 use super::structures::{Matrix, Vector};
 use anyhow::{Context, Result};
@@ -351,6 +352,15 @@ pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
             elements: elements_view_factors,
         };
 
+        let orbit_params = OrbitParameters {
+            orbit_period: orbit_parameters.orbit_period,
+            orbit_divisions: orbit_parameters.orbit_divisions.clone(),
+            eclipse_start: orbit_parameters.eclipse_start,
+            eclipse_end: orbit_parameters.eclipse_end,
+        };
+
+        let orbit_manager = OrbitManager::new(&orbit_params);
+        let orbit_divisions = orbit_manager.eclipse_divisions();
         elements.push(
             Element::new(
                 p1,
@@ -360,9 +370,9 @@ pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
                 factors,
                 global_properties.solar_constant,
                 global_properties.earth_ir,
-                global_properties.beta_angle,
                 global_properties.albedo,
                 parser_element.flux,
+                orbit_divisions,
             )
             .with_context(|| format!("Couldn't create element of id {}", elements.len()))?,
         );

@@ -14,7 +14,6 @@ pub struct Element {
     pub m: Matrix,
     pub e: Matrix,
     pub f: Vec<Vector>,
-    pub f_eclipse: Vec<Vector>,
     pub alpha_sun: f64,
     pub alpha_ir: f64,
     pub view_factors: Vec<f64>,
@@ -61,9 +60,9 @@ impl Element {
         factors: ViewFactors,
         solar_intensity: f64,
         earth_ir: f64,
-        betha: f64,
         albedo_factor: f64,
         generated_heat: f64,
+        orbit_divisions: &Vec<(usize, bool)>,
     ) -> Result<Self> {
         Self::check_point_length(&p1)?;
         Self::check_point_length(&p2)?;
@@ -93,25 +92,15 @@ impl Element {
 
         let e = Self::calculate_e(area, properties.alpha_ir);
 
-        let f = Self::calculate_f_multiple_earth(
+        let f = Self::calculate_f_array(
             area,
             &properties,
             &factors,
             solar_intensity,
             earth_ir,
-            betha,
             albedo_factor,
             generated_heat,
-        );
-
-        let f_eclipse = Self::calculate_f_eclipse_multiple_earth(
-            area,
-            &properties,
-            earth_ir,
-            &factors,
-            generated_heat,
-            solar_intensity,
-            albedo_factor,
+            orbit_divisions,
         );
 
         Ok(Element {
@@ -122,7 +111,6 @@ impl Element {
             m,
             e,
             f,
-            f_eclipse,
             alpha_sun: properties.alpha_sun,
             alpha_ir: properties.alpha_ir,
             view_factors: factors.elements,
@@ -145,7 +133,6 @@ impl Element {
         let alpha_ir = 1.0;
         let solar_intensity = 300.0;
         let earth_ir = 225.0;
-        let betha = 0.1;
         let albedo_factor = 0.1;
 
         let props = MaterialProperties {
@@ -164,6 +151,8 @@ impl Element {
             elements: vec![0.1f64; n_elements],
         };
 
+        let divisions = vec![(0, false)];
+
         Self::new(
             p1,
             p2,
@@ -172,9 +161,9 @@ impl Element {
             factors,
             solar_intensity,
             earth_ir,
-            betha,
             albedo_factor,
             generated_heat,
+            &divisions,
         )
     }
 
@@ -283,72 +272,33 @@ impl Element {
         (BOLTZMANN * alpha * area / 3.0) * e
     }
 
-    fn calculate_f_multiple_earth(
+    fn calculate_f_array(
         area: f64,
         properties: &MaterialProperties,
         factors: &ViewFactors,
         solar_intensity: f64,
         earth_ir: f64,
-        betha: f64,
         albedo_factor: f64,
         generated_heat: f64,
+        orbit_divisions: &Vec<(usize, bool)>,
     ) -> Vec<Vector> {
-        let earth_albedo = &factors.earth_albedo;
-        let earth_ir_vf = &factors.earth_ir;
-
-        //TODO: We can refactor this.
-        //Functional programming is easier to read and to optimize by compiler
-        let mut f_vec: Vec<Vector> = vec![];
-
-        for i in 0..earth_albedo.len() {
-            let f = Self::calculate_f(
-                area,
-                &properties,
-                &factors,
-                solar_intensity,
-                earth_ir,
-                betha,
-                albedo_factor,
-                generated_heat,
-                earth_albedo[i],
-                earth_ir_vf[i],
-            );
-
-            f_vec.push(f);
-        }
-
-        f_vec
-    }
-
-    fn calculate_f_eclipse_multiple_earth(
-        area: f64,
-        properties: &MaterialProperties,
-        earth_ir: f64,
-        factors: &ViewFactors,
-        generated_heat: f64,
-        solar_intensity: f64,
-        albedo_factor: f64,
-    ) -> Vec<Vector> {
-        let earth_albedo = &factors.earth_albedo;
-        let earth_ir_vf = &factors.earth_ir;
-        let mut f_vec: Vec<Vector> = vec![];
-
-        for i in 0..earth_albedo.len() {
-            let f = Self::calculate_f_eclipse(
-                area,
-                &properties,
-                earth_ir,
-                generated_heat,
-                earth_albedo[i],
-                earth_ir_vf[i],
-                solar_intensity,
-                albedo_factor,
-            );
-
-            f_vec.push(f);
-        }
-
-        f_vec
+        orbit_divisions
+            .iter()
+            .map(|(idx, in_eclipse)| {
+                Self::calculate_f(
+                    area,
+                    &properties,
+                    &factors,
+                    solar_intensity,
+                    earth_ir,
+                    albedo_factor,
+                    generated_heat,
+                    factors.earth_albedo[*idx],
+                    factors.earth_ir[*idx],
+                    *in_eclipse,
+                )
+            })
+            .collect()
     }
 
     fn calculate_f(
@@ -357,48 +307,26 @@ impl Element {
         factors: &ViewFactors,
         solar_intensity: f64,
         earth_ir: f64,
-        betha: f64,
         albedo_factor: f64,
         generated_heat: f64,
         earth_view_factor_albedo: f64,
         earth_view_factor_ir: f64,
+        in_eclipse: bool,
     ) -> Vector {
         //TODO: Add single node heat source
         // f += [nodo1.heat_source, nodo2.heat_source, nodo3.heat_source]
         //Note: probably that would make each element where that node is part add its heat source, so it would be duplicated
         let f = Vector::from_row_slice(&[1.0, 1.0, 1.0]);
 
-        let solar =
-            properties.alpha_sun * solar_intensity * f64::sin(betha.into()).abs() * factors.sun;
+        let solar = match in_eclipse {
+            true => 0.0,
+            false => properties.alpha_sun * solar_intensity * factors.sun,
+        };
         let ir = properties.alpha_ir * earth_view_factor_ir * earth_ir;
         let albedo =
             properties.alpha_sun * solar_intensity * albedo_factor * earth_view_factor_albedo;
 
         let magnitude = (generated_heat + solar + ir + albedo) * area / 3.0;
-
-        magnitude * f
-    }
-
-    fn calculate_f_eclipse(
-        area: f64,
-        properties: &MaterialProperties,
-        earth_ir: f64,
-        generated_heat: f64,
-        earth_view_factor_albedo: f64,
-        earth_view_factor_ir: f64,
-        solar_intensity: f64,
-        albedo_factor: f64,
-    ) -> Vector {
-        //TODO: Add single node heat source
-        // f += [nodo1.heat_source, nodo2.heat_source, nodo3.heat_source]
-        //Note: probably that would make each element where that node is part add its heat source, so it would be duplicated
-        let f = Vector::from_row_slice(&[1.0, 1.0, 1.0]);
-
-        let ir = properties.alpha_ir * earth_view_factor_ir * earth_ir;
-        let albedo =
-            properties.alpha_sun * solar_intensity * albedo_factor * earth_view_factor_albedo;
-
-        let magnitude = (generated_heat + ir + albedo) * area / 3.0;
 
         magnitude * f
     }
@@ -545,5 +473,81 @@ mod tests {
             calculate_edges_dot_product_default(position1, position2, position3, position4);
 
         assert_float_eq(dot_product, 1.63, 0.01);
+    }
+
+    #[test]
+    fn test_calculate_f_array_1() {
+        use super::{MaterialProperties, ViewFactors};
+        let m_props = MaterialProperties {
+            conductivity: 1.0,
+            density: 1.0,
+            specific_heat: 1.0,
+            thickness: 1.0,
+            alpha_sun: 1.0,
+            alpha_ir: 1.0,
+        };
+
+        let vf = ViewFactors {
+            earth_ir: vec![1.0, 0.5, 1.0],
+            earth_albedo: vec![1.0, 0.4, 1.0],
+            sun: 1.0,
+            elements: vec![1.0, 1.0, 1.0],
+        };
+
+        let divisions = vec![(0, false), (0, true), (1, true), (2, true), (2, false)];
+
+        let f = Element::calculate_f_array(1.0, &m_props, &vf, 1361.0, 225.0, 1.0, 0.0, &divisions);
+
+        let f_expected = [
+            Vector::from_row_slice(&[982.33, 982.33, 982.33]),
+            Vector::from_row_slice(&[528.66, 528.66, 528.66]),
+            Vector::from_row_slice(&[218.963, 218.963, 218.963]),
+            Vector::from_row_slice(&[528.66, 528.66, 528.66]),
+            Vector::from_row_slice(&[982.33, 982.33, 982.33]),
+        ];
+
+        for (f_r, f_exp) in f.iter().zip(f_expected) {
+            for (x, y) in f_r.iter().zip(f_exp.iter()) {
+                assert_float_eq(*x, *y, 0.01);
+            }
+        }
+    }
+
+    #[test]
+    fn test_calculate_f_array_2() {
+        use super::{MaterialProperties, ViewFactors};
+        let m_props = MaterialProperties {
+            conductivity: 1.0,
+            density: 1.0,
+            specific_heat: 1.0,
+            thickness: 1.0,
+            alpha_sun: 1.0,
+            alpha_ir: 1.0,
+        };
+
+        let vf = ViewFactors {
+            earth_ir: vec![1.0, 0.5, 1.0],
+            earth_albedo: vec![1.0, 0.4, 1.0],
+            sun: 1.0,
+            elements: vec![1.0, 1.0, 1.0],
+        };
+
+        let divisions = vec![(0, true), (0, false), (1, false), (2, false), (2, true)];
+
+        let f = Element::calculate_f_array(1.0, &m_props, &vf, 1361.0, 225.0, 1.0, 0.0, &divisions);
+
+        let f_expected = [
+            Vector::from_row_slice(&[528.66, 528.66, 528.66]),
+            Vector::from_row_slice(&[982.33, 982.33, 982.33]),
+            Vector::from_row_slice(&[672.63, 672.63, 672.63]),
+            Vector::from_row_slice(&[982.33, 982.33, 982.33]),
+            Vector::from_row_slice(&[528.66, 528.66, 528.66]),
+        ];
+
+        for (f_r, f_exp) in f.iter().zip(f_expected) {
+            for (x, y) in f_r.iter().zip(f_exp.iter()) {
+                assert_float_eq(*x, *y, 0.01);
+            }
+        }
     }
 }

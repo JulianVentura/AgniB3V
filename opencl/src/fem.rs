@@ -1,6 +1,8 @@
 pub mod constants;
 pub mod element;
 pub mod engine;
+pub mod error;
+pub mod orbit_manager;
 pub mod executor;
 pub mod explicit_solver;
 pub mod gpu_solver;
@@ -9,4 +11,3 @@ pub mod parser;
 pub mod point;
 pub mod solver;
 pub mod structures;
-pub mod error;

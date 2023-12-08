@@ -95,14 +95,13 @@ impl FEMEngine {
     fn update_f(&mut self, step: usize) -> Result<()> {
         let time = step as f64 * self.time_step;
         let orbit_time = time % (self.orbit_parameters.orbit_period);
-        let in_eclipse = self.is_in_eclipse(orbit_time);
 
         self.update_f_index(orbit_time);
 
         match &mut self.solver {
-            Solver::Explicit(s) => s.update_f(self.f_index, in_eclipse)?,
-            Solver::Implicit(s) => s.update_f(self.f_index, in_eclipse)?,
-            Solver::GPU(s) => s.update_f(self.f_index, in_eclipse)?,
+            Solver::Explicit(s) => s.update_f(self.f_index)?,
+            Solver::Implicit(s) => s.update_f(self.f_index)?,
+            Solver::GPU(s) => s.update_f(self.f_index)?,
         };
 
         Ok(())
@@ -135,18 +134,6 @@ impl FEMEngine {
 
     fn is_multiple(dividend: f64, divisor: f64) -> bool {
         (dividend / divisor).fract().abs() < 1e-12
-    }
-
-    //TODO: Maybe we should make the interval not including the end in order to reduce error on
-    //large step_sizes, like: [start, end)
-    fn is_in_eclipse(&self, orbit_time: f64) -> bool {
-        let start = self.orbit_parameters.eclipse_start;
-        let end = self.orbit_parameters.eclipse_end;
-        if start <= end {
-            return orbit_time >= start && orbit_time <= end;
-        } else {
-            return orbit_time <= end || orbit_time >= start;
-        }
     }
 
     fn update_f_index(&mut self, orbit_time: f64) {
@@ -201,106 +188,6 @@ mod tests {
             results: vec![],
             f_index: 0,
         }
-    }
-
-    #[test]
-    fn test_is_in_eclipse_1() {
-        let start = 1000.0;
-        let end = 2000.0;
-        let engine = create_fem_engine(start, end, vec![0.0]);
-        let time = 1500.0;
-        let is_in_eclipse = engine.is_in_eclipse(time);
-        assert!(is_in_eclipse);
-    }
-
-    #[test]
-    fn test_is_in_eclipse_2() {
-        let start = 1000.0;
-        let end = 2000.0;
-        let engine = create_fem_engine(start, end, vec![0.0]);
-        let time = 500.0;
-        let is_in_eclipse = engine.is_in_eclipse(time);
-        assert!(!is_in_eclipse);
-    }
-
-    #[test]
-    fn test_is_in_eclipse_3() {
-        let start = 1000.0;
-        let end = 2000.0;
-        let engine = create_fem_engine(start, end, vec![0.0]);
-        let time = 2500.0;
-        let is_in_eclipse = engine.is_in_eclipse(time);
-        assert!(!is_in_eclipse);
-    }
-
-    #[test]
-    fn test_is_in_eclipse_4() {
-        let start = 1000.0;
-        let end = 2000.0;
-        let engine = create_fem_engine(start, end, vec![0.0]);
-        let time = 2000.0;
-        let is_in_eclipse = engine.is_in_eclipse(time);
-        assert!(is_in_eclipse);
-    }
-
-    #[test]
-    fn test_is_in_eclipse_5() {
-        let start = 1000.0;
-        let end = 2000.0;
-        let engine = create_fem_engine(start, end, vec![0.0]);
-        let time = 1000.0;
-        let is_in_eclipse = engine.is_in_eclipse(time);
-        assert!(is_in_eclipse);
-    }
-
-    #[test]
-    fn test_is_in_eclipse_6() {
-        let start = 3000.0;
-        let end = 2000.0;
-        let engine = create_fem_engine(start, end, vec![0.0]);
-        let time = 2500.0;
-        let is_in_eclipse = engine.is_in_eclipse(time);
-        assert!(!is_in_eclipse);
-    }
-
-    #[test]
-    fn test_is_in_eclipse_7() {
-        let start = 3000.0;
-        let end = 2000.0;
-        let engine = create_fem_engine(start, end, vec![0.0]);
-        let time = 1500.0;
-        let is_in_eclipse = engine.is_in_eclipse(time);
-        assert!(is_in_eclipse);
-    }
-
-    #[test]
-    fn test_is_in_eclipse_8() {
-        let start = 3000.0;
-        let end = 2000.0;
-        let engine = create_fem_engine(start, end, vec![0.0]);
-        let time = 3500.0;
-        let is_in_eclipse = engine.is_in_eclipse(time);
-        assert!(is_in_eclipse);
-    }
-
-    #[test]
-    fn test_is_in_eclipse_9() {
-        let start = 3000.0;
-        let end = 2000.0;
-        let engine = create_fem_engine(start, end, vec![0.0]);
-        let time = 3000.0;
-        let is_in_eclipse = engine.is_in_eclipse(time);
-        assert!(is_in_eclipse);
-    }
-
-    #[test]
-    fn test_is_in_eclipse_10() {
-        let start = 3000.0;
-        let end = 2000.0;
-        let engine = create_fem_engine(start, end, vec![0.0]);
-        let time = 2000.0;
-        let is_in_eclipse = engine.is_in_eclipse(time);
-        assert!(is_in_eclipse);
     }
 
     #[test]

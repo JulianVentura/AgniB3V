@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <!-- Creator: CorelDRAW X7 -->
-<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="210mm" height="297mm" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
-viewBox="0 0 21000 29700"
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="202.84mm" height="202.84mm" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+viewBox="0 0 20284 20284"
  xmlns:xlink="http://www.w3.org/1999/xlink"
  data-name="Layer 1">
  <defs>
@@ -16,36 +16,36 @@ viewBox="0 0 21000 29700"
  </defs>
  <g id="Capa_x0020_1">
   <metadata id="CorelCorpID_0Corel-Layer"/>
-  <rect class="fil0 str0" x="2051" y="6401" width="16907" height="16907"/>
-  <line class="fil0 str0" x1="10500" y1="24992" x2="10500" y2= "20768" />
-  <line class="fil0 str0" x1="10500" y1="8932" x2="10500" y2= "4708" />
-  <polyline class="fil0 str0" points="14725,18986 14725,19075 14725,24992 "/>
-  <polyline class="fil0 str0" points="14725,10714 14725,10625 14725,4708 "/>
-  <polyline class="fil0 str0" points="6275,18986 6275,19075 6275,24992 "/>
-  <polyline class="fil0 str0" points="6275,10714 6275,10625 6275,4708 "/>
-  <line class="fil0 str0" x1="20642" y1="14850" x2="16418" y2= "14850" />
-  <line class="fil0 str0" x1="4582" y1="14850" x2="358" y2= "14850" />
-  <polyline class="fil0 str0" points="20642,10625 14725,10625 14636,10625 "/>
-  <polyline class="fil0 str0" points="6364,10625 6275,10625 358,10625 "/>
-  <polyline class="fil0 str0" points="20642,19075 14725,19075 14636,19075 "/>
-  <polyline class="fil0 str0" points="6364,19075 6275,19075 358,19075 "/>
-  <path class="fil0 str0" d="M16418 14850c0,3 0,7 0,10 0,1544 -609,3028 -1693,4126l-88 89c-1104,1084 -2590,1692 -4137,1692 -1547,0 -3033,-608 -4136,-1693l-88 -88c-1084,-1103 -1693,-2589 -1693,-4136 0,-1547 609,-3033 1693,-4136l88 -88c1103,-1085 2589,-1693 4136,-1693 1547,0 3033,608 4136,1693l88 88c1085,1098 1694,2582 1694,4126 0,3 0,7 0,10l0 0z"/>
+  <rect class="fil0 str0" x="1693" y="1693" width="16907" height="16907"/>
+  <line class="fil0 str0" x1="10142" y1="20284" x2="10142" y2= "16060" />
+  <line class="fil0 str0" x1="10142" y1="4224" x2="10142" y2= "0" />
+  <polyline class="fil0 str0" points="14367,14278 14367,14367 14367,20284 "/>
+  <polyline class="fil0 str0" points="14367,6006 14367,5917 14367,0 "/>
+  <polyline class="fil0 str0" points="5917,14278 5917,14367 5917,20284 "/>
+  <polyline class="fil0 str0" points="5917,6006 5917,5917 5917,0 "/>
+  <line class="fil0 str0" x1="20284" y1="10142" x2="16060" y2= "10142" />
+  <line class="fil0 str0" x1="4224" y1="10142" x2="0" y2= "10142" />
+  <polyline class="fil0 str0" points="20284,5917 14367,5917 14278,5917 "/>
+  <polyline class="fil0 str0" points="6006,5917 5917,5917 0,5917 "/>
+  <polyline class="fil0 str0" points="20284,14367 14367,14367 14278,14367 "/>
+  <polyline class="fil0 str0" points="6006,14367 5917,14367 0,14367 "/>
+  <path class="fil0 str0" d="M16060 10142c0,3 0,7 0,10 0,1544 -609,3028 -1693,4126l-88 89c-1104,1084 -2590,1692 -4137,1692 -1547,0 -3033,-608 -4136,-1693l-88 -88c-1084,-1103 -1693,-2589 -1693,-4136 0,-1547 609,-3033 1693,-4136l88 -88c1103,-1085 2589,-1693 4136,-1693 1547,0 3033,608 4136,1693l88 88c1085,1098 1694,2582 1694,4126 0,3 0,7 0,10l0 0z"/>
  </g>
  <g id="Capa_x0020_1_0">
   <metadata id="CorelCorpID_1Corel-Layer"/>
-  <rect class="fil0 str1" x="2051" y="6401" width="16907" height="16907"/>
-  <line class="fil0 str1" x1="10500" y1="24992" x2="10500" y2= "20768" />
-  <line class="fil0 str1" x1="10500" y1="8932" x2="10500" y2= "4708" />
-  <polyline class="fil0 str1" points="14725,18986 14725,19075 14725,24992 "/>
-  <polyline class="fil0 str1" points="14725,10714 14725,10625 14725,4708 "/>
-  <polyline class="fil0 str1" points="6275,18986 6275,19075 6275,24992 "/>
-  <polyline class="fil0 str1" points="6275,10714 6275,10625 6275,4708 "/>
-  <line class="fil0 str1" x1="20642" y1="14850" x2="16418" y2= "14850" />
-  <line class="fil0 str1" x1="4582" y1="14850" x2="358" y2= "14850" />
-  <polyline class="fil0 str1" points="20642,10625 14725,10625 14636,10625 "/>
-  <polyline class="fil0 str1" points="6364,10625 6275,10625 358,10625 "/>
-  <polyline class="fil0 str1" points="20642,19075 14725,19075 14636,19075 "/>
-  <polyline class="fil0 str1" points="6364,19075 6275,19075 358,19075 "/>
-  <path class="fil0 str1" d="M16418 14850c0,3 0,7 0,10 0,1544 -609,3028 -1693,4126l-88 89c-1104,1084 -2590,1692 -4137,1692 -1547,0 -3033,-608 -4136,-1693l-88 -88c-1084,-1103 -1693,-2589 -1693,-4136 0,-1547 609,-3033 1693,-4136l88 -88c1103,-1085 2589,-1693 4136,-1693 1547,0 3033,608 4136,1693l88 88c1085,1098 1694,2582 1694,4126 0,3 0,7 0,10l0 0z"/>
+  <rect class="fil0 str1" x="1693" y="1693" width="16907" height="16907"/>
+  <line class="fil0 str1" x1="10142" y1="20284" x2="10142" y2= "16060" />
+  <line class="fil0 str1" x1="10142" y1="4224" x2="10142" y2= "0" />
+  <polyline class="fil0 str1" points="14367,14278 14367,14367 14367,20284 "/>
+  <polyline class="fil0 str1" points="14367,6006 14367,5917 14367,0 "/>
+  <polyline class="fil0 str1" points="5917,14278 5917,14367 5917,20284 "/>
+  <polyline class="fil0 str1" points="5917,6006 5917,5917 5917,0 "/>
+  <line class="fil0 str1" x1="20284" y1="10142" x2="16060" y2= "10142" />
+  <line class="fil0 str1" x1="4224" y1="10142" x2="0" y2= "10142" />
+  <polyline class="fil0 str1" points="20284,5917 14367,5917 14278,5917 "/>
+  <polyline class="fil0 str1" points="6006,5917 5917,5917 0,5917 "/>
+  <polyline class="fil0 str1" points="20284,14367 14367,14367 14278,14367 "/>
+  <polyline class="fil0 str1" points="6006,14367 5917,14367 0,14367 "/>
+  <path class="fil0 str1" d="M16060 10142c0,3 0,7 0,10 0,1544 -609,3028 -1693,4126l-88 89c-1104,1084 -2590,1692 -4137,1692 -1547,0 -3033,-608 -4136,-1693l-88 -88c-1084,-1103 -1693,-2589 -1693,-4136 0,-1547 609,-3033 1693,-4136l88 -88c1103,-1085 2589,-1693 4136,-1693 1547,0 3033,608 4136,1693l88 88c1085,1098 1694,2582 1694,4126 0,3 0,7 0,10l0 0z"/>
  </g>
 </svg>

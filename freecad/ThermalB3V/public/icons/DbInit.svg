@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <!-- Creator: CorelDRAW X7 -->
-<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="210mm" height="297mm" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
-viewBox="0 0 21000 29700"
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="159.5mm" height="179.45mm" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+viewBox="0 0 15950 17945"
  xmlns:xlink="http://www.w3.org/1999/xlink">
  <defs>
   <style type="text/css">
@@ -15,11 +15,11 @@ viewBox="0 0 21000 29700"
  </defs>
  <g id="Capa_x0020_1">
   <metadata id="CorelCorpID_0Corel-Layer"/>
-  <path class="fil0 str0" d="M17556 10440c0,1949 -3159,3528 -7056,3528 -3897,0 -7056,-1579 -7056,-3528 0,-1948 3159,-3527 7056,-3527 3897,0 7056,1579 7056,3527z"/>
-  <path class="fil0 str0" d="M17556 14850c0,1948 -3159,3528 -7056,3528 -3897,0 -7056,-1580 -7056,-3528"/>
-  <path class="fil0 str0" d="M3444 10440l0 8820c0,1948 3159,3528 7056,3528 3897,0 7056,-1580 7056,-3528l0 -8820"/>
-  <path class="fil0 str1" d="M18374 10471c0,2467 -3535,4466 -7895,4466 -4360,0 -7895,-1999 -7895,-4466 0,-2467 3535,-4466 7895,-4466 4360,0 7895,1999 7895,4466z"/>
-  <path class="fil0 str1" d="M18374 14850c0,2503 -3535,4532 -7895,4532 -4360,0 -7895,-2029 -7895,-4532"/>
-  <path class="fil0 str1" d="M2584 10440l0 9472c0,2092 3535,3788 7895,3788 4360,0 7895,-1696 7895,-3788l0 -9472"/>
+  <path class="fil0 str0" d="M15031 4563c0,1949 -3159,3528 -7056,3528 -3897,0 -7056,-1579 -7056,-3528 0,-1948 3159,-3527 7056,-3527 3897,0 7056,1579 7056,3527z"/>
+  <path class="fil0 str0" d="M15031 8973c0,1948 -3159,3528 -7056,3528 -3897,0 -7056,-1580 -7056,-3528"/>
+  <path class="fil0 str0" d="M919 4563l0 8820c0,1948 3159,3528 7056,3528 3897,0 7056,-1580 7056,-3528l0 -8820"/>
+  <path class="fil0 str1" d="M15849 4594c0,2467 -3535,4466 -7895,4466 -4360,0 -7895,-1999 -7895,-4466 0,-2467 3535,-4466 7895,-4466 4360,0 7895,1999 7895,4466z"/>
+  <path class="fil0 str1" d="M15849 8973c0,2503 -3535,4532 -7895,4532 -4360,0 -7895,-2029 -7895,-4532"/>
+  <path class="fil0 str1" d="M59 4563l0 9472c0,2092 3535,3788 7895,3788 4360,0 7895,-1696 7895,-3788l0 -9472"/>
  </g>
 </svg>

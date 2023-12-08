@@ -12,7 +12,7 @@ class PropertiesAtlas:
     def _build_material_index(self, elements_amount, properties_json):
         self.materials = []
         self.material_by_element = np.full(elements_amount, -1)
-        self.absortance_by_element = np.zeros(elements_amount)
+        self.absortance_ir_by_element = np.zeros(elements_amount)
 
         material_json_props = properties_json["materials"]["properties"]
         material_json_elements = properties_json["materials"]["elements"]
@@ -22,8 +22,8 @@ class PropertiesAtlas:
             self.materials[-1]["name"] = material_name
             for element_id in material_elements:
                 self.material_by_element[element_id] = material_idx
-                self.absortance_by_element[element_id] = self.materials[-1]["alpha_ir"]
-
+                self.absortance_ir_by_element[element_id] = self.materials[-1]["alpha_ir"]
+        
         for element_id, material_id in enumerate(self.material_by_element):
             if material_id < 0:
                 print(f"Warning: Element {element_id} does not have a material")

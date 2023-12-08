@@ -1,3 +1,4 @@
+use super::constants::{VTK_FILE_NAME, MATERIALS_FILE_NAME, VIEW_FACTORS_FILE_NAME};
 use super::element::{Element, MaterialProperties, ViewFactors};
 use super::engine::{FEMOrbitParameters, FEMParameters};
 use super::point::Point;
@@ -44,7 +45,6 @@ pub struct ParserConfig {
     pub view_factors_path: String,
     pub results_path: String,
     pub results_name: String,
-    pub solver: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -408,12 +408,14 @@ fn update_initial_temperatures(
     *entry = (entry.0 + temperature, entry.1 + 1);
 }
 
-pub fn parse_config(config_path: &String) -> ParserConfig {
-    let config_reader = BufReader::new(File::open(config_path).expect("Couldn't read config file"));
-    let config_json: ParserConfig =
-        serde_json::from_reader(config_reader).expect("Couldn't parse config file");
-
-    return config_json;
+pub fn parse_config(directory_path: &String) -> ParserConfig {
+    return ParserConfig {
+        vtk_path: format!("{}/{}", directory_path, VTK_FILE_NAME),
+        materials_path: format!("{}/{}", directory_path, MATERIALS_FILE_NAME),
+        view_factors_path: format!("{}/{}", directory_path, VIEW_FACTORS_FILE_NAME),
+        results_path: format!("{}/results", directory_path),
+        results_name: String::from("results"),
+    };
 }
 
 const FACTOR: f64 = 1.0 / ((1 << 16) - 1) as f64;

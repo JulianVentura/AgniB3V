@@ -5,12 +5,8 @@ use super::{
 };
 use anyhow::Result;
 
-pub fn run_solver(config_path: &String) -> Result<()> {
-    //TODO: Why is this being done here?
-    //Move this logic to parser
-    let config = parser::parse_config(config_path);
-    let results_folder = format!("{}/{}_results", config.results_path, config.results_name);
-    let results_file = format!("{}_results", config.results_name);
+pub fn run_solver(directory_path: &String, method: &String) -> Result<()> {
+    let config = parser::parse_config(directory_path);
 
     let problem = parser::fem_problem_from_vtk(
         config.vtk_path.to_string(),
@@ -18,7 +14,7 @@ pub fn run_solver(config_path: &String) -> Result<()> {
         config.view_factors_path.to_string(),
     );
 
-    let solver = match config.solver.as_str() {
+    let solver = match method.as_str() {
         "Explicit" => Solver::Explicit(ExplicitSolver::new(
             &problem.elements,
             problem.parameters.time_step,
@@ -49,8 +45,8 @@ pub fn run_solver(config_path: &String) -> Result<()> {
     println!("{:#?}", &temp_results.last());
 
     parser::fem_result_to_vtk(
-        results_folder,
-        results_file,
+        config.results_path,
+        config.results_name,
         &points,
         &problem.elements,
         &temp_results,

@@ -296,3 +296,165 @@ pub fn test_sun_1() -> Result<()> {
 
     Ok(())
 }
+
+#[test]
+pub fn test_ir_1() -> Result<()> {
+    /*
+    One Cube of 1 m x 1 m x 1 m, thickness 5 cm.
+    Density 2700 kg/m3,
+    Specific Heat 900 J/(K kg) y
+    Thermal Conductivity 0 W/(K m)
+    Alpha sun = 1
+    Alpha_ir = 1
+    Initial Temperature 273.15 K
+    Sun Pointing
+    Albedo = 0
+    Earth_ir = 225 W/m2
+    Solar constant = 0
+    SMA: 7000 km
+    ECC: 0
+    INC: 0
+    RAAN: 0
+    AOP: 0
+    TA: 0
+    */
+
+    run_test("e2e_tests/ir_1")?;
+
+    Ok(())
+}
+
+#[test]
+pub fn test_albedo_1() -> Result<()> {
+    /*
+    One Cube of 1 m x 1 m x 1 m, thickness 5 cm.
+    Density 2700 kg/m3,
+    Specific Heat 900 J/(K kg) y
+    Thermal Conductivity 0 W/(K m)
+    Alpha sun = 1
+    Alpha_ir = 1
+    Initial Temperature 273.15 K
+    Sun Pointing
+    Albedo = 1
+    Earth_ir = 0
+    Solar constant = 1361W/m2
+    SMA: 7000 km
+    ECC: 0
+    INC: 0
+    RAAN: 0
+    AOP: 0
+    TA: 0
+    */
+
+    run_test("e2e_tests/albedo_1")?;
+
+    Ok(())
+}
+
+#[test]
+pub fn test_all_sources_1() -> Result<()> {
+    /*
+    One Cube of 1 m x 1 m x 1 m, thickness 5 cm.
+    Density 2700 kg/m3,
+    Specific Heat 900 J/(K kg) y
+    Thermal Conductivity 0 W/(K m)
+    Alpha sun = 1
+    Alpha_ir = 1
+    Initial Temperature 273.15 K
+    Sun Pointing
+    Albedo = 0.2
+    Earth_ir = 225 W/m2
+    Solar constant = 1361 W/m2
+    SMA: 7000 km
+    ECC: 0
+    INC: 0
+    RAAN: 0
+    AOP: 0
+    TA: 0
+    */
+
+    run_test("e2e_tests/all_sources_1")?;
+
+    Ok(())
+}
+
+#[test]
+pub fn test_all_sources_2() -> Result<()> {
+    /*
+    One Cube of 1 m x 1 m x 1 m, thickness 5 cm.
+    Density 2700 kg/m3,
+    Specific Heat 900 J/(K kg) y
+    Thermal Conductivity 237 W/(K m)
+    Alpha sun = 1
+    Alpha_ir = 1
+    Initial Temperature 273.15 K
+    Sun Pointing
+    Albedo = 0.2
+    Earth_ir = 225 W/m2
+    Solar constant = 1361 W/m2
+    SMA: 7000 km
+    ECC: 0
+    INC: 0
+    RAAN: 0
+    AOP: 0
+    TA: 0
+    */
+
+    run_test("e2e_tests/all_sources_2")?;
+
+    Ok(())
+}
+
+#[test]
+pub fn test_pyramid() -> Result<()> {
+    /*
+    One Pyramid of 1 m x 1 m base, x 1 m heigth, thickness 5 cm.
+    Density 2700 kg/m3,
+    Specific Heat 900 J/(K kg) y
+    Thermal Conductivity 237 W/(K m)
+    Alpha sun = 1
+    Alpha_ir = 1
+    Initial Temperature 273.15 K
+    Sun Pointing (point of the pyramid)
+    Albedo = 0.2
+    Earth_ir = 225 W/m2
+    Solar constant = 1361 W/m2
+    SMA: 7000 km
+    ECC: 0
+    INC: 0
+    RAAN: 0
+    AOP: 0
+    TA: 0
+    */
+
+    run_test("e2e_tests/pyramid")?;
+
+    Ok(())
+}
+
+#[test]
+pub fn test_nut() -> Result<()> {
+    /*
+    One Nut of 4 m external radious, 2 m internal radious, 4 m heigth, thickness 5 cm.
+    Density 2700 kg/m3,
+    Specific Heat 900 J/(K kg) y
+    Thermal Conductivity 237 W/(K m)
+    Alpha sun = 1
+    Alpha_ir = 1
+    Initial Temperature 293.15 K
+    Sun Pointing (45º pointing to the middle of the nut)
+    Albedo = 0.2
+    Earth_ir = 225 W/m2
+    Solar constant = 1361 W/m2
+    SMA: 7000 km
+    ECC: 0
+    INC: 0
+    RAAN: 0
+    AOP: 0
+    TA: 0
+    */
+
+    run_test("e2e_tests/nut")?;
+
+    Ok(())
+}

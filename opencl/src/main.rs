@@ -9,7 +9,7 @@ fn run() -> Result<()> {
     let args: Vec<String> = env::args().collect();
 
     if args.len() != 3 {
-        eprintln!("Usage: {} <method> <directory_path>", args[0]);
+        eprintln!("Usage: {} <directory_path> <method>", args[0]);
         std::process::exit(1); //TODO: Change this to return an error
     }
 

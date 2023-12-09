@@ -5,7 +5,7 @@ use super::{
 };
 use anyhow::Result;
 
-pub fn run_solver(directory_path: &String, method: &String) -> Result<()> {
+pub fn run_solver(directory_path: &str, method: &str) -> Result<()> {
     let config = parser::parse_config(directory_path);
 
     let problem = parser::fem_problem_from_vtk(
@@ -14,7 +14,7 @@ pub fn run_solver(directory_path: &String, method: &String) -> Result<()> {
         config.view_factors_path.to_string(),
     );
 
-    let solver = match method.as_str() {
+    let solver = match method {
         "Explicit" => Solver::Explicit(ExplicitSolver::new(
             &problem.elements,
             problem.parameters.time_step,
@@ -45,8 +45,7 @@ pub fn run_solver(directory_path: &String, method: &String) -> Result<()> {
     println!("{:#?}", &temp_results.last());
 
     parser::fem_result_to_vtk(
-        config.results_path,
-        config.results_name,
+        &config.results_path,
         &points,
         &problem.elements,
         &temp_results,

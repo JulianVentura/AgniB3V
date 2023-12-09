@@ -66,75 +66,59 @@ fn compare_vtk(file_path1: String, file_path2: String) -> Result<()> {
     Ok(())
 }
 
-fn compare_results(
-    actual_results: String,
-    new_results: String,
-    actual_results_name: String,
-    new_results_name: String,
-) -> Result<()> {
-    let actual_file = format!("{}/{}.vtk.series", actual_results, actual_results_name);
-    let new_file = format!("{}/{}.vtk.series", new_results, new_results_name);
+fn compare_results(results_path: &str, actual_results_path: &str) -> Result<()> {
+    let result_file = format!("{}/result.vtk.series", results_path);
+    let actual_result_file = format!("{}/result.vtk.series", actual_results_path);
 
-    let actual_file_reader =
-        BufReader::new(File::open(&actual_file).expect("Couldn't read actual_file"));
-    let actual_file_json: VTKSeries =
-        serde_json::from_reader(actual_file_reader).expect("Couldn't parse actual_file");
+    let actual_result_file_reader =
+        BufReader::new(File::open(&actual_result_file).expect("Couldn't read actual_file"));
+    let actual_result_file_json: VTKSeries =
+        serde_json::from_reader(actual_result_file_reader).expect("Couldn't parse actual_file");
 
-    let new_file_reader = BufReader::new(File::open(&new_file).expect("Couldn't read new_file"));
-    let new_file_json: VTKSeries =
-        serde_json::from_reader(new_file_reader).expect("Couldn't parse new_file");
+    let result_file_reader =
+        BufReader::new(File::open(&result_file).expect("Couldn't read new_file"));
+    let result_file_json: VTKSeries =
+        serde_json::from_reader(result_file_reader).expect("Couldn't parse new_file");
 
     assert!(
-        actual_file_json.files.len() == new_file_json.files.len(),
+        actual_result_file_json.files.len() == result_file_json.files.len(),
         "Length of results files not equal"
     );
 
-    for i in 0..actual_file_json.files.len() {
+    for i in 0..actual_result_file_json.files.len() {
         assert_float_eq(
-            actual_file_json.files[i].time,
-            new_file_json.files[i].time,
+            actual_result_file_json.files[i].time,
+            result_file_json.files[i].time,
             0.01,
         );
         compare_vtk(
-            format!("{}/{}", actual_results, actual_file_json.files[i].name),
-            format!("{}/{}", new_results, new_file_json.files[i].name),
+            format!(
+                "{}/{}",
+                actual_results_path, actual_result_file_json.files[i].name
+            ),
+            format!("{}/{}", results_path, result_file_json.files[i].name),
         )?;
     }
 
     Ok(())
 }
 
-fn run_test_solver(test_number: u32, solver: &str) -> Result<()> {
-    let config_path = format!(
-        "Unit_tests/Test_{}/test_{}_config_{}.json",
-        test_number, test_number, solver
-    );
-    let actual_results_path = format!(
-        "Unit_tests/Test_{}/test_{}_results",
-        test_number, test_number
-    );
-    let results_path = format!("Unit_tests/Test_{}", test_number);
-    let new_results_name = format!("test_{}_new", test_number);
-    let actual_results_name = format!("test_{}_results", test_number);
+fn run_test_on_solver(directory_path: &str, solver: &str) -> Result<()> {
+    let results_path = format!("{directory_path}/results");
+    let actual_results_path = format!("{directory_path}/actual_results");
 
-    run_solver(&config_path)?;
+    run_solver(directory_path, solver)?;
 
-    compare_results(
-        actual_results_path,
-        format!("{}/{}_results", results_path, new_results_name),
-        actual_results_name,
-        format!("{}_results", new_results_name),
-    )?;
-
-    remove_dir_all(format!("{}/{}_results", results_path, new_results_name))?;
+    compare_results(&results_path, &actual_results_path)?;
+    remove_dir_all(results_path)?;
 
     Ok(())
 }
 
-fn run_test(test_number: u32) -> Result<()> {
-    run_test_solver(test_number, "implicit")?;
-    //run_test_solver(test_number, "explicit")?;
-    run_test_solver(test_number, "gpu")?;
+fn run_test(test_path: &str) -> Result<()> {
+    run_test_on_solver(test_path, "Implicit")?;
+    //run_test_solver(test_number, "Explicit")?;
+    run_test_on_solver(test_path, "GPU")?;
     Ok(())
 }
 
@@ -148,7 +132,7 @@ pub fn test_conduction_1() -> Result<()> {
     There are no fluxes
     */
 
-    run_test(1)?;
+    run_test("e2e_tests/conduction_1")?;
 
     Ok(())
 }
@@ -163,7 +147,7 @@ pub fn test_conduction_2() -> Result<()> {
     Fixed Flux of 200 W/m2
     */
 
-    run_test(2)?;
+    run_test("e2e_tests/conduction_2")?;
 
     Ok(())
 }
@@ -180,7 +164,7 @@ pub fn test_conduction_3() -> Result<()> {
     There are no fluxes
     */
 
-    run_test(3)?;
+    run_test("e2e_tests/conduction_3")?;
 
     Ok(())
 }
@@ -197,7 +181,7 @@ pub fn test_conduction_4() -> Result<()> {
     There are no fluxes
     */
 
-    run_test(4)?;
+    run_test("e2e_tests/conduction_4")?;
 
     Ok(())
 }
@@ -213,7 +197,7 @@ pub fn test_conduction_5() -> Result<()> {
     Fixed Flux of 100 W/m2
     */
 
-    run_test(5)?;
+    run_test("e2e_tests/conduction_5")?;
 
     Ok(())
 }
@@ -228,7 +212,7 @@ pub fn test_radiation_1() -> Result<()> {
     Initial temperature of plane 2: 300 K
     */
 
-    run_test(6)?;
+    run_test("e2e_tests/radiation_1")?;
 
     Ok(())
 }
@@ -245,7 +229,7 @@ pub fn test_radiation_2() -> Result<()> {
     Initial temperature of plane 2: 300 K
     */
 
-    run_test(7)?;
+    run_test("e2e_tests/radiation_2")?;
 
     Ok(())
 }
@@ -262,7 +246,7 @@ pub fn test_radiation_3() -> Result<()> {
     Initial temperature of plane 2: 300 K
     */
 
-    run_test(8)?;
+    run_test("e2e_tests/radiation_3")?;
 
     Ok(())
 }
@@ -281,7 +265,7 @@ pub fn test_radiation_4() -> Result<()> {
      - Initial temperature: 473.15 K
     */
 
-    run_test(9)?;
+    run_test("e2e_tests/radiation_4")?;
 
     Ok(())
 }
@@ -308,7 +292,7 @@ pub fn test_sun_1() -> Result<()> {
     TA: 0
     */
 
-    run_test(10)?;
+    run_test("e2e_tests/sun_1")?;
 
     Ok(())
 }

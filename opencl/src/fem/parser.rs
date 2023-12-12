@@ -1,5 +1,5 @@
 use super::element::{Element, MaterialProperties, ViewFactors};
-use super::engine::{FEMOrbitParameters, FEMParameters};
+use super::engine::FEMParameters;
 use super::orbit_manager::{OrbitManager, OrbitParameters};
 use super::point::Point;
 use super::structures::{Matrix, Vector};
@@ -16,14 +16,12 @@ extern crate bincode;
 extern crate byteorder;
 use byteorder::{BigEndian, ReadBytesExt};
 
-#[allow(dead_code)]
-#[derive(Debug)]
 pub struct FEMProblem {
     pub elements: Vec<Element>,
     pub parameters: FEMParameters,
+    pub orbit_manager: OrbitManager,
 }
 
-#[allow(dead_code)]
 #[derive(Debug)]
 pub struct ParserElement {
     id: u32,
@@ -275,14 +273,6 @@ pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
         orbit_divisions.push(view_factors_parsed.earth_albedo[i].1 as f64);
     }
 
-    let orbit_parameters = FEMOrbitParameters {
-        betha: global_properties.beta_angle,
-        orbit_period: global_properties.orbital_period,
-        orbit_divisions,
-        eclipse_start: global_properties.eclipse_start,
-        eclipse_end: global_properties.eclipse_end,
-    };
-
     for (material_name, material_elements) in properties_json.materials.elements {
         let file_material_properties = &properties_json.materials.properties[&material_name];
         let material_properties = MaterialProperties {
@@ -308,6 +298,14 @@ pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
     let initial_temperatures: HashMap<u32, (f64, u32)> =
         calculate_node_initial_temperatures(&parser_elements);
 
+    let orbit_parameters = OrbitParameters {
+        orbit_period: global_properties.orbital_period,
+        orbit_divisions,
+        eclipse_start: global_properties.eclipse_start,
+        eclipse_end: global_properties.eclipse_end,
+    };
+    let orbit_manager = OrbitManager::new(&orbit_parameters);
+    let orbit_divisions = orbit_manager.eclipse_divisions();
     for (parser_element_id, parser_element) in parser_elements.iter().enumerate() {
         let mut p1 = points[parser_element.nodeidx1 as usize].clone();
         let mut p2 = points[parser_element.nodeidx2 as usize].clone();
@@ -352,15 +350,6 @@ pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
             elements: elements_view_factors,
         };
 
-        let orbit_params = OrbitParameters {
-            orbit_period: orbit_parameters.orbit_period,
-            orbit_divisions: orbit_parameters.orbit_divisions.clone(),
-            eclipse_start: orbit_parameters.eclipse_start,
-            eclipse_end: orbit_parameters.eclipse_end,
-        };
-
-        let orbit_manager = OrbitManager::new(&orbit_params);
-        let orbit_divisions = orbit_manager.eclipse_divisions();
         elements.push(
             Element::new(
                 p1,
@@ -383,9 +372,9 @@ pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
             simulation_time: global_properties.simulation_time,
             time_step: global_properties.time_step,
             snapshot_period: global_properties.snap_period,
-            orbit: orbit_parameters,
         },
         elements,
+        orbit_manager,
     })
 }
 

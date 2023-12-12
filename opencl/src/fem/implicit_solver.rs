@@ -10,6 +10,7 @@ pub struct ImplicitSolver {
     pub d: Matrix,
     pub h: Matrix,
     temp: Vector,
+    t_4: Vector,
     points: Vec<Point>,
     f_index: usize,
 }
@@ -48,6 +49,7 @@ impl ImplicitSolver {
             a_lu,
             d,
             h,
+            t_4: temp.clone(),
             temp,
             points,
             f_index: 0,
@@ -55,11 +57,9 @@ impl ImplicitSolver {
     }
 
     pub fn step(&mut self) -> Result<()> {
-        //TODO: Optimize this clone
-        let mut t_4 = self.temp.clone();
-        solver::fourth_power(&mut t_4);
+        solver::fourth_power(&self.temp, &mut self.t_4);
 
-        let f = &self.h * t_4 + &self.f_const[self.f_index];
+        let f = &self.h * &self.t_4 + &self.f_const[self.f_index];
 
         let b = &self.d * &self.temp + f;
 
@@ -67,6 +67,14 @@ impl ImplicitSolver {
             .a_lu
             .solve(&b)
             .with_context(|| "Couldn't solve linear system")?;
+        Ok(())
+    }
+
+    pub fn run_for(&mut self, steps: usize) -> Result<()> {
+        for _ in 0..steps {
+            self.step()?;
+        }
+
         Ok(())
     }
 

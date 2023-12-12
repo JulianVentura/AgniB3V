@@ -137,10 +137,10 @@ fn construct_global_vector_f_const(
     f
 }
 
-pub fn fourth_power(array: &mut Vector) {
-    for val in array.iter_mut() {
-        *val *= *val;
-        *val *= *val;
+pub fn fourth_power(source_array: &Vector, result_array: &mut Vector) {
+    for (idx, val) in source_array.iter().enumerate() {
+        let aux = val * val;
+        result_array[idx] = aux * aux;
     }
 }
 
@@ -163,12 +163,13 @@ mod tests {
 
     #[test]
     fn test_fourth_power() {
-        let mut v = Vector::from_row_slice(&[1.0, 2.0, 3.0]);
+        let source = Vector::from_row_slice(&[1.0, 2.0, 3.0]);
+        let mut result = Vector::from_row_slice(&[0.0, 0.0, 0.0]);
         let expected = Vector::from_row_slice(&[1.0, 16.0, 81.0]);
 
-        solver::fourth_power(&mut v);
+        solver::fourth_power(&source, &mut result);
 
-        for (x, e) in v.iter().zip(expected.iter()) {
+        for (x, e) in result.iter().zip(expected.iter()) {
             assert_float_eq(*x, *e, f64::EPSILON);
         }
     }

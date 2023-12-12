@@ -28,7 +28,7 @@ pub fn run_solver(config_path: &String) -> Result<()> {
 
     let snapshot_period = problem.parameters.snapshot_period;
 
-    let mut engine = FEMEngine::new(problem.parameters, solver)
+    let mut engine = FEMEngine::new(problem.parameters, problem.orbit_manager, solver)
         .with_context(|| "Couldn't start a FEM Engine")?;
 
     let temp_results = engine

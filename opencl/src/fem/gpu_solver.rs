@@ -112,6 +112,14 @@ impl GPUSolver {
         Ok(())
     }
 
+    pub fn run_for(&mut self, steps: usize) -> Result<()> {
+        for _ in 0..steps {
+            self.step()?;
+        }
+
+        Ok(())
+    }
+
     pub fn points(&self) -> &Vec<Point> {
         &self.points
     }

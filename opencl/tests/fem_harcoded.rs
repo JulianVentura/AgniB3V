@@ -2,8 +2,9 @@ use anyhow::Result;
 use opencl::fem::{
     element::Element,
     engine::Solver,
-    engine::{FEMEngine, FEMOrbitParameters, FEMParameters},
+    engine::{FEMEngine, FEMParameters},
     explicit_solver::ExplicitSolver,
+    orbit_manager::{OrbitManager, OrbitParameters},
     point::Point,
     structures::Vector,
 };
@@ -60,19 +61,20 @@ fn create_example(p1: Point, p2: Point, p3: Point, p4: Point) -> Result<Vec<Vect
     let simulation_time = 20.0;
 
     let solver = Solver::Explicit(ExplicitSolver::new(&vec![e1, e2], time_step)?);
+    let orbit_parameters = OrbitParameters {
+        orbit_period: 100.0,
+        orbit_divisions: vec![0.0],
+        eclipse_start: 10.0,
+        eclipse_end: 10.0,
+    };
+    let manager = OrbitManager::new(&orbit_parameters);
     let mut engine = FEMEngine::new(
         FEMParameters {
             simulation_time,
             time_step,
             snapshot_period,
-            orbit: FEMOrbitParameters {
-                betha: 0.1,
-                orbit_period: 100.0,
-                orbit_divisions: vec![0.0],
-                eclipse_start: 10.0,
-                eclipse_end: 10.0,
-            },
         },
+        manager,
         solver,
     )?;
 

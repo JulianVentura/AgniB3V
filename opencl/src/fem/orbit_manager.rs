@@ -38,38 +38,40 @@ impl OrbitManager {
         &self.eclipse_divisions
     }
 
-    pub fn time_to_next(&mut self, orbit_time: f64) -> f64 {
-        0.0
-    }
+    pub fn time_to_next(&mut self, time: f64) -> f64 {
+        let orbit_time = time % self.orbit_period;
+        self.update_division_idx(orbit_time);
+        let next_idx = (self.division_idx + 1) % self.time_divisions.len();
 
-    pub fn current_index(&mut self, orbit_time: f64) -> usize {
-        0
-    }
-
-    
-    fn update_f_index(&mut self, orbit_time: f64) {
-        //TODO: We can make this a little more readable
-        let divisions = &self.time_divisions;
-        let idx = &self.division_idx;
-
-        let next = (idx + 1) % divisions.len();
-        let next_start = divisions[next];
-        if next == 0 {
-            //TODO: We can invert this
-            if orbit_time >= divisions[f_index] {
-                return;
-            } else {
-                self.f_index = 0;
-                self.update_f_index(orbit_time);
-                return;
-            }
+        match next_idx {
+            0 => self.orbit_period - orbit_time,
+            _ => self.time_divisions[next_idx] - orbit_time,
         }
-        if orbit_time >= next_start || orbit_time < orbit_divisions[f_index] {
-            self.f_index = next;
-            self.update_f_index(orbit_time);
-            return;
-        } else {
-            return; //TODO: Why???
+    }
+
+    pub fn current_index(&mut self, time: f64) -> usize {
+        let orbit_time = time % self.orbit_period;
+        self.update_division_idx(orbit_time);
+        self.division_idx
+    }
+
+    fn update_division_idx(&mut self, orbit_time: f64) {
+        let divisions = &self.time_divisions;
+        let idx = &mut self.division_idx;
+
+        loop {
+            let next_idx = (*idx + 1) % divisions.len();
+            if next_idx == 0 {
+                if divisions[*idx] <= orbit_time && orbit_time < self.orbit_period {
+                    return;
+                }
+            } else {
+                if divisions[*idx] <= orbit_time && orbit_time < divisions[next_idx] {
+                    return;
+                }
+            }
+
+            *idx = next_idx;
         }
     }
 
@@ -132,6 +134,8 @@ impl OrbitManager {
 
 #[cfg(test)]
 mod tests {
+
+    use super::OrbitParameters;
 
     use super::OrbitManager;
 
@@ -495,5 +499,336 @@ mod tests {
         let expanded = OrbitManager::expand_time_divisions(&divisions, start, end);
         let result = OrbitManager::expand_eclipse_divisions(&expanded, start, end);
         assert_eclipse_eq(&result, &expected);
+    }
+
+    #[test]
+    fn test_update_division_idx_1() {
+        let orbit_time = 5.0;
+        let division_idx = 0;
+
+        let props = OrbitParameters {
+            orbit_period: 6000.0,
+            orbit_divisions: vec![0.0, 10.0, 20.0],
+            eclipse_start: 1000.0,
+            eclipse_end: 2000.0,
+        };
+
+        let mut manager = OrbitManager::new(&props);
+        manager.division_idx = division_idx;
+        manager.update_division_idx(orbit_time);
+
+        let actual_division_idx = 0;
+
+        assert_eq!(manager.division_idx, actual_division_idx);
+    }
+
+    #[test]
+    fn test_update_division_idx_2() {
+        let orbit_time = 11.0;
+        let division_idx = 0;
+
+        let props = OrbitParameters {
+            orbit_period: 6000.0,
+            orbit_divisions: vec![0.0, 10.0, 20.0],
+            eclipse_start: 1000.0,
+            eclipse_end: 2000.0,
+        };
+
+        let mut manager = OrbitManager::new(&props);
+        manager.division_idx = division_idx;
+        manager.update_division_idx(orbit_time);
+
+        let actual_division_idx = 1;
+
+        assert_eq!(manager.division_idx, actual_division_idx);
+    }
+
+    #[test]
+    fn test_update_division_idx_3() {
+        let orbit_time = 12.0;
+        let division_idx = 1;
+
+        let props = OrbitParameters {
+            orbit_period: 6000.0,
+            orbit_divisions: vec![0.0, 10.0, 20.0],
+            eclipse_start: 1000.0,
+            eclipse_end: 2000.0,
+        };
+
+        let mut manager = OrbitManager::new(&props);
+        manager.division_idx = division_idx;
+        manager.update_division_idx(orbit_time);
+
+        let actual_division_idx = 1;
+
+        assert_eq!(manager.division_idx, actual_division_idx);
+    }
+
+    #[test]
+    fn test_update_division_idx_4() {
+        let orbit_time = 21.0;
+        let division_idx = 1;
+
+        let props = OrbitParameters {
+            orbit_period: 6000.0,
+            orbit_divisions: vec![0.0, 10.0, 20.0],
+            eclipse_start: 1000.0,
+            eclipse_end: 2000.0,
+        };
+
+        let mut manager = OrbitManager::new(&props);
+        manager.division_idx = division_idx;
+        manager.update_division_idx(orbit_time);
+
+        let actual_division_idx = 2;
+
+        assert_eq!(manager.division_idx, actual_division_idx);
+    }
+
+    #[test]
+    fn test_update_division_idx_5() {
+        let orbit_time = 25.0;
+        let division_idx = 2;
+
+        let props = OrbitParameters {
+            orbit_period: 6000.0,
+            orbit_divisions: vec![0.0, 10.0, 20.0],
+            eclipse_start: 1000.0,
+            eclipse_end: 2000.0,
+        };
+
+        let mut manager = OrbitManager::new(&props);
+        manager.division_idx = division_idx;
+        manager.update_division_idx(orbit_time);
+
+        let actual_division_idx = 2;
+
+        assert_eq!(manager.division_idx, actual_division_idx);
+    }
+
+    #[test]
+    fn test_update_division_idx_6() {
+        let orbit_time = 3.0;
+        let division_idx = 2;
+
+        let props = OrbitParameters {
+            orbit_period: 6000.0,
+            orbit_divisions: vec![0.0, 10.0, 20.0],
+            eclipse_start: 1000.0,
+            eclipse_end: 2000.0,
+        };
+
+        let mut manager = OrbitManager::new(&props);
+        manager.division_idx = division_idx;
+        manager.update_division_idx(orbit_time);
+
+        let actual_division_idx = 0;
+
+        assert_eq!(manager.division_idx, actual_division_idx);
+    }
+
+    #[test]
+    fn test_update_division_idx_7() {
+        let orbit_time = 25.0;
+        let division_idx = 0;
+
+        let props = OrbitParameters {
+            orbit_period: 6000.0,
+            orbit_divisions: vec![0.0, 10.0, 20.0],
+            eclipse_start: 1000.0,
+            eclipse_end: 2000.0,
+        };
+
+        let mut manager = OrbitManager::new(&props);
+        manager.division_idx = division_idx;
+        manager.update_division_idx(orbit_time);
+
+        let actual_division_idx = 2;
+
+        assert_eq!(manager.division_idx, actual_division_idx);
+    }
+
+    #[test]
+    fn test_update_division_idx_8() {
+        let orbit_time = 15.0;
+        let division_idx = 0;
+
+        let props = OrbitParameters {
+            orbit_period: 6000.0,
+            orbit_divisions: vec![0.0, 10.0, 20.0],
+            eclipse_start: 1000.0,
+            eclipse_end: 2000.0,
+        };
+
+        let mut manager = OrbitManager::new(&props);
+        manager.division_idx = division_idx;
+        manager.update_division_idx(orbit_time);
+
+        let actual_division_idx = 1;
+
+        assert_eq!(manager.division_idx, actual_division_idx);
+    }
+
+    #[test]
+    fn test_update_division_idx_9() {
+        let orbit_time = 45.0;
+        let division_idx = 1;
+
+        let props = OrbitParameters {
+            orbit_period: 6000.0,
+            orbit_divisions: vec![0.0, 10.0, 20.0, 30.0, 40.0],
+            eclipse_start: 1000.0,
+            eclipse_end: 2000.0,
+        };
+
+        let mut manager = OrbitManager::new(&props);
+        manager.division_idx = division_idx;
+        manager.update_division_idx(orbit_time);
+
+        let actual_division_idx = 4;
+
+        assert_eq!(manager.division_idx, actual_division_idx);
+    }
+
+    #[test]
+    fn test_update_division_idx_10() {
+        let orbit_time = 25.0;
+        let division_idx = 3;
+
+        let props = OrbitParameters {
+            orbit_period: 6000.0,
+            orbit_divisions: vec![0.0, 10.0, 20.0, 30.0, 40.0],
+            eclipse_start: 1000.0,
+            eclipse_end: 2000.0,
+        };
+
+        let mut manager = OrbitManager::new(&props);
+        manager.division_idx = division_idx;
+        manager.update_division_idx(orbit_time);
+
+        let actual_division_idx = 2;
+
+        assert_eq!(manager.division_idx, actual_division_idx);
+    }
+
+    #[test]
+    fn test_update_division_idx_11() {
+        let orbit_time = 5.0;
+        let division_idx = 2;
+
+        let props = OrbitParameters {
+            orbit_period: 6000.0,
+            orbit_divisions: vec![0.0, 10.0, 20.0, 30.0, 40.0],
+            eclipse_start: 1000.0,
+            eclipse_end: 2000.0,
+        };
+
+        let mut manager = OrbitManager::new(&props);
+        manager.division_idx = division_idx;
+        manager.update_division_idx(orbit_time);
+
+        let actual_division_idx = 0;
+
+        assert_eq!(manager.division_idx, actual_division_idx);
+    }
+
+    #[test]
+    fn test_update_division_idx_12() {
+        let orbit_time = 0.0;
+        let division_idx = 0;
+
+        let props = OrbitParameters {
+            orbit_period: 6000.0,
+            orbit_divisions: vec![0.0, 10.0, 20.0, 30.0, 40.0],
+            eclipse_start: 1000.0,
+            eclipse_end: 2000.0,
+        };
+
+        let mut manager = OrbitManager::new(&props);
+        manager.division_idx = division_idx;
+        manager.update_division_idx(orbit_time);
+
+        let actual_division_idx = 0;
+
+        assert_eq!(manager.division_idx, actual_division_idx);
+    }
+
+    #[test]
+    fn test_time_to_next_1() {
+        let period = 6000.0;
+        let orbit_time = 5.0 + period;
+
+        let props = OrbitParameters {
+            orbit_period: period,
+            orbit_divisions: vec![0.0, 10.0, 20.0],
+            eclipse_start: 1000.0,
+            eclipse_end: 2000.0,
+        };
+
+        let mut manager = OrbitManager::new(&props);
+        let time_left = manager.time_to_next(orbit_time);
+
+        let actual_time = 5.0;
+
+        assert_float_eq(time_left, actual_time, 0.0001);
+    }
+
+    #[test]
+    fn test_time_to_next_2() {
+        let period = 6000.0;
+        let orbit_time = 11.0 + period;
+
+        let props = OrbitParameters {
+            orbit_period: period,
+            orbit_divisions: vec![0.0, 10.0, 20.0],
+            eclipse_start: 1000.0,
+            eclipse_end: 2000.0,
+        };
+
+        let mut manager = OrbitManager::new(&props);
+        let time_left = manager.time_to_next(orbit_time);
+
+        let actual_time = 9.0;
+
+        assert_float_eq(time_left, actual_time, 0.0001);
+    }
+
+    #[test]
+    fn test_time_to_next_3() {
+        let period = 6000.0;
+        let orbit_time = 12.0 + period;
+
+        let props = OrbitParameters {
+            orbit_period: 6000.0,
+            orbit_divisions: vec![0.0, 10.0, 20.0],
+            eclipse_start: 1000.0,
+            eclipse_end: 2000.0,
+        };
+
+        let mut manager = OrbitManager::new(&props);
+        let time_left = manager.time_to_next(orbit_time);
+
+        let actual_time = 8.0;
+
+        assert_float_eq(time_left, actual_time, 0.0001);
+    }
+
+    #[test]
+    fn test_time_to_next_4() {
+        let orbit_time = 21.0;
+
+        let props = OrbitParameters {
+            orbit_period: 6000.0,
+            orbit_divisions: vec![0.0, 10.0, 20.0],
+            eclipse_start: 1000.0,
+            eclipse_end: 2000.0,
+        };
+
+        let mut manager = OrbitManager::new(&props);
+        let time_left = manager.time_to_next(orbit_time);
+
+        let actual_time = 5979.0;
+
+        assert_float_eq(time_left, actual_time, 0.0001);
     }
 }

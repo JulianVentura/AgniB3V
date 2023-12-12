@@ -10,6 +10,7 @@ pub struct ExplicitSolver {
     f_const: Vec<Vector>,
     f_index: usize,
     temp: Vector,
+    t_4: Vector,
     points: Vec<Point>,
     time_step: f64,
 }
@@ -52,6 +53,7 @@ impl ExplicitSolver {
             f_const,
             time_step,
             f_index: 0,
+            t_4: temp.clone(),
             temp,
             points,
         })
@@ -72,10 +74,9 @@ impl ExplicitSolver {
     }
 
     pub fn step(&mut self) -> Result<()> {
-        let mut t_4 = self.temp.clone();
-        solver::fourth_power(&mut t_4);
+        solver::fourth_power(&self.temp, &mut self.t_4);
 
-        let f = &self.h * &t_4 + &self.f_const[self.f_index];
+        let f = &self.h * &self.t_4 + &self.f_const[self.f_index];
         let b = f - &self.k * &self.temp;
         let x = &self
             .m_lu
@@ -83,6 +84,14 @@ impl ExplicitSolver {
             .with_context(|| "Couldn't solve linear system")?;
 
         self.temp = self.time_step * x + &self.temp;
+
+        Ok(())
+    }
+
+    pub fn run_for(&mut self, steps: usize) -> Result<()> {
+        for _ in 0..steps {
+            self.step()?;
+        }
 
         Ok(())
     }

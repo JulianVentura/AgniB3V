@@ -1,6 +1,7 @@
 use crate::err;
 use anyhow::Result;
 
+use super::orbit_manager::OrbitManager;
 use super::structures::Vector;
 use super::{
     explicit_solver::ExplicitSolver, gpu_solver::GPUSolver, implicit_solver::ImplicitSolver,
@@ -15,22 +16,13 @@ pub enum Solver {
 }
 
 pub struct FEMEngine {
-    simulation_time: f64,
+    simulation_steps: usize,
     time_step: f64,
-    snapshot_period: f64,
-    orbit_parameters: FEMOrbitParameters,
+    snapshot_steps: usize,
     solver: Solver,
+    orbit_manager: OrbitManager,
     results: Vec<Vector>,
     f_index: usize,
-}
-
-#[derive(Debug)]
-pub struct FEMOrbitParameters {
-    pub betha: f64,
-    pub orbit_period: f64,
-    pub orbit_divisions: Vec<f64>,
-    pub eclipse_start: f64,
-    pub eclipse_end: f64,
 }
 
 #[allow(dead_code)]
@@ -39,11 +31,10 @@ pub struct FEMParameters {
     pub simulation_time: f64,
     pub time_step: f64,
     pub snapshot_period: f64,
-    pub orbit: FEMOrbitParameters,
 }
 
 impl FEMEngine {
-    pub fn new(params: FEMParameters, solver: Solver) -> Result<Self> {
+    pub fn new(params: FEMParameters, orbit_manager: OrbitManager, solver: Solver) -> Result<Self> {
         if params.time_step > params.snapshot_period {
             err!("Snapshot period cannot be smaller than time step");
         }
@@ -52,19 +43,19 @@ impl FEMEngine {
             err!("Snapshot period must be multiple of simulation time");
         }
 
-        let steps = (params.simulation_time / params.time_step) as usize;
-        let snapshot_step_period = (params.snapshot_period / params.time_step) as usize;
+        let simulation_steps = (params.simulation_time / params.time_step) as usize;
+        let snapshot_steps = (params.snapshot_period / params.time_step) as usize;
 
-        let result_size = (steps / snapshot_step_period) as usize;
+        let result_size = (simulation_steps / snapshot_steps) as usize;
 
         let mut results = Vec::default();
         results.reserve(result_size);
 
         Ok(FEMEngine {
-            simulation_time: params.simulation_time,
+            simulation_steps,
             time_step: params.time_step,
-            snapshot_period: params.snapshot_period,
-            orbit_parameters: params.orbit,
+            snapshot_steps,
+            orbit_manager,
             solver,
             results,
             f_index: 0,
@@ -72,21 +63,18 @@ impl FEMEngine {
     }
 
     pub fn run(&mut self) -> Result<Vec<Vector>> {
-        let steps = (self.simulation_time / self.time_step) as usize;
-        let snapshot_period = (self.snapshot_period / self.time_step) as usize;
-
-        println!("Running for {steps} steps");
+        println!("Running for {} steps", self.simulation_steps);
 
         let mut step: usize = 0;
 
-        while step < steps {
-            self.save_results(step, snapshot_period)?;
+        while step < self.simulation_steps {
+            self.save_results(step)?;
             self.update_f(step)?;
-            self.execute_solver()?;
-            step += 1;
+            let simulated_steps = self.execute_solver(step)?;
+            step += simulated_steps;
         }
 
-        self.save_results(step, snapshot_period)?;
+        self.save_results(step)?;
 
         //TODO: Optimize this clone
         Ok(self.results.clone())
@@ -94,10 +82,12 @@ impl FEMEngine {
 
     fn update_f(&mut self, step: usize) -> Result<()> {
         let time = step as f64 * self.time_step;
-        let orbit_time = time % (self.orbit_parameters.orbit_period);
+        let idx = self.orbit_manager.current_index(time);
+        if idx == self.f_index {
+            return Ok(());
+        }
 
-        self.update_f_index(orbit_time);
-
+        self.f_index = idx;
         match &mut self.solver {
             Solver::Explicit(s) => s.update_f(self.f_index)?,
             Solver::Implicit(s) => s.update_f(self.f_index)?,
@@ -107,20 +97,42 @@ impl FEMEngine {
         Ok(())
     }
 
-    fn execute_solver(&mut self) -> Result<()> {
-        //TODO: Future new API to include execute_for(steps)
-        match &mut self.solver {
-            Solver::Explicit(s) => s.step()?,
-            Solver::Implicit(s) => s.step()?,
-            Solver::GPU(s) => s.step()?,
-        };
+    fn calculate_iteration_steps(
+        next_division_time: f64,
+        snapshot_steps: usize,
+        current_step: usize,
+        time_step: f64,
+    ) -> usize {
+        let next_snap_steps = snapshot_steps - current_step % snapshot_steps;
+        let next_division_steps = (next_division_time / time_step).ceil() as usize;
 
-        Ok(())
+        usize::min(next_snap_steps, next_division_steps)
     }
 
-    fn save_results(&mut self, current_step: usize, snapshot_period: usize) -> Result<()> {
+    fn execute_solver(&mut self, current_step: usize) -> Result<usize> {
+        let next_division_time = self
+            .orbit_manager
+            .time_to_next(current_step as f64 * self.time_step);
+
+        let sim_steps = Self::calculate_iteration_steps(
+            next_division_time,
+            self.snapshot_steps,
+            current_step,
+            self.time_step,
+        );
+
+        match &mut self.solver {
+            Solver::Explicit(s) => s.run_for(sim_steps)?,
+            Solver::Implicit(s) => s.run_for(sim_steps)?,
+            Solver::GPU(s) => s.run_for(sim_steps)?,
+        };
+
+        Ok(sim_steps)
+    }
+
+    fn save_results(&mut self, current_step: usize) -> Result<()> {
         //TODO: Instead of storing results to memory, we should go to disk directly
-        if current_step % snapshot_period == 0 {
+        if current_step % self.snapshot_steps == 0 {
             let temp = match &mut self.solver {
                 Solver::Explicit(s) => s.temperature()?,
                 Solver::Implicit(s) => s.temperature()?,
@@ -135,222 +147,84 @@ impl FEMEngine {
     fn is_multiple(dividend: f64, divisor: f64) -> bool {
         (dividend / divisor).fract().abs() < 1e-12
     }
-
-    fn update_f_index(&mut self, orbit_time: f64) {
-        //TODO: We can make this a little more readable
-        let orbit_divisions = &self.orbit_parameters.orbit_divisions;
-        let f_index = self.f_index;
-        let next = (f_index + 1) % orbit_divisions.len();
-        let next_start = orbit_divisions[next];
-        if next == 0 {
-            //TODO: We can invert this
-            if orbit_time >= orbit_divisions[f_index] {
-                return;
-            } else {
-                self.f_index = 0;
-                self.update_f_index(orbit_time);
-                return;
-            }
-        }
-        if orbit_time >= next_start || orbit_time < orbit_divisions[f_index] {
-            self.f_index = next;
-            self.update_f_index(orbit_time);
-            return;
-        } else {
-            return; //TODO: Why???
-        }
-    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::fem::engine::Solver;
-
     use crate::fem::engine::FEMEngine;
-    use crate::fem::engine::FEMOrbitParameters;
-    use crate::fem::explicit_solver::ExplicitSolver;
+    #[test]
+    pub fn test_calculate_iteration_steps_1() {
+        let next_division_time = 600.0;
+        let snapshot_steps = 8;
+        let current_step = 53;
+        let time_step = 10.0;
 
-    fn create_fem_engine(start: f64, end: f64, orbit_divisions: Vec<f64>) -> FEMEngine {
-        let orbit = FEMOrbitParameters {
-            betha: 0.0,
-            orbit_period: 6000.0,
-            eclipse_start: start,
-            eclipse_end: end,
-            orbit_divisions,
-        };
-        let solver = Solver::Explicit(ExplicitSolver::new(&vec![], 0.0).unwrap());
-        FEMEngine {
-            simulation_time: 1.0,
-            time_step: 1.0,
-            snapshot_period: 1.0,
-            orbit_parameters: orbit,
-            solver,
-            results: vec![],
-            f_index: 0,
-        }
+        let expected_sim_step = 3;
+
+        let sim_steps = FEMEngine::calculate_iteration_steps(
+            next_division_time,
+            snapshot_steps,
+            current_step,
+            time_step,
+        );
+
+        assert_eq!(sim_steps, expected_sim_step);
     }
 
     #[test]
-    fn test_update_f_index_1() {
-        let orbit_time = 5.0;
-        let f_index = 0;
-        let orbit_divisions = vec![0.0, 10.0, 20.0];
+    pub fn test_calculate_iteration_steps_2() {
+        let next_division_time = 20.0;
+        let snapshot_steps = 8;
+        let current_step = 53;
+        let time_step = 10.0;
 
-        let mut engine = create_fem_engine(1000.0, 2000.0, orbit_divisions);
-        engine.f_index = f_index;
-        engine.update_f_index(orbit_time);
+        let expected_sim_step = 2;
 
-        let actual_f_index = 0;
+        let sim_steps = FEMEngine::calculate_iteration_steps(
+            next_division_time,
+            snapshot_steps,
+            current_step,
+            time_step,
+        );
 
-        assert_eq!(engine.f_index, actual_f_index);
+        assert_eq!(sim_steps, expected_sim_step);
     }
 
     #[test]
-    fn test_update_f_index_2() {
-        let orbit_time = 11.0;
-        let f_index = 0;
-        let orbit_divisions = vec![0.0, 10.0, 20.0];
+    pub fn test_calculate_iteration_steps_3() {
+        let next_division_time = 30.0;
+        let snapshot_steps = 8;
+        let current_step = 53;
+        let time_step = 10.0;
 
-        let mut engine = create_fem_engine(1000.0, 2000.0, orbit_divisions);
-        engine.f_index = f_index;
-        engine.update_f_index(orbit_time);
+        let expected_sim_step = 3;
 
-        let actual_f_index = 1;
+        let sim_steps = FEMEngine::calculate_iteration_steps(
+            next_division_time,
+            snapshot_steps,
+            current_step,
+            time_step,
+        );
 
-        assert_eq!(engine.f_index, actual_f_index);
+        assert_eq!(sim_steps, expected_sim_step);
     }
 
     #[test]
-    fn test_update_f_index_3() {
-        let orbit_time = 12.0;
-        let f_index = 1;
-        let orbit_divisions = vec![0.0, 10.0, 20.0];
+    pub fn test_calculate_iteration_steps_4() {
+        let next_division_time = 11.0;
+        let snapshot_steps = 8;
+        let current_step = 53;
+        let time_step = 10.0;
 
-        let mut engine = create_fem_engine(1000.0, 2000.0, orbit_divisions);
-        engine.f_index = f_index;
-        engine.update_f_index(orbit_time);
+        let expected_sim_step = 2;
 
-        let actual_f_index = 1;
+        let sim_steps = FEMEngine::calculate_iteration_steps(
+            next_division_time,
+            snapshot_steps,
+            current_step,
+            time_step,
+        );
 
-        assert_eq!(engine.f_index, actual_f_index);
-    }
-
-    #[test]
-    fn test_update_f_index_4() {
-        let orbit_time = 21.0;
-        let f_index = 1;
-        let orbit_divisions = vec![0.0, 10.0, 20.0];
-
-        let mut engine = create_fem_engine(1000.0, 2000.0, orbit_divisions);
-        engine.f_index = f_index;
-        engine.update_f_index(orbit_time);
-
-        let actual_f_index = 2;
-
-        assert_eq!(engine.f_index, actual_f_index);
-    }
-
-    #[test]
-    fn test_update_f_index_5() {
-        let orbit_time = 25.0;
-        let f_index = 2;
-        let orbit_divisions = vec![0.0, 10.0, 20.0];
-
-        let mut engine = create_fem_engine(1000.0, 2000.0, orbit_divisions);
-        engine.f_index = f_index;
-        engine.update_f_index(orbit_time);
-
-        let actual_f_index = 2;
-
-        assert_eq!(engine.f_index, actual_f_index);
-    }
-
-    #[test]
-    fn test_update_f_index_6() {
-        let orbit_time = 3.0;
-        let f_index = 2;
-        let orbit_divisions = vec![0.0, 10.0, 20.0];
-
-        let mut engine = create_fem_engine(1000.0, 2000.0, orbit_divisions);
-        engine.f_index = f_index;
-        engine.update_f_index(orbit_time);
-
-        let actual_f_index = 0;
-
-        assert_eq!(engine.f_index, actual_f_index);
-    }
-
-    #[test]
-    fn test_update_f_index_7() {
-        let orbit_time = 25.0;
-        let f_index = 0;
-        let orbit_divisions = vec![0.0, 10.0, 20.0];
-
-        let mut engine = create_fem_engine(1000.0, 2000.0, orbit_divisions);
-        engine.f_index = f_index;
-        engine.update_f_index(orbit_time);
-
-        let actual_f_index = 2;
-
-        assert_eq!(engine.f_index, actual_f_index);
-    }
-
-    #[test]
-    fn test_update_f_index_8() {
-        let orbit_time = 15.0;
-        let f_index = 2;
-        let orbit_divisions = vec![0.0, 10.0, 20.0];
-
-        let mut engine = create_fem_engine(1000.0, 2000.0, orbit_divisions);
-        engine.f_index = f_index;
-        engine.update_f_index(orbit_time);
-
-        let actual_f_index = 1;
-
-        assert_eq!(engine.f_index, actual_f_index);
-    }
-
-    #[test]
-    fn test_update_f_index_9() {
-        let orbit_time = 45.0;
-        let f_index = 1;
-        let orbit_divisions = vec![0.0, 10.0, 20.0, 30.0, 40.0];
-
-        let mut engine = create_fem_engine(1000.0, 2000.0, orbit_divisions);
-        engine.f_index = f_index;
-        engine.update_f_index(orbit_time);
-
-        let actual_f_index = 4;
-
-        assert_eq!(engine.f_index, actual_f_index);
-    }
-
-    #[test]
-    fn test_update_f_index_10() {
-        let orbit_time = 25.0;
-        let f_index = 3;
-        let orbit_divisions = vec![0.0, 10.0, 20.0, 30.0, 40.0];
-
-        let mut engine = create_fem_engine(1000.0, 2000.0, orbit_divisions);
-        engine.f_index = f_index;
-        engine.update_f_index(orbit_time);
-
-        let actual_f_index = 2;
-
-        assert_eq!(engine.f_index, actual_f_index);
-    }
-
-    #[test]
-    fn test_update_f_index_11() {
-        let orbit_time = 5.0;
-        let f_index = 2;
-        let orbit_divisions = vec![0.0, 10.0, 20.0, 30.0, 40.0];
-
-        let mut engine = create_fem_engine(1000.0, 2000.0, orbit_divisions);
-        engine.f_index = f_index;
-        engine.update_f_index(orbit_time);
-        let actual_f_index = 0;
-
-        assert_eq!(engine.f_index, actual_f_index);
+        assert_eq!(sim_steps, expected_sim_step);
     }
 }

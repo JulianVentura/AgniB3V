@@ -402,3 +402,4 @@ standalone-raytrace/ReportFile1.txt
 opencl/timing.txt
 opencl/Sonia/*
 standalone-raytrace/files/*
+benchmarks/*/

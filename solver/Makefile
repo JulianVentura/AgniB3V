@@ -3,4 +3,4 @@ method ?= Implicit
 
 build:
 	cargo build --release
-	./target/release/opencl $(directory) $(method)
+	./target/release/solver $(directory) $(method)

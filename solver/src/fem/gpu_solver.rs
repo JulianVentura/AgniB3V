@@ -2,13 +2,12 @@ use super::element::Element;
 use super::point::Point;
 use super::solver;
 use super::structures::{Matrix, Vector};
-use anyhow::Result;
+use anyhow::{Context as Ctx, Result};
 
 use ocl::{flags, Buffer, Context, Device, Kernel, Platform, Program, Queue};
 
 pub struct GPUSolver {
     pub f_const: Vec<Vector>,
-    pub f_const_eclipse: Vec<Vector>,
     pub d: Matrix,
     pub h: Matrix,
     program: OpenCLProgram,
@@ -44,7 +43,7 @@ pub struct OpenCLBuffers {
 }
 
 impl GPUSolver {
-    pub fn new(elements: &Vec<Element>, time_step: f64) -> Self {
+    pub fn new(elements: &Vec<Element>, time_step: f64) -> Result<Self> {
         let n_points = solver::calculate_number_of_points(elements);
         println!("Constructing global M matrix");
         let m = solver::construct_global_matrix(elements, n_points, |e: &Element| &e.m);
@@ -55,10 +54,7 @@ impl GPUSolver {
         println!("Constructing global L matrix");
         let l = solver::construct_l_matrix(elements, n_points);
         println!("Constructing global flux vector");
-        let f_const = solver::construct_global_vector_f_const_multiple_earth(elements, n_points);
-        println!("Constructing global flux vector eclipse");
-        let f_const_eclipse =
-            solver::construct_global_vector_f_const_eclipse_multiple_earth(elements, n_points);
+        let f_const = solver::construct_global_vector_f_const_array(elements, n_points);
         println!("Constructing points array");
         let points = solver::construct_points_array(elements, n_points);
         let temp = Vector::from_vec(points.iter().map(|p| p.temperature).collect::<Vec<f64>>());
@@ -73,17 +69,22 @@ impl GPUSolver {
         let a = &m / time_step + theta * &k;
         println!("Inverting A matrix");
 
-        let a_inverse = a.clone().try_inverse().expect("f");
+        let a_inverse = a
+            .clone()
+            .try_inverse()
+            .with_context(|| "Couldn't inverse matrix A")?;
 
-        let mut program = Self::start_opencl_program("./src/gpu/matrix_mult.cl").unwrap();
+        //TODO: Modify this path to eliminate cwd dependency
+        let mut program = Self::start_opencl_program("./src/opencl_kernels/matrix_mult.cl")
+            .with_context(|| "Couldn't start opencl program")?;
         let buffers =
             Self::start_opencl_buffers(&mut program, &temp, &h, &f_const[0], &d, &a_inverse)
-                .unwrap();
-        let kernels = Self::start_opencl_kernels(&mut program, &buffers, &temp).unwrap();
+                .with_context(|| "Couldn't start opencl buffers")?;
+        let kernels = Self::start_opencl_kernels(&mut program, &buffers, &temp)
+            .with_context(|| "Couldn't start opencl kernels")?;
 
-        GPUSolver {
+        Ok(GPUSolver {
             f_const,
-            f_const_eclipse,
             d,
             h,
             temp,
@@ -91,12 +92,8 @@ impl GPUSolver {
             program,
             buffers,
             kernels,
-        }
+        })
     }
-
-    //TODO: Optimization:
-    //Here we are writing on buffers on every step iteration
-    //we instead could be just writing when the f constant changes
 
     pub fn step(&mut self) -> Result<()> {
         unsafe {
@@ -111,24 +108,24 @@ impl GPUSolver {
         Ok(())
     }
 
+    pub fn run_for(&mut self, steps: usize) -> Result<()> {
+        for _ in 0..steps {
+            self.step()?;
+        }
+
+        Ok(())
+    }
+
     pub fn points(&self) -> &Vec<Point> {
         &self.points
     }
 
-    pub fn update_f(&mut self, f_index: usize, in_eclipse: bool) -> Result<()> {
-        if in_eclipse {
-            self.buffers
-                .buffer_f_const
-                .cmd()
-                .write(self.f_const_eclipse[f_index].as_slice())
-                .enq()?;
-        } else {
-            self.buffers
-                .buffer_f_const
-                .cmd()
-                .write(self.f_const[f_index].as_slice())
-                .enq()?;
-        }
+    pub fn update_f(&mut self, f_index: usize) -> Result<()> {
+        self.buffers
+            .buffer_f_const
+            .cmd()
+            .write(self.f_const[f_index].as_slice())
+            .enq()?;
 
         Ok(())
     }
@@ -148,18 +145,22 @@ impl GPUSolver {
     }
 
     fn start_opencl_program(src_path: &str) -> Result<OpenCLProgram> {
-        let kernel_code = std::fs::read_to_string(src_path)?;
+        let kernel_code = std::fs::read_to_string(src_path)
+            .with_context(|| format!("Couldn't read kernel code on {src_path}"))?;
         let platform = Platform::default();
-        let device = Device::first(platform)?;
+        let device = Device::first(platform).with_context(|| "Opencl device not found")?;
         let context = Context::builder()
             .platform(platform)
             .devices(device.clone())
-            .build()?;
+            .build()
+            .with_context(|| "Couldn't connect to opencl device")?;
         let program = Program::builder()
             .devices(device)
             .src(kernel_code)
-            .build(&context)?;
-        let queue = Queue::new(&context, device, None)?;
+            .build(&context)
+            .with_context(|| "Couldn't parse opencl kernel code")?;
+        let queue =
+            Queue::new(&context, device, None).with_context(|| "Couldn't create opencl queue")?;
 
         Ok(OpenCLProgram {
             context,
@@ -186,56 +187,64 @@ impl GPUSolver {
             .flags(flags::MEM_READ_WRITE)
             .len(size_t)
             .copy_host_slice(t.as_slice())
-            .build()?;
+            .build()
+            .with_context(|| "Couldn't create opencl buffer_t")?;
 
         let buffer_t_4 = Buffer::<f64>::builder()
             .queue(session.queue.clone())
             .flags(flags::MEM_READ_WRITE)
             .len(size_t)
             .fill_val(0.0)
-            .build()?;
+            .build()
+            .with_context(|| "Couldn't create opencl buffer_t_4")?;
 
         let buffer_f = Buffer::<f64>::builder()
             .queue(session.queue.clone())
             .flags(flags::MEM_READ_WRITE)
             .len(size_t)
             .fill_val(0.0)
-            .build()?;
+            .build()
+            .with_context(|| "Couldn't create opencl buffer_f")?;
 
         let buffer_h = Buffer::<f64>::builder()
             .queue(session.queue.clone())
             .flags(flags::MEM_READ_WRITE)
             .len(size_h)
             .copy_host_slice(h.as_slice())
-            .build()?;
+            .build()
+            .with_context(|| "Couldn't create opencl buffer_h")?;
 
         let buffer_f_const = Buffer::<f64>::builder()
             .queue(session.queue.clone())
             .flags(flags::MEM_READ_WRITE)
             .len(size_t)
             .copy_host_slice(f_const.as_slice())
-            .build()?;
+            .build()
+            .with_context(|| "Couldn't create opencl buffer_f_const")?;
 
         let buffer_d = Buffer::<f64>::builder()
             .queue(session.queue.clone())
             .flags(flags::MEM_READ_WRITE)
             .len(size_d)
             .copy_host_slice(d.as_slice())
-            .build()?;
+            .build()
+            .with_context(|| "Couldn't create opencl buffer_d")?;
 
         let buffer_b = Buffer::<f64>::builder()
             .queue(session.queue.clone())
             .flags(flags::MEM_READ_WRITE)
             .len(size_t)
             .fill_val(0.0)
-            .build()?;
+            .build()
+            .with_context(|| "Couldn't create opencl buffer_b")?;
 
         let buffer_a_inverse = Buffer::<f64>::builder()
             .queue(session.queue.clone())
             .flags(flags::MEM_READ_WRITE)
             .len(size_a_inverse)
             .copy_host_slice(a_inverse.as_slice())
-            .build()?;
+            .build()
+            .with_context(|| "Couldn't create opencl buffer_a_inverse")?;
 
         Ok(OpenCLBuffers {
             buffer_t,
@@ -265,7 +274,8 @@ impl GPUSolver {
             .arg(&buffers.buffer_t)
             .arg(&buffers.buffer_t_4)
             .arg(&size_t)
-            .build()?;
+            .build()
+            .with_context(|| "Couldn't create opencl kernel_t_4")?;
 
         let kernel_f = Kernel::builder()
             .program(&session.program)
@@ -277,7 +287,8 @@ impl GPUSolver {
             .arg(&buffers.buffer_f)
             .arg(&size_t)
             .arg(&size_t)
-            .build()?;
+            .build()
+            .with_context(|| "Couldn't create opencl kernel_f")?;
 
         let kernel_f_sum = Kernel::builder()
             .program(&session.program)
@@ -288,7 +299,8 @@ impl GPUSolver {
             .arg(&buffers.buffer_f_const)
             .arg(&buffers.buffer_f)
             .arg(&size_t)
-            .build()?;
+            .build()
+            .with_context(|| "Couldn't create opencl kernel_f_sum")?;
 
         let kernel_d_temp = Kernel::builder()
             .program(&session.program)
@@ -300,7 +312,8 @@ impl GPUSolver {
             .arg(&buffers.buffer_b)
             .arg(&size_t)
             .arg(&size_t)
-            .build()?;
+            .build()
+            .with_context(|| "Couldn't create opencl kernel_d_temp")?;
 
         let kernel_b_f = Kernel::builder()
             .program(&session.program)
@@ -311,7 +324,8 @@ impl GPUSolver {
             .arg(&buffers.buffer_f)
             .arg(&buffers.buffer_b)
             .arg(&size_t)
-            .build()?;
+            .build()
+            .with_context(|| "Couldn't create opencl kernel_b_f")?;
 
         let kernel_solver = Kernel::builder()
             .program(&session.program)
@@ -323,7 +337,8 @@ impl GPUSolver {
             .arg(&buffers.buffer_t)
             .arg(&size_t)
             .arg(&size_t)
-            .build()?;
+            .build()
+            .with_context(|| "Couldn't create opencl kernel_solver")?;
 
         Ok(OpenCLKernels {
             kernel_t_4,

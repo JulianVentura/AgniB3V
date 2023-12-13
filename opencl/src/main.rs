@@ -7,13 +7,14 @@ use log::error;
 fn run() -> Result<()> {
     let args: Vec<String> = env::args().collect();
 
-    if args.len() != 2 {
-        fem::error::err!("Usage: <executable> <config_path>");
+    if args.len() != 3 {
+        fem::error::err!("Usage: {} <directory_path> <method>", args[0]);
     }
 
-    let config_path = &args[1];
+    let directory_path = &args[1];
+    let method = &args[2];
 
-    fem::executor::run_solver(config_path)?;
+    fem::executor::run_solver(directory_path, method)?;
 
     Ok(())
 }

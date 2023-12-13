@@ -73,70 +73,50 @@ fn parse_json(path: &str) -> Result<VTKSeries> {
     Ok(json_file)
 }
 
-fn compare_results(
-    actual_results: String,
-    new_results: String,
-    actual_results_name: String,
-    new_results_name: String,
-) -> Result<()> {
-    let actual_file = format!("{}/{}.vtk.series", actual_results, actual_results_name);
-    let new_file = format!("{}/{}.vtk.series", new_results, new_results_name);
+fn compare_results(results_path: &str, actual_results_path: &str) -> Result<()> {
+    let result_file_path = format!("{}/result.vtk.series", results_path);
+    let actual_result_file_path = format!("{}/result.vtk.series", actual_results_path);
 
-    let new_file_json = parse_json(&new_file).with_context(|| "Couldn't parse new json file")?;
-    let actual_file_json =
-        parse_json(&actual_file).with_context(|| "Couldn't parse actual json file")?;
+    let result_file_json = parse_json(&result_file_path).with_context(|| "Couldn't parse results json file")?;
+    let actual_result_file_json =
+        parse_json(&actual_result_file_path).with_context(|| "Couldn't parse actual results json file")?;
 
     assert!(
-        actual_file_json.files.len() == new_file_json.files.len(),
+        actual_result_file_json.files.len() == result_file_json.files.len(),
         "Length of results files not equal"
     );
 
-    for i in 0..actual_file_json.files.len() {
+    for i in 0..actual_result_file_json.files.len() {
         assert_float_eq(
-            actual_file_json.files[i].time,
-            new_file_json.files[i].time,
+            actual_result_file_json.files[i].time,
+            result_file_json.files[i].time,
             0.01,
         );
         compare_vtk(
-            &format!("{}/{}", actual_results, actual_file_json.files[i].name),
-            &format!("{}/{}", new_results, new_file_json.files[i].name),
+            &format!("{}/{}", actual_results_path, actual_result_file_json.files[i].name),
+            &format!("{}/{}", results_path, result_file_json.files[i].name),
         )?;
     }
 
     Ok(())
 }
 
-fn run_test_solver(test_number: u32, solver: &str) -> Result<()> {
-    let config_path = format!(
-        "Unit_tests/Test_{}/test_{}_config_{}.json",
-        test_number, test_number, solver
-    );
-    let actual_results_path = format!(
-        "Unit_tests/Test_{}/test_{}_results",
-        test_number, test_number
-    );
-    let results_path = format!("Unit_tests/Test_{}", test_number);
-    let new_results_name = format!("test_{}_new", test_number);
-    let actual_results_name = format!("test_{}_results", test_number);
+fn run_test_on_solver(directory_path: &str, solver: &str) -> Result<()> {
+    let results_path = format!("{directory_path}/results");
+    let actual_results_path = format!("{directory_path}/actual_results");
 
-    run_solver(&config_path)?;
+    run_solver(directory_path, solver)?;
 
-    compare_results(
-        actual_results_path,
-        format!("{}/{}_results", results_path, new_results_name),
-        actual_results_name,
-        format!("{}_results", new_results_name),
-    )?;
-
-    remove_dir_all(format!("{}/{}_results", results_path, new_results_name))?;
+    compare_results(&results_path, &actual_results_path)?;
+    remove_dir_all(results_path)?;
 
     Ok(())
 }
 
-fn run_test(test_number: u32) -> Result<()> {
-    run_test_solver(test_number, "implicit")?;
-    //run_test_solver(test_number, "explicit")?;
-    run_test_solver(test_number, "gpu")?;
+fn run_test(test_path: &str) -> Result<()> {
+    run_test_on_solver(test_path, "Implicit")?;
+    //run_test_solver(test_number, "Explicit")?;
+    run_test_on_solver(test_path, "GPU")?;
     Ok(())
 }
 
@@ -150,7 +130,7 @@ pub fn test_conduction_1() -> Result<()> {
     There are no fluxes
     */
 
-    run_test(1)?;
+    run_test("e2e_tests/conduction_1")?;
 
     Ok(())
 }
@@ -165,7 +145,7 @@ pub fn test_conduction_2() -> Result<()> {
     Fixed Flux of 200 W/m2
     */
 
-    run_test(2)?;
+    run_test("e2e_tests/conduction_2")?;
 
     Ok(())
 }
@@ -182,7 +162,7 @@ pub fn test_conduction_3() -> Result<()> {
     There are no fluxes
     */
 
-    run_test(3)?;
+    run_test("e2e_tests/conduction_3")?;
 
     Ok(())
 }
@@ -199,7 +179,7 @@ pub fn test_conduction_4() -> Result<()> {
     There are no fluxes
     */
 
-    run_test(4)?;
+    run_test("e2e_tests/conduction_4")?;
 
     Ok(())
 }
@@ -215,7 +195,7 @@ pub fn test_conduction_5() -> Result<()> {
     Fixed Flux of 100 W/m2
     */
 
-    run_test(5)?;
+    run_test("e2e_tests/conduction_5")?;
 
     Ok(())
 }
@@ -230,7 +210,7 @@ pub fn test_radiation_1() -> Result<()> {
     Initial temperature of plane 2: 300 K
     */
 
-    run_test(6)?;
+    run_test("e2e_tests/radiation_1")?;
 
     Ok(())
 }
@@ -247,7 +227,7 @@ pub fn test_radiation_2() -> Result<()> {
     Initial temperature of plane 2: 300 K
     */
 
-    run_test(7)?;
+    run_test("e2e_tests/radiation_2")?;
 
     Ok(())
 }
@@ -264,7 +244,7 @@ pub fn test_radiation_3() -> Result<()> {
     Initial temperature of plane 2: 300 K
     */
 
-    run_test(8)?;
+    run_test("e2e_tests/radiation_3")?;
 
     Ok(())
 }
@@ -283,7 +263,196 @@ pub fn test_radiation_4() -> Result<()> {
      - Initial temperature: 473.15 K
     */
 
-    run_test(9)?;
+    run_test("e2e_tests/radiation_4")?;
+
+    Ok(())
+}
+
+#[test]
+pub fn test_sun_1() -> Result<()> {
+    /*
+    One Cube of 1 m x 1 m x 1 m, thickness 5 cm.
+    Density 2700 kg/m3,
+    Specific Heat 900 J/(K kg) y
+    Thermal Conductivity 0 W/(K m)
+    Alpha sun = 1
+    Alpha_ir = 1
+    Initial Temperature 273.15 K
+    Sun Pointing
+    Albedo = 0
+    Earth_ir = 0
+    Solar constant = 1361 W/m2
+    SMA: 7000 km
+    ECC: 0
+    INC: 0
+    RAAN: 0
+    AOP: 0
+    TA: 0
+    */
+
+    run_test("e2e_tests/sun_1")?;
+
+    Ok(())
+}
+
+#[test]
+pub fn test_ir_1() -> Result<()> {
+    /*
+    One Cube of 1 m x 1 m x 1 m, thickness 5 cm.
+    Density 2700 kg/m3,
+    Specific Heat 900 J/(K kg) y
+    Thermal Conductivity 0 W/(K m)
+    Alpha sun = 1
+    Alpha_ir = 1
+    Initial Temperature 273.15 K
+    Sun Pointing
+    Albedo = 0
+    Earth_ir = 225 W/m2
+    Solar constant = 0
+    SMA: 7000 km
+    ECC: 0
+    INC: 0
+    RAAN: 0
+    AOP: 0
+    TA: 0
+    */
+
+    run_test("e2e_tests/ir_1")?;
+
+    Ok(())
+}
+
+#[test]
+pub fn test_albedo_1() -> Result<()> {
+    /*
+    One Cube of 1 m x 1 m x 1 m, thickness 5 cm.
+    Density 2700 kg/m3,
+    Specific Heat 900 J/(K kg) y
+    Thermal Conductivity 0 W/(K m)
+    Alpha sun = 1
+    Alpha_ir = 1
+    Initial Temperature 273.15 K
+    Sun Pointing
+    Albedo = 1
+    Earth_ir = 0
+    Solar constant = 1361W/m2
+    SMA: 7000 km
+    ECC: 0
+    INC: 0
+    RAAN: 0
+    AOP: 0
+    TA: 0
+    */
+
+    run_test("e2e_tests/albedo_1")?;
+
+    Ok(())
+}
+
+#[test]
+pub fn test_all_sources_1() -> Result<()> {
+    /*
+    One Cube of 1 m x 1 m x 1 m, thickness 5 cm.
+    Density 2700 kg/m3,
+    Specific Heat 900 J/(K kg) y
+    Thermal Conductivity 0 W/(K m)
+    Alpha sun = 1
+    Alpha_ir = 1
+    Initial Temperature 273.15 K
+    Sun Pointing
+    Albedo = 0.2
+    Earth_ir = 225 W/m2
+    Solar constant = 1361 W/m2
+    SMA: 7000 km
+    ECC: 0
+    INC: 0
+    RAAN: 0
+    AOP: 0
+    TA: 0
+    */
+
+    run_test("e2e_tests/all_sources_1")?;
+
+    Ok(())
+}
+
+#[test]
+pub fn test_all_sources_2() -> Result<()> {
+    /*
+    One Cube of 1 m x 1 m x 1 m, thickness 5 cm.
+    Density 2700 kg/m3,
+    Specific Heat 900 J/(K kg) y
+    Thermal Conductivity 237 W/(K m)
+    Alpha sun = 1
+    Alpha_ir = 1
+    Initial Temperature 273.15 K
+    Sun Pointing
+    Albedo = 0.2
+    Earth_ir = 225 W/m2
+    Solar constant = 1361 W/m2
+    SMA: 7000 km
+    ECC: 0
+    INC: 0
+    RAAN: 0
+    AOP: 0
+    TA: 0
+    */
+
+    run_test("e2e_tests/all_sources_2")?;
+
+    Ok(())
+}
+
+#[test]
+pub fn test_pyramid() -> Result<()> {
+    /*
+    One Pyramid of 1 m x 1 m base, x 1 m heigth, thickness 5 cm.
+    Density 2700 kg/m3,
+    Specific Heat 900 J/(K kg) y
+    Thermal Conductivity 237 W/(K m)
+    Alpha sun = 1
+    Alpha_ir = 1
+    Initial Temperature 273.15 K
+    Sun Pointing (point of the pyramid)
+    Albedo = 0.2
+    Earth_ir = 225 W/m2
+    Solar constant = 1361 W/m2
+    SMA: 7000 km
+    ECC: 0
+    INC: 0
+    RAAN: 0
+    AOP: 0
+    TA: 0
+    */
+
+    run_test("e2e_tests/pyramid")?;
+
+    Ok(())
+}
+
+#[test]
+pub fn test_nut() -> Result<()> {
+    /*
+    One Nut of 4 m external radious, 2 m internal radious, 4 m heigth, thickness 5 cm.
+    Density 2700 kg/m3,
+    Specific Heat 900 J/(K kg) y
+    Thermal Conductivity 237 W/(K m)
+    Alpha sun = 1
+    Alpha_ir = 1
+    Initial Temperature 293.15 K
+    Sun Pointing (45º pointing to the middle of the nut)
+    Albedo = 0.2
+    Earth_ir = 225 W/m2
+    Solar constant = 1361 W/m2
+    SMA: 7000 km
+    ECC: 0
+    INC: 0
+    RAAN: 0
+    AOP: 0
+    TA: 0
+    */
+
+    run_test("e2e_tests/nut")?;
 
     Ok(())
 }

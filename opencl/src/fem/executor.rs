@@ -7,14 +7,14 @@ use super::{
 use crate::err;
 use anyhow::{Context, Result};
 
-pub fn run_solver(config_path: &String) -> Result<()> {
-    let config = parser::parse_config(config_path).with_context(|| "Couldn't parse config")?;
+pub fn run_solver(directory_path: &str, solver_id: &str) -> Result<()> {
+    let config = parser::parse_config(directory_path).with_context(|| "Couldn't parse config")?;
 
     let problem =
         parser::fem_problem_from_vtk(&config).with_context(|| "Couldn't load FEM problem")?;
 
     let solver = build_solver(
-        &config.solver,
+        &solver_id,
         &problem.elements,
         problem.parameters.time_step,
     )

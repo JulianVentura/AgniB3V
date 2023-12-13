@@ -1,3 +1,4 @@
+use super::constants::{MATERIALS_FILE_NAME, VIEW_FACTORS_FILE_NAME, VTK_FILE_NAME};
 use super::element::{Element, MaterialProperties, ViewFactors};
 use super::engine::FEMParameters;
 use super::orbit_manager::{OrbitManager, OrbitParameters};
@@ -39,8 +40,6 @@ pub struct ParserConfig {
     pub materials_path: String,
     pub view_factors_path: String,
     pub results_path: String,
-    pub results_name: String,
-    pub solver: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -170,10 +169,9 @@ pub fn fem_result_to_vtk(
     results: &Vec<Vector>,
     snap_time: f64,
 ) -> Result<()> {
-    let results_path = format!("{}/{}_results", config.results_path, config.results_name);
-    let results_name = format!("{}_results", config.results_name);
-
+    let results_path = &config.results_path;
     std::fs::create_dir_all(&results_path)?;
+    let results_name = "result";
     for (i, result) in results.iter().enumerate() {
         let file_path = format!("{}/{}_{}", results_path, results_name, i);
         result_to_vtk(file_path, points, elements, result)?;
@@ -412,15 +410,13 @@ fn update_initial_temperatures(
     *entry = (entry.0 + temperature, entry.1 + 1);
 }
 
-pub fn parse_config(config_path: &String) -> Result<ParserConfig> {
-    let config_reader = BufReader::new(
-        File::open(config_path)
-            .with_context(|| format!("Couldn't read config file {config_path}"))?,
-    );
-    let config_json: ParserConfig = serde_json::from_reader(config_reader)
-        .with_context(|| format!("Couldn't parse config json file {config_path}"))?;
-
-    return Ok(config_json);
+pub fn parse_config(directory_path: &str) -> Result<ParserConfig> {
+    return Ok(ParserConfig {
+        vtk_path: format!("{}/{}", directory_path, VTK_FILE_NAME),
+        materials_path: format!("{}/{}", directory_path, MATERIALS_FILE_NAME),
+        view_factors_path: format!("{}/{}", directory_path, VIEW_FACTORS_FILE_NAME),
+        results_path: format!("{}/results", directory_path),
+    });
 }
 
 const FACTOR: f64 = 1.0 / ((1 << 16) - 1) as f64;

@@ -1,6 +1,7 @@
 import FreeCAD
 import FreeCADGui
 import json
+from os import path
 
 class WorkbenchSettings:
     properties = {}
@@ -61,17 +62,18 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         # Initialize materials
         self.createAttributes("materials", {})
 
-        # List of tools for workbench initialization
+        # List of tools for workbench initialization toolbar
         workbenchInitList = [
             "THM_Select_Document",
             "THM_Initialize_Properties",
         ]
 
-        # FEM list
+        # List of tools in the FEM toolbar
         femList = [
             "THM_Create_Analysis",
-            "THM_Create_FEM_Mesh",
             "THM_Material_Editor",
+            "THM_Create_FEM_Mesh",
+            "THM_Create_FEM_Mesh_Region",
         ]
 
         # List of tools in the workbench toolbar
@@ -79,6 +81,7 @@ class ThermalWorkbench(FreeCADGui.Workbench):
             "THM_Global_Properties",
             "THM_Export_Mesh",
         ]
+
         self.appendToolbar("Document", workbenchInitList)
         self.appendToolbar("FEM", femList)
         self.appendToolbar("Thermal", thermalList)
@@ -210,9 +213,18 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         
         FreeCAD.Console.PrintMessage("Loading export and document path\n")
         # Load export and document path
-        if (propValue := getattr(workbenchSettings, "exportPath", None)) != None:
+        if (propValue := getattr(workbenchSettings, "exportPath", None)):
             self.setExportPath(propValue)
-        if (propValue := getattr(workbenchSettings, "documentPath", None)) != None:
+        else:            
+            self.setExportPath(path.dirname(FreeCAD.ActiveDocument.FileName))
+            WorkbenchSettings.addProperty("exportPath", self.exportPath)
+        if (propValue := getattr(workbenchSettings, "documentPath", None)):
             self.setDocumentPath(propValue)
+        else:
+            self.setDocumentPath(path.dirname(FreeCAD.ActiveDocument.FileName))
+            WorkbenchSettings.addProperty("documentPath", self.documentPath)
         if (propValue := getattr(workbenchSettings, "raytracePath", None)) != None:
             self.setRaytracePath(propValue)
+
+        WorkbenchSettings(workbenchSettings)
+        FreeCAD.ActiveDocument.recompute()

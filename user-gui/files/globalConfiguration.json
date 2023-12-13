@@ -1,0 +1,11 @@
+{
+    "executables": {
+        "fileManager": "xdg-open",
+        "freecad": "Freecad",
+        "gmat": "/home/guidobotta/Downloads/gmat-ubuntu-x64-R2022a/GMAT/R2022a/bin/GMAT-R2022a",
+        "paraview": "",
+        "plotter": "/home/guidobotta/dev/tpp/TrabajoProfesional/plotter/UI.py",
+        "preprocessor": "/home/guidobotta/dev/tpp/TrabajoProfesional/standalone-raytrace/main.py",
+        "solver": ""
+    }
+}

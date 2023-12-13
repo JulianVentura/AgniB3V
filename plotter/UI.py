@@ -17,6 +17,7 @@ from plotter import (
     plot_all_temperatures,
     parse_results_vtk_series,
     parse_results_xls,
+    parse_results_xml,
     plot_temperature_by_id,
     plot_average_temperature,
     plot_std_temperature,
@@ -130,6 +131,12 @@ class MainWindow(QWidget):
                     )[0]
                 elif extension == ".xlsx":
                     self.results = parse_results_xls(
+                        os.path.dirname(file_name),
+                        os.path.basename(file_name),
+                        self.progress,
+                    )[0]
+                elif extension == ".xml":
+                    self.results = parse_results_xml(
                         os.path.dirname(file_name),
                         os.path.basename(file_name),
                         self.progress,

@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
-use opencl::fem::executor::run_solver;
 use serde::Deserialize;
+use solver::fem::executor::run_solver;
 use std::{fs::remove_dir_all, fs::File, io::BufReader};
 use vtkio::{
     model::{Attribute, DataSet, Piece},
@@ -77,9 +77,10 @@ fn compare_results(results_path: &str, actual_results_path: &str) -> Result<()> 
     let result_file_path = format!("{}/result.vtk.series", results_path);
     let actual_result_file_path = format!("{}/result.vtk.series", actual_results_path);
 
-    let result_file_json = parse_json(&result_file_path).with_context(|| "Couldn't parse results json file")?;
-    let actual_result_file_json =
-        parse_json(&actual_result_file_path).with_context(|| "Couldn't parse actual results json file")?;
+    let result_file_json =
+        parse_json(&result_file_path).with_context(|| "Couldn't parse results json file")?;
+    let actual_result_file_json = parse_json(&actual_result_file_path)
+        .with_context(|| "Couldn't parse actual results json file")?;
 
     assert!(
         actual_result_file_json.files.len() == result_file_json.files.len(),
@@ -93,7 +94,10 @@ fn compare_results(results_path: &str, actual_results_path: &str) -> Result<()> 
             0.01,
         );
         compare_vtk(
-            &format!("{}/{}", actual_results_path, actual_result_file_json.files[i].name),
+            &format!(
+                "{}/{}",
+                actual_results_path, actual_result_file_json.files[i].name
+            ),
             &format!("{}/{}", results_path, result_file_json.files[i].name),
         )?;
     }

@@ -1,5 +1,5 @@
 use anyhow::Result;
-use opencl::fem;
+use solver::fem;
 use std::env;
 
 use log::error;

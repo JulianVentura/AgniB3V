@@ -395,12 +395,12 @@ plotter/cilinder_vtk_results
 plotter/vtk_cilinder_results_cond
 standalone-raytrace/*.json
 standalone-raytrace/*.vtk
-opencl/Unit_tests
-opencl/e2e_tests
+solver/Unit_tests
+solver/e2e_tests
 standalone-raytrace/EclipseLocator1.txt
 standalone-raytrace/ReportFile1.txt
-opencl/timing.txt
-opencl/Sonia/*
-opencl/e2e_tests
+solver/timing.txt
+solver/Sonia/*
+solver/e2e_tests
 standalone-raytrace/files/*
 benchmarks/*/

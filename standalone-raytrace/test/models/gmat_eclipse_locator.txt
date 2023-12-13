@@ -1,0 +1,12 @@
+Spacecraft: Sat
+
+Start Time (UTC)            Stop Time (UTC)               Duration (s)    Occ Body        Type        Event Number  Total Duration (s)
+01 Jan 2000 00:10:08.793    01 Jan 2000 00:44:12.132      2043.3386981    Earth           Umbra       1             2043.3386981
+01 Jan 2000 01:47:02.739    01 Jan 2000 02:21:06.110      2043.3711571    Earth           Umbra       2             2043.3711571
+
+Number of individual events : 2
+Number of total events      : 2
+Maximum duration (s)        :   2043.3711571
+Maximum duration at the 2nd eclipse.
+
+

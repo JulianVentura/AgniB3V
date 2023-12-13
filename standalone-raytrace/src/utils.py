@@ -1,7 +1,7 @@
 import numpy as np
 import sys
 
-RAND_VECTOR_CENTER = np.array([0.5, 0.5, 0.5])
+
 
 
 def normalize(v):
@@ -12,8 +12,7 @@ def normalize(v):
 def proportionalize(v):
     p = sum(v)
     return v / p
-
-
+    
 def element_amount(elements):
     return elements.size // 9
 
@@ -39,6 +38,9 @@ def is_point_in_element(element, point):
     )
 
 
+def array_dot(vector_array, vector):
+    return vector_array @ (vector)[:,np.newaxis]
+
 def generate_random_points_in_element(element, amount):
     random_weights = np.random.rand(amount, 3)
     random_weights /= np.sum(random_weights, axis=1).reshape(-1, 1)
@@ -46,8 +48,8 @@ def generate_random_points_in_element(element, amount):
 
 
 def generate_random_unit_vectors(amount):
-    random_vectors = np.random.rand(amount, 3) - RAND_VECTOR_CENTER
-    return random_vectors / np.linalg.norm(random_vectors)
+    random_vectors = np.random.normal(0, 1, (amount, 3))
+    return random_vectors / np.linalg.norm(random_vectors, axis=1)[:, np.newaxis]
 
 
 # TODO: If vector is ortogonal to normal it will be multiplied by zero

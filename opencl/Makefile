@@ -1,5 +1,6 @@
-config_path ?= models/config.json
+directory ?= models
+method ?= Implicit
 
 build:
 	cargo build --release
-	./target/release/opencl $(config_path)
+	./target/release/opencl $(directory) $(method)

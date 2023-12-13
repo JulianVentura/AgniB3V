@@ -55,6 +55,9 @@ EARTH_MU = 398600.4415
 
 
 class Position:
+    """
+    Represents a position in 3D space.
+    """
     def __init__(self, x: float, y: float, z: float):
         self.x = x
         self.y = y
@@ -62,6 +65,9 @@ class Position:
 
 
 class GMATParameters:
+    """
+    Represents the parameters of a GMAT simulation.
+    """
     def __init__(
         self,
         beta_angle: float,
@@ -82,11 +88,19 @@ class GMATParameters:
 
 
 def split_line(line: str) -> list[str]:
+    """
+    Receives a line (string) and returns a list of the parameters
+    separated by two spaces.
+    """
     filtered_line = filter(lambda x: len(x) > 0, line.split("  "))
     return list(map(lambda x: x.strip(), filtered_line))
 
 
 def translate_parameters(params: list[str]) -> list[str]:
+    """
+    Receives a list of parameters and returns a list of the same parameters
+    translated to the internal names.
+    """
     sat = ""
     for param in params:
         if param.endswith("EarthMJ2000Eq.X") and not param.startswith("Sun"):
@@ -123,75 +137,85 @@ def calculate_eclipse_start_and_finish(data, start_epoch, period, idx_from_param
 
 
 def parse_report_file(report_filename):
-    file = open(report_filename, "r")
+    """
+    Receives a report file and returns a dictionary with the parameters
+    """
+    with open(report_filename, "r") as file:
+        lines = list()
 
-    lines = list()
+        for line in file.readlines():
+            lines.append(line)
 
-    for line in file.readlines():
-        lines.append(line)
+        header = translate_parameters(split_line(lines[0]))
 
-    header = translate_parameters(split_line(lines[0]))
+        idx_from_param = {}
 
-    idx_from_param = {}
+        for idx, p in enumerate(header):
+            if p in INTERNAL_PARAMETERS:
+                idx_from_param[p] = idx
 
-    for idx, p in enumerate(header):
-        if p in INTERNAL_PARAMETERS:
-            idx_from_param[p] = idx
+        parameters: dict[str, Any] = {p: list() for p in idx_from_param.keys()}
 
-    parameters: dict[str, Any] = {p: list() for p in idx_from_param.keys()}
+        for line in lines[1::]:
+            values = split_line(line)
+            for p in INTERNAL_PARAMETERS:
+                parameters[p].append(values[idx_from_param[p]])
 
-    for line in lines[1::]:
-        values = split_line(line)
-        for p in INTERNAL_PARAMETERS:
-            parameters[p].append(values[idx_from_param[p]])
+        for p in INTERNAL_CONSTANT_PARAMETERS:
+            parameters[p] = parameters[p][0]
 
-    for p in INTERNAL_CONSTANT_PARAMETERS:
-        parameters[p] = parameters[p][0]
-
-    file.close()
-
-    return parameters
+        return parameters
 
 
 def parse_eclipse_locator(eclipse_locator_filename, parameters):
-    file = open(eclipse_locator_filename, "r")
+    """
+    Receives an eclipse locator file and a dictionary with the parameters
+    and returns a tuple with the eclipse start and finish times.
+    """
+    with open(eclipse_locator_filename, "r") as file:
+        start_epoch: float = parameters["UTC"]
+        sma: float = parameters["SMA"]
 
-    start_epoch: float = parameters["UTC"]
-    sma: float = parameters["SMA"]
+        period = 2 * math.pi * math.sqrt(float(sma) ** 3 / EARTH_MU)
 
-    period = 2 * math.pi * math.sqrt(float(sma) ** 3 / EARTH_MU)
-
-    line = ""
-    while not line.startswith("Start Time"):
         line = file.readline()
-    header = split_line(line)
-    idx_from_param = {}
+        while line and not line.startswith("Start Time"):
+            line = file.readline()
+        
+        # Return negative values if no eclipse
+        if not line:
+            return (-1, -1), period
 
-    for idx, p in enumerate(header):
-        if p in GMAT_ECLIPSE_NAMES:
-            idx_from_param[p] = idx
+        header = split_line(line)
+        idx_from_param = {}
 
-    # Find the Event Number 2 of type Umbra
-    type_id = idx_from_param["Type"]
-    event_number_id = idx_from_param["Event Number"]
+        for idx, p in enumerate(header):
+            if p in GMAT_ECLIPSE_NAMES:
+                idx_from_param[p] = idx
 
-    eclipse_start_and_finish: tuple[float, float] = ()
-    for line in file.readlines():
-        if len(line) <= 1 or line.startswith("Number of"):
-            break
-        data = split_line(line)
-        if data[type_id] == "Umbra" and data[event_number_id] == "2":
-            eclipse_start_and_finish = calculate_eclipse_start_and_finish(
-                data, start_epoch, period, idx_from_param
-            )
-            break
+        # Find the Event Number 2 of type Umbra
+        type_id = idx_from_param["Type"]
+        event_number_id = idx_from_param["Event Number"]
 
-    file.close()
+        eclipse_start_and_finish: tuple[float, float] = ()
+        for line in file.readlines():
+            if len(line) <= 1 or line.startswith("Number of"):
+                break
+            data = split_line(line)
+            if data[type_id] == "Umbra" and data[event_number_id] == "2":
+                eclipse_start_and_finish = calculate_eclipse_start_and_finish(
+                    data, start_epoch, period, idx_from_param
+                )
+                break
 
-    return eclipse_start_and_finish, period
+        return eclipse_start_and_finish, period
 
 
 def parse_gmat(report_filename, eclipse_filename) -> GMATParameters:
+    """
+    Receives a report file and an eclipse locator file and returns a
+    GMATParameters object.
+    """
     parameters = parse_report_file(report_filename)
 
     eclipse_start_and_finish, period = parse_eclipse_locator(

@@ -4,8 +4,9 @@ from PySide2.QtWidgets import *
 import subprocess
 import os
 from utils.appState import AppState
-from utils.constants import ROUTES
+from utils.constants import ROUTES, RESULTS_SERIES, DOCUMENTATION_URL
 from utils.getFileWithExtension import getFileWithExtension
+from public.paths import iconPath
 
 class ProjectWidget(QWidget):
     def __init__(self, parent=None):
@@ -50,26 +51,30 @@ class ProjectWidget(QWidget):
 
         rightButtonsLayout = QHBoxLayout()
 
-        configButton = QPushButton()
-        configButton.setText(QCoreApplication.translate("Dialog", u"\u2699", None))
-        configButton.setFixedSize(30, 30)
-        configButton.clicked.connect(self.configureProject)
+        settingsButton = QPushButton()
+        pixmap = QPixmap(iconPath("settings.svg"))
+        icon = QIcon(pixmap)
+        settingsButton.setIcon(icon)
+        settingsButton.setFixedSize(30, 30)
+        settingsButton.clicked.connect(self.configureProject)
 
         documentationButton = QPushButton()
-        icon = self.style().standardIcon(getattr(QStyle, "SP_FileDialogDetailedView"))
+        pixmap = QPixmap(iconPath("documentation.svg"))
+        icon = QIcon(pixmap)
         documentationButton.setIcon(icon)
         documentationButton.setFixedSize(30, 30)
         documentationButton.clicked.connect(self.openDocumentation)
 
         directoryButton = QPushButton()
-        icon = self.style().standardIcon(getattr(QStyle, "SP_DirIcon"))
+        pixmap = QPixmap(iconPath("directory.svg"))
+        icon = QIcon(pixmap)
         directoryButton.setIcon(icon)
         directoryButton.setFixedSize(30, 30)
         directoryButton.clicked.connect(self.openProjectDirectory)
 
         rightButtonsLayout.addWidget(directoryButton)
         rightButtonsLayout.addWidget(documentationButton)
-        rightButtonsLayout.addWidget(configButton)
+        rightButtonsLayout.addWidget(settingsButton)
         headerButtonsLayout.addWidget(goBackButton, alignment=Qt.AlignLeft)
         headerButtonsLayout.addLayout(rightButtonsLayout, alignment=Qt.AlignRight)
         return headerButtonsLayout
@@ -117,8 +122,8 @@ class ProjectWidget(QWidget):
         visualizeMaterialButton.clicked.connect(self.visualizeMaterials)
 
         verticalLayout.addWidget(modelSectionLabel)
-        horizontalLayout.addWidget(freecadButton)
         horizontalLayout.addWidget(gmatButton)
+        horizontalLayout.addWidget(freecadButton)
         horizontalLayout.addWidget(visualizeMaterialButton)
         verticalLayout.addLayout(horizontalLayout)
         return verticalLayout
@@ -178,10 +183,12 @@ class ProjectWidget(QWidget):
         """
         Opens FreeCAD application.
         """
-        print("Opening FreeCAD")
         freecadFile = getFileWithExtension(".FCStd", self.appState.projectDirectory)
-        print(freecadFile)
-        subprocess.Popen(["Freecad", freecadFile])
+        cmd = [
+            self.appState.globalConfiguration.getExecutable("freecad"),
+            freecadFile,
+        ]
+        subprocess.Popen(cmd)
 
     def openGMAT(self):
         """
@@ -223,7 +230,12 @@ class ProjectWidget(QWidget):
         """
         Runs solver simulation.
         """
-        pass
+        cmd = [
+            self.appState.globalConfiguration.getExecutable("solver"),
+            self.appState.projectDirectory,
+            self.appState.globalConfiguration.getSolverConfiguration("mode"),
+        ]
+        subprocess.Popen(cmd)
 
     def calculateViewFactorsAndRunSimulation(self):
         """
@@ -237,6 +249,8 @@ class ProjectWidget(QWidget):
         """
         cmd = [
             self.appState.globalConfiguration.getExecutable("paraview"),
+            "--data",
+            os.path.join(self.appState.projectDirectory, RESULTS_SERIES),
         ]
         subprocess.Popen(cmd)
 
@@ -278,4 +292,4 @@ class ProjectWidget(QWidget):
         """
         Opens the documentation in the browser.
         """
-        QDesktopServices.openUrl(QUrl("https://thermalb3v.github.io/", QUrl.TolerantMode))
+        QDesktopServices.openUrl(QUrl(DOCUMENTATION_URL, QUrl.TolerantMode))

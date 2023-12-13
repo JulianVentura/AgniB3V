@@ -1,17 +1,16 @@
 use super::solver;
 use super::structures::{Matrix, Vector, LU};
 use super::{element::Element, point::Point};
-use anyhow::Result;
+use anyhow::{Context, Result};
 
 pub struct ExplicitSolver {
     pub m_lu: LU,
     pub k: Matrix,
     pub h: Matrix,
     f_const: Vec<Vector>,
-    f_const_eclipse: Vec<Vector>,
     f_index: usize,
-    in_eclipse: bool,
     temp: Vector,
+    t_4: Vector,
     points: Vec<Point>,
     time_step: f64,
 }
@@ -26,7 +25,7 @@ pub struct FEMProblem {
 }
 
 impl ExplicitSolver {
-    pub fn new(elements: &Vec<Element>, time_step: f64) -> Self {
+    pub fn new(elements: &Vec<Element>, time_step: f64) -> Result<Self> {
         let n_points = solver::calculate_number_of_points(elements);
         println!("Constructing global M matrix");
         let m = solver::construct_global_matrix(elements, n_points, |e: &Element| &e.m);
@@ -37,10 +36,7 @@ impl ExplicitSolver {
         println!("Constructing global L matrix");
         let l = solver::construct_l_matrix(elements, n_points);
         println!("Constructing global flux vector");
-        let f_const = solver::construct_global_vector_f_const_multiple_earth(elements, n_points);
-        println!("Constructing global flux vector eclipse");
-        let f_const_eclipse =
-            solver::construct_global_vector_f_const_eclipse_multiple_earth(elements, n_points);
+        let f_const = solver::construct_global_vector_f_const_array(elements, n_points);
         println!("Constructing points array");
         let points = solver::construct_points_array(elements, n_points);
         let temp = Vector::from_vec(points.iter().map(|p| p.temperature).collect::<Vec<f64>>());
@@ -50,18 +46,17 @@ impl ExplicitSolver {
         let m_lu = m.lu();
         println!("Explicit Solver built successfully");
 
-        ExplicitSolver {
+        Ok(ExplicitSolver {
             m_lu,
             k,
             h,
             f_const,
-            f_const_eclipse,
             time_step,
             f_index: 0,
-            in_eclipse: false,
+            t_4: temp.clone(),
             temp,
             points,
-        }
+        })
     }
 
     pub fn temperature(&mut self) -> Result<&Vector> {
@@ -72,27 +67,31 @@ impl ExplicitSolver {
         &self.points
     }
 
-    pub fn update_f(&mut self, f_index: usize, in_eclipse: bool) -> Result<()> {
+    pub fn update_f(&mut self, f_index: usize) -> Result<()> {
         self.f_index = f_index;
-        self.in_eclipse = in_eclipse;
 
         Ok(())
     }
 
     pub fn step(&mut self) -> Result<()> {
-        let mut t_4 = self.temp.clone();
-        solver::fourth_power(&mut t_4);
+        solver::fourth_power(&self.temp, &mut self.t_4);
 
-        let mut f = &self.h * &t_4;
-        if self.in_eclipse {
-            f += &self.f_const_eclipse[self.f_index];
-        } else {
-            f += &self.f_const[self.f_index];
-        }
+        let f = &self.h * &self.t_4 + &self.f_const[self.f_index];
         let b = f - &self.k * &self.temp;
-        let x = &self.m_lu.solve(&b).expect("Oh no...");
+        let x = &self
+            .m_lu
+            .solve(&b)
+            .with_context(|| "Couldn't solve linear system")?;
 
         self.temp = self.time_step * x + &self.temp;
+
+        Ok(())
+    }
+
+    pub fn run_for(&mut self, steps: usize) -> Result<()> {
+        for _ in 0..steps {
+            self.step()?;
+        }
 
         Ok(())
     }

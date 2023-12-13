@@ -1,9 +1,10 @@
 use anyhow::Result;
-use opencl::fem::{
+use solver::fem::{
     element::Element,
     engine::Solver,
-    engine::{FEMEngine, FEMOrbitParameters, FEMParameters},
+    engine::{FEMEngine, FEMParameters},
     explicit_solver::ExplicitSolver,
+    orbit_manager::{OrbitManager, OrbitParameters},
     point::Point,
     structures::Vector,
 };
@@ -52,29 +53,30 @@ pub fn test_rotations_and_deformations() -> Result<()> {
 }
 
 fn create_example(p1: Point, p2: Point, p3: Point, p4: Point) -> Result<Vec<Vector>> {
-    let e1 = Element::basic(p1.clone(), p2.clone(), p3.clone(), 0.0, 2);
-    let e2 = Element::basic(p1.clone(), p3.clone(), p4.clone(), 0.0, 2);
+    let e1 = Element::basic(p1.clone(), p2.clone(), p3.clone(), 0.0, 2)?;
+    let e2 = Element::basic(p1.clone(), p3.clone(), p4.clone(), 0.0, 2)?;
 
     let time_step = 1.0;
     let snapshot_period = 1.0;
     let simulation_time = 20.0;
 
-    let solver = Solver::Explicit(ExplicitSolver::new(&vec![e1, e2], time_step));
+    let solver = Solver::Explicit(ExplicitSolver::new(&vec![e1, e2], time_step)?);
+    let orbit_parameters = OrbitParameters {
+        orbit_period: 100.0,
+        orbit_divisions: vec![0.0],
+        eclipse_start: 10.0,
+        eclipse_end: 10.0,
+    };
+    let manager = OrbitManager::new(&orbit_parameters);
     let mut engine = FEMEngine::new(
         FEMParameters {
             simulation_time,
             time_step,
             snapshot_period,
-            orbit: FEMOrbitParameters {
-                betha: 0.1,
-                orbit_period: 100.0,
-                orbit_divisions: vec![0.0],
-                eclipse_start: 10.0,
-                eclipse_end: 10.0,
-            },
         },
+        manager,
         solver,
-    );
+    )?;
 
     Ok(engine.run()?)
 }

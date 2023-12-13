@@ -1,10 +1,8 @@
-#![allow(unused_imports)] //TODO: Remove
-#![allow(dead_code)]
 extern crate ocl;
 
-use ocl::{flags, Buffer, Context, Device, Kernel, Platform, Program, Queue};
+use ocl::{Context, Device, Platform, Program, Queue};
 
-use anyhow::Result;
+use anyhow::{Context as Ctx, Result};
 
 pub struct OpenCL {
     pub platform: ocl::Platform,
@@ -17,16 +15,20 @@ pub struct OpenCL {
 impl OpenCL {
     pub fn new(src: &str) -> Result<OpenCL> {
         let platform = Platform::default();
-        let device = Device::first(platform)?;
+        let device = Device::first(platform).with_context(|| "Couldn't open opencl device")?;
         let context = Context::builder()
             .platform(platform)
             .devices(device.clone())
-            .build()?;
+            .build()
+            .with_context(|| "Couldn't create opencl context")?;
         let program = Program::builder()
             .devices(device)
             .src(src)
-            .build(&context)?;
-        let queue = Queue::new(&context, device, None)?;
+            .build(&context)
+            .with_context(|| "Couldn't create opencl program")?;
+
+        let queue =
+            Queue::new(&context, device, None).with_context(|| "Couldn't create opencl queue")?;
 
         Ok(OpenCL {
             platform,

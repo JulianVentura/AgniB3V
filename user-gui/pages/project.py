@@ -4,7 +4,7 @@ from PySide2.QtWidgets import *
 import subprocess
 import os
 from utils.appState import AppState
-from utils.constants import ROUTES
+from utils.constants import ROUTES, RESULTS_SERIES, DOCUMENTATION_URL
 from utils.getFileWithExtension import getFileWithExtension
 from public.paths import iconPath
 
@@ -122,8 +122,8 @@ class ProjectWidget(QWidget):
         visualizeMaterialButton.clicked.connect(self.visualizeMaterials)
 
         verticalLayout.addWidget(modelSectionLabel)
-        horizontalLayout.addWidget(freecadButton)
         horizontalLayout.addWidget(gmatButton)
+        horizontalLayout.addWidget(freecadButton)
         horizontalLayout.addWidget(visualizeMaterialButton)
         verticalLayout.addLayout(horizontalLayout)
         return verticalLayout
@@ -249,6 +249,8 @@ class ProjectWidget(QWidget):
         """
         cmd = [
             self.appState.globalConfiguration.getExecutable("paraview"),
+            "--data",
+            os.path.join(self.appState.projectDirectory, RESULTS_SERIES),
         ]
         subprocess.Popen(cmd)
 
@@ -290,4 +292,4 @@ class ProjectWidget(QWidget):
         """
         Opens the documentation in the browser.
         """
-        QDesktopServices.openUrl(QUrl("https://thermalb3v.github.io/", QUrl.TolerantMode))
+        QDesktopServices.openUrl(QUrl(DOCUMENTATION_URL, QUrl.TolerantMode))

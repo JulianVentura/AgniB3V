@@ -28,7 +28,7 @@ class CmdCreateFEMMeshRegion:
         return {
             'MenuText': ("Create FEM Mesh"),
             'ToolTip': ("Create FEM Mesh"),
-            'Pixmap': iconPath("FemMesh.svg"),
+            'Pixmap': iconPath("FemRegion.svg"),
         }
     
     def getAnalysisObject(self, document):

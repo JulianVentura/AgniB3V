@@ -11,18 +11,25 @@ def setUpNewProject(directory: str) -> bool:
     except:
         return False
     
-    # # Create project subdirectories
-    # subdirectories = ["data", "models", "notebooks", "reports"]
-    # for subdirectory in subdirectories:
-    #     try:
-    #         os.mkdir(os.path.join(directory, subdirectory))
-    #     except:
-    #         return False
-    
     # Copy templates
     templatesDirectory = os.path.join(os.path.dirname(__file__), "../templates")
     templates = ["gmat.script", "thermal.FCStd"]
     for template in templates:
         shutil.copyfile(os.path.join(templatesDirectory, template), os.path.join(directory, template))
+
+    # Replace paths in gmat.script
+    with open(os.path.join(directory, "gmat.script"), "r") as f:
+        script = f.read()
+        script = script.replace(
+            "Create EclipseLocator EclipseLocator;\n",
+            f"Create EclipseLocator EclipseLocator;\nGMAT EclipseLocator.Filename = {directory}/EclipseLocator.txt;\n",
+        )
+        script = script.replace(
+            "Create ReportFile ReportFile;\n",
+            f"Create ReportFile ReportFile;\nGMAT ReportFile.Filename = {directory}/ReportFile.txt;\n",
+        )
+        
+    with open(os.path.join(directory, "gmat.script"), "w") as f:
+        f.write(script)
     
     return True

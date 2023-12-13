@@ -2,8 +2,8 @@
     "executables": {
         "fileManager": "xdg-open",
         "freecad": "Freecad",
-        "gmat": "/home/guidobotta/Downloads/gmat-ubuntu-x64-R2022a/GMAT/R2022a/bin/GMAT-R2022a",
-        "paraview": "",
+        "gmat": "/home/guidobotta/Downloads/gmat-ubuntu-x64-R2022a/GMAT/R2022a/bin/GMAT_Beta",
+        "paraview": "/home/guidobotta/Downloads/ParaView-5.12.0-RC1-MPI-Linux-Python3.10-x86_64/bin/paraview",
         "plotter": "/home/guidobotta/dev/tpp/TrabajoProfesional/plotter/UI.py",
         "preprocessor": "/home/guidobotta/dev/tpp/TrabajoProfesional/standalone-raytrace/main.py",
         "solver": "/home/guidobotta/dev/tpp/TrabajoProfesional/opencl/target/release/opencl"

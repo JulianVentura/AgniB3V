@@ -1,5 +1,5 @@
 use anyhow::Result;
-use opencl::fem::{
+use solver::fem::{
     element::Element,
     engine::Solver,
     engine::{FEMEngine, FEMParameters},

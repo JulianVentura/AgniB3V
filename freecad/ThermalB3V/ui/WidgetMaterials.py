@@ -64,26 +64,27 @@ class WidgetMaterials(QWidget):
 
         # Show properties according to the material
         for prop in MATERIAL_PROPERTIES:
-            self.addProperty(materialObj , prop)
+            self.addProperty(materialObj, prop, MATERIAL_PROPERTIES[prop])
 
-    def addProperty(self, materialObj, prop):
+    def addProperty(self, materialObj, propName, propDict):
         """
         Add a new property to the list
         """
         def setMaterialProperty(value):
             mat = materialObj.Material
-            mat[prop] = str(value)
+            mat[propName] = str(value)
             materialObj.Material = mat
 
-        qtLabel = QLabel(str(prop), self)
+        # label and unit
+        qtLabel = QLabel(propDict["label"] + (f" ({propDict['unit']})" if propDict["unit"] else ""), self)
         qtInput = QDoubleSpinBox(self)
         # TODO: configurable?
         qtInput.setDecimals(5)
         qtInput.setMaximum(999999999)
-        if prop in materialObj.Material:
-            qtInput.setValue(float(materialObj.Material[prop]))
+        if propName in materialObj.Material:
+            qtInput.setValue(float(materialObj.Material[propName]))
         else:
-            qtInput.setValue(0)
+            qtInput.setValue(float(propDict["value"]))
             
         qtInput.valueChanged.connect(setMaterialProperty)
         self.propertiesLayout.addRow(qtLabel, qtInput)
@@ -118,7 +119,7 @@ class WidgetMaterials(QWidget):
             mat = materialObject.Material
             # Initialize properties
             for prop in MATERIAL_PROPERTIES:
-                mat[prop] = "0"
+                mat[prop] = str(MATERIAL_PROPERTIES[prop]["value"])
             
             # Add needed properties
             self.addFreecadNeededProperties(mat)

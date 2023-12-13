@@ -12,7 +12,13 @@ class GlobalConfiguration():
         """
         return self.config["executables"][executableName]
 
-    def updateConfig(self, config):
+    def getSolverConfiguration(self, config: str) -> str:
+        """
+        Receives a solver config name and returns the solver configuration.
+        """
+        return self.config["solver"][config]
+    
+    def updateConfig(self, config: dict):
         """
         Receives a config and updates the global configuration file.
         """

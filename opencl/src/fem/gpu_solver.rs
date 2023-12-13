@@ -75,7 +75,7 @@ impl GPUSolver {
             .with_context(|| "Couldn't inverse matrix A")?;
 
         //TODO: Modify this path to eliminate cwd dependency
-        let mut program = Self::start_opencl_program("./src/gpu/matrix_mult.cl")
+        let mut program = Self::start_opencl_program("./src/opencl_kernels/matrix_mult.cl")
             .with_context(|| "Couldn't start opencl program")?;
         let buffers =
             Self::start_opencl_buffers(&mut program, &temp, &h, &f_const[0], &d, &a_inverse)
@@ -94,10 +94,6 @@ impl GPUSolver {
             kernels,
         })
     }
-
-    //TODO: Optimization:
-    //Here we are writing on buffers on every step iteration
-    //we instead could be just writing when the f constant changes
 
     pub fn step(&mut self) -> Result<()> {
         unsafe {

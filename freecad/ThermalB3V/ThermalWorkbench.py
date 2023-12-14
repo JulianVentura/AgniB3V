@@ -71,9 +71,9 @@ class ThermalWorkbench(FreeCADGui.Workbench):
         femList = [
             "THM_Create_Analysis",
             "THM_Material_Editor",
+            "THM_Condition_Editor",
             "THM_Create_FEM_Mesh",
             "THM_Create_FEM_Mesh_Region",
-            "THM_Condition_Editor",
         ]
 
         # List of tools in the workbench toolbar

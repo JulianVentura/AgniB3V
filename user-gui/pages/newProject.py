@@ -5,6 +5,7 @@ import os
 from utils.appState import AppState
 from utils.setUpNewProject import setUpNewProject
 from utils.constants import ROUTES
+from public.paths import iconPath
 
 class NewProjectWidget(QWidget):
     def __init__(self, parent=None):
@@ -42,19 +43,22 @@ class NewProjectWidget(QWidget):
         goBackButton.setFixedSize(30, 30)
         goBackButton.clicked.connect(self.goToLanding)
         
-        configButton = QPushButton()
-        configButton.setText(QCoreApplication.translate("Dialog", u"\u2699", None))
-        configButton.setFixedSize(30, 30)
-        configButton.clicked.connect(self.configureProject)
+        settingsButton = QPushButton()
+        pixmap = QPixmap(iconPath("settings.svg"))
+        icon = QIcon(pixmap)
+        settingsButton.setIcon(icon)
+        settingsButton.setFixedSize(30, 30)
+        settingsButton.clicked.connect(self.configureProject)
 
         documentationButton = QPushButton()
-        icon = self.style().standardIcon(getattr(QStyle, "SP_FileDialogDetailedView"))
+        pixmap = QPixmap(iconPath("documentation.svg"))
+        icon = QIcon(pixmap)
         documentationButton.setIcon(icon)
         documentationButton.setFixedSize(30, 30)
         documentationButton.clicked.connect(self.openDocumentation)
 
         rightButtonsLayout.addWidget(documentationButton)
-        rightButtonsLayout.addWidget(configButton)
+        rightButtonsLayout.addWidget(settingsButton)
         headerButtonsLayout.addWidget(goBackButton, alignment=Qt.AlignLeft)
         headerButtonsLayout.addLayout(rightButtonsLayout, alignment=Qt.AlignRight)
         return headerButtonsLayout

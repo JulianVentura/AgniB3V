@@ -162,26 +162,31 @@ fn result_to_vtk(
     Ok(())
 }
 
-pub fn fem_result_to_vtk(
+pub fn write_partial_vtk_result(
     config: &ParserConfig,
     points: &Vec<Point>,
     elements: &Vec<Element>,
-    results: &Vec<Vector>,
-    snap_time: f64,
+    result: Vector,
+    id: usize,
 ) -> Result<()> {
     let results_path = &config.results_path;
+    let file_path = format!("{results_path}/result_{id}");
+
     std::fs::create_dir_all(&results_path)?;
-    let results_name = "result";
-    for (i, result) in results.iter().enumerate() {
-        let file_path = format!("{}/{}_{}", results_path, results_name, i);
-        result_to_vtk(file_path, points, elements, result)?;
-    }
+    result_to_vtk(file_path, points, elements, &result)?;
+
+    Ok(())
+}
+
+pub fn write_vtk_series(config: &ParserConfig, size: usize, snapshot_period: f64) -> Result<()> {
+    let results_path = &config.results_path;
+
     let mut files_data: Vec<VTKSeriesContent> = Vec::new();
-    for (i, _) in results.iter().enumerate() {
-        let file_name = format!("{}_{}.vtk", results_name, i);
+    for i in 0..size {
+        let file_name = format!("result_{i}.vtk");
         files_data.push(VTKSeriesContent {
             name: file_name,
-            time: snap_time * i as f64,
+            time: snapshot_period * i as f64,
         });
     }
     let data = VTKSeries {
@@ -189,7 +194,7 @@ pub fn fem_result_to_vtk(
         files: files_data,
     };
 
-    let vtk_series_path = format!("{}/{}.vtk.series", results_path, results_name);
+    let vtk_series_path = format!("{results_path}/result.vtk.series");
     let file = File::create(vtk_series_path)?;
     serde_json::to_writer(file, &data)?;
 
@@ -302,6 +307,7 @@ pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
         eclipse_start: global_properties.eclipse_start,
         eclipse_end: global_properties.eclipse_end,
     };
+
     let orbit_manager = OrbitManager::new(&orbit_parameters);
     let orbit_divisions = orbit_manager.eclipse_divisions();
     for (parser_element_id, parser_element) in parser_elements.iter().enumerate() {

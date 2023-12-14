@@ -1,6 +1,7 @@
 use super::element::Element;
 use super::engine::{FEMEngine, Solver};
 use super::parser;
+use super::results_writer::ResultsWriterWorker;
 use super::{
     explicit_solver::ExplicitSolver, gpu_solver::GPUSolver, implicit_solver::ImplicitSolver,
 };
@@ -13,12 +14,8 @@ pub fn run_solver(directory_path: &str, solver_id: &str) -> Result<()> {
     let problem =
         parser::fem_problem_from_vtk(&config).with_context(|| "Couldn't load FEM problem")?;
 
-    let solver = build_solver(
-        &solver_id,
-        &problem.elements,
-        problem.parameters.time_step,
-    )
-    .with_context(|| "Couldn't initialize FEM solver")?;
+    let solver = build_solver(&solver_id, &problem.elements, problem.parameters.time_step)
+        .with_context(|| "Couldn't initialize FEM solver")?;
 
     let points = match &solver {
         Solver::Explicit(s) => s.points().clone(),
@@ -28,20 +25,19 @@ pub fn run_solver(directory_path: &str, solver_id: &str) -> Result<()> {
 
     let snapshot_period = problem.parameters.snapshot_period;
 
-    let mut engine = FEMEngine::new(problem.parameters, problem.orbit_manager, solver)
-        .with_context(|| "Couldn't start a FEM Engine")?;
+    let mut writer = ResultsWriterWorker::new(config, points, problem.elements, snapshot_period);
 
-    let temp_results = engine
-        .run()
-        .with_context(|| "Couldn't run the FEM Engine")?;
+    FEMEngine::new(
+        problem.parameters,
+        problem.orbit_manager,
+        &mut writer,
+        solver,
+    )
+    .with_context(|| "Couldn't start a FEM Engine")?
+    .run()
+    .with_context(|| "Couldn't run the FEM Engine")?;
 
-    parser::fem_result_to_vtk(
-        &config,
-        &points,
-        &problem.elements,
-        &temp_results,
-        snapshot_period,
-    )?;
+    writer.finish()?;
 
     Ok(())
 }

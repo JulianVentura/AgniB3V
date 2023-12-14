@@ -2,7 +2,7 @@ use crate::err;
 use anyhow::Result;
 
 use super::orbit_manager::OrbitManager;
-use super::structures::Vector;
+use super::results_writer::ResultsWriterWorker;
 use super::{
     explicit_solver::ExplicitSolver, gpu_solver::GPUSolver, implicit_solver::ImplicitSolver,
 };
@@ -15,13 +15,13 @@ pub enum Solver {
     GPU(GPUSolver),
 }
 
-pub struct FEMEngine {
+pub struct FEMEngine<'a> {
     simulation_steps: usize,
     time_step: f64,
     snapshot_steps: usize,
     solver: Solver,
     orbit_manager: OrbitManager,
-    results: Vec<Vector>,
+    writer: &'a mut ResultsWriterWorker,
     f_index: usize,
 }
 
@@ -33,8 +33,13 @@ pub struct FEMParameters {
     pub snapshot_period: f64,
 }
 
-impl FEMEngine {
-    pub fn new(params: FEMParameters, orbit_manager: OrbitManager, solver: Solver) -> Result<Self> {
+impl<'a> FEMEngine<'a> {
+    pub fn new(
+        params: FEMParameters,
+        orbit_manager: OrbitManager,
+        writer: &'a mut ResultsWriterWorker,
+        solver: Solver,
+    ) -> Result<Self> {
         if params.time_step > params.snapshot_period {
             err!("Snapshot period cannot be smaller than time step");
         }
@@ -46,23 +51,18 @@ impl FEMEngine {
         let simulation_steps = (params.simulation_time / params.time_step) as usize;
         let snapshot_steps = (params.snapshot_period / params.time_step) as usize;
 
-        let result_size = (simulation_steps / snapshot_steps) as usize;
-
-        let mut results = Vec::default();
-        results.reserve(result_size);
-
         Ok(FEMEngine {
             simulation_steps,
             time_step: params.time_step,
             snapshot_steps,
             orbit_manager,
+            writer,
             solver,
-            results,
             f_index: 0,
         })
     }
 
-    pub fn run(&mut self) -> Result<Vec<Vector>> {
+    pub fn run(&mut self) -> Result<()> {
         println!("Running for {} steps", self.simulation_steps);
 
         let mut step: usize = 0;
@@ -76,8 +76,7 @@ impl FEMEngine {
 
         self.save_results(step)?;
 
-        //TODO: Optimize this clone
-        Ok(self.results.clone())
+        Ok(())
     }
 
     fn update_f(&mut self, step: usize) -> Result<()> {
@@ -131,14 +130,13 @@ impl FEMEngine {
     }
 
     fn save_results(&mut self, current_step: usize) -> Result<()> {
-        //TODO: Instead of storing results to memory, we should go to disk directly
         if current_step % self.snapshot_steps == 0 {
             let temp = match &mut self.solver {
                 Solver::Explicit(s) => s.temperature()?,
                 Solver::Implicit(s) => s.temperature()?,
                 Solver::GPU(s) => s.temperature()?,
             };
-            self.results.push(temp.clone());
+            self.writer.write_result(temp.clone())?;
         }
 
         Ok(())

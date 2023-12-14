@@ -1,9 +1,17 @@
 use anyhow::Result;
+use log::error;
 use std::sync::mpsc;
 use std::thread;
 
+use crate::fem::parser;
+
+use super::element::Element;
+use super::parser::ParserConfig;
+use super::point::Point;
+use super::structures::Vector;
+
 enum Message {
-    Result(String),
+    Result(Vector),
     Close,
 }
 
@@ -13,30 +21,59 @@ pub struct ResultsWriterWorker {
 }
 
 impl ResultsWriterWorker {
-    pub fn new() -> Self {
+    pub fn new(
+        config: ParserConfig,
+        points: Vec<Point>,
+        elements: Vec<Element>,
+        snapshot_period: f64,
+    ) -> Self {
         let (sender, receiver) = mpsc::channel::<Message>();
         ResultsWriterWorker {
             tx: sender,
-            worker: Some(thread::spawn(move || Self::work(receiver))),
+            worker: Some(thread::spawn(move || {
+                Self::work(receiver, config, points, elements, snapshot_period)
+            })),
         }
     }
 
-    fn work(rx: mpsc::Receiver<Message>) {
+    fn work(
+        rx: mpsc::Receiver<Message>,
+        config: ParserConfig,
+        points: Vec<Point>,
+        elements: Vec<Element>,
+        snapshot_period: f64,
+    ) {
         println!("Results writer worker started");
+
+        let mut id = 0;
         loop {
             match rx.recv() {
                 Ok(m) => match m {
-                    Message::Result(v) => println!("From worker: {v}"),
+                    Message::Result(result) => {
+                        if let Err(e) = parser::write_partial_vtk_result(
+                            &config, &points, &elements, result, id,
+                        ) {
+                            error!("Worker thread error writing result {e:?}");
+                            panic!();
+                        }
+                        id += 1;
+                    }
                     Message::Close => break,
                 },
                 Err(_) => break, //Sender disconnected
             }
         }
+
+        if let Err(e) = parser::write_vtk_series(&config, id, snapshot_period) {
+            error!("Worker thread error writing vtk series {e:?}");
+            panic!();
+        }
+
         println!("Results writer worker shut down");
     }
 
-    pub fn send(&mut self, text: String) -> Result<()> {
-        self.tx.send(Message::Result(text))?;
+    pub fn write_result(&mut self, result: Vector) -> Result<()> {
+        self.tx.send(Message::Result(result))?;
         Ok(())
     }
 

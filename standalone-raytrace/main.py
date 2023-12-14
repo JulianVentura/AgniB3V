@@ -191,8 +191,8 @@ def main():
         files_directory_path += "/"
     mesh_file_path = files_directory_path + "mesh.vtk"
     properties_file_path = files_directory_path + "properties.json"
-    gmat_report_file_path = files_directory_path + "ReportFile1.txt"
-    gmat_eclipse_file_path = files_directory_path + "EclipseLocator1.txt"
+    gmat_report_file_path = files_directory_path + utils.get_file_with_name("ReportFile", files_directory_path)
+    gmat_eclipse_file_path = files_directory_path + utils.get_file_with_name("EclipseLocator", files_directory_path)
     view_factors_file_path = files_directory_path + "view_factors.vf"
 
     match opcode:

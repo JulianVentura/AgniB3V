@@ -6,3 +6,7 @@ ROUTES = {
 }
 
 CONFIG_FILE_PATH = "./files/globalConfiguration.json"
+
+RESULTS_SERIES="results/results.vtk.series"
+
+DOCUMENTATION_URL="https://thermalb3v.github.io/"

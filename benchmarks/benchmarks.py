@@ -14,6 +14,7 @@ TIMING_FOLDER = "timings"
 CURRENT_USER = os.environ["USER"]
 TIMING_FILE_PATH = f"{TIMING_FOLDER}/{CURRENT_USER}.csv"
 
+
 def decompose_time(total_seconds):
     hours, remainder = divmod(total_seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
@@ -56,7 +57,9 @@ def run_benchmark(folder):
         file.write(timings)
 
     with open(TIMING_FILE_PATH, "a+") as file:
-        file.write(f"{benchmark_elments_amount},{elapsed_time_preprocessor},{elapsed_time_implicit},{elapsed_time_gpu}\n")
+        file.write(
+            f"{benchmark_elments_amount},{elapsed_time_preprocessor},{elapsed_time_implicit},{elapsed_time_gpu}\n"
+        )
 
 
 def find_benchmarks(specific_benchmark=None):
@@ -65,17 +68,26 @@ def find_benchmarks(specific_benchmark=None):
     if not specific_benchmark:
         filtered_folders = [x[1] for x in os.walk(cwd)][0]
         filtered_folders.remove(TIMING_FOLDER)
-        folders = [cwd + "/" + x for x in sorted(filtered_folders, key=lambda x: int(x))]
-        
+        folders = [
+            cwd + "/" + x for x in sorted(filtered_folders, key=lambda x: int(x))
+        ]
+
     for folder in folders:
         run_benchmark(folder)
 
+
 def _plot_benchmarks(title, element_amount_dict, results_dict):
     plt.title(title)
+    plt.xlabel("Number of Elements", fontsize=12)
+    plt.ylabel("Execution Time", fontsize=12)
+    plt.grid(True, linestyle="--", alpha=0.5)
+    plt.tight_layout()
+    plt.style.use("ggplot")
     for name, results in results_dict.items():
-            plt.plot(element_amount_dict[name], results, label=name, marker="s")
+        plt.plot(element_amount_dict[name], results, label=name, marker="s")
     plt.legend()
     plt.show()
+
 
 def plot_benchmarks():
     print("PLOTTING BENCHMARKS")
@@ -90,13 +102,13 @@ def plot_benchmarks():
     for benchmarks_file in benchmarks_files:
         benchmark_name = benchmarks_file[:-4]
         with open(f"{cwd}/{TIMING_FOLDER}/{benchmarks_file}") as csvfile:
-            spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
+            spamreader = csv.reader(csvfile, delimiter=",", quotechar='"')
             element_amounts = []
             elapsed_time_preprocessor = []
             elapsed_time_implicit = []
             elapsed_time_gpu = []
             for row in spamreader:
-                a,p,i,g = row
+                a, p, i, g = row
                 element_amounts.append(float(a))
                 elapsed_time_preprocessor.append(float(p))
                 elapsed_time_implicit.append(float(i))
@@ -106,9 +118,13 @@ def plot_benchmarks():
             elapsed_time_preprocessor_dict[benchmark_name] = elapsed_time_preprocessor
             elapsed_time_cpu_dict[benchmark_name] = elapsed_time_implicit
             elapsed_time_gpu_dict[benchmark_name] = elapsed_time_gpu
-            elapsed_time_total_dict[benchmark_name] = np.array(elapsed_time_preprocessor) + np.array(elapsed_time_gpu)
+            elapsed_time_total_dict[benchmark_name] = np.array(
+                elapsed_time_preprocessor
+            ) + np.array(elapsed_time_gpu)
 
-    _plot_benchmarks("Preprocesador", element_amounts_dict, elapsed_time_preprocessor_dict)
+    _plot_benchmarks(
+        "Preprocesador", element_amounts_dict, elapsed_time_preprocessor_dict
+    )
     _plot_benchmarks("Solver CPU", element_amounts_dict, elapsed_time_cpu_dict)
     _plot_benchmarks("Solver GPU", element_amounts_dict, elapsed_time_gpu_dict)
     _plot_benchmarks("Total", element_amounts_dict, elapsed_time_total_dict)

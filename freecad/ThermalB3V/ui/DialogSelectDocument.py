@@ -20,7 +20,7 @@ class DialogSelectDocument(QDialog):
         """
         Initialize the UI
         """
-        self.setWindowTitle("Seleccionar documento")
+        self.setWindowTitle("Select document")
         self.setMinimumSize(QSize(600, 300))
         # Create a horizontal layout for the Dialog
         self.horizontalLayout = QHBoxLayout(self)
@@ -32,13 +32,13 @@ class DialogSelectDocument(QDialog):
         self.verticalLayout_7 = QVBoxLayout(self.container)
         # Create a radio button for selecting an existing document
         self.radioExisting = QRadioButton(self.container)
-        self.radioExisting.setText("Seleccionar documento existente")
+        self.radioExisting.setText("Select existing document")
         self.radioExisting.setChecked(True)
         self.verticalLayout_7.addWidget(self.radioExisting)
         # Create a horizontal layout for the existing document input
         self.horizontalLayout_2 = QHBoxLayout()
         self.existingInput = QLineEdit(self.container)
-        self.existingInput.setPlaceholderText("Seleccionar directorio")
+        self.existingInput.setPlaceholderText("Select directory")
         self.horizontalLayout_2.addWidget(self.existingInput)
         self.existingButton = QToolButton(self.container)
         self.existingButton.setText("...")
@@ -47,17 +47,17 @@ class DialogSelectDocument(QDialog):
         self.verticalLayout_7.addLayout(self.horizontalLayout_2)
         # Create a radio button for creating a new document
         self.radioNew = QRadioButton(self.container)
-        self.radioNew.setText("Crear nuevo documento")
+        self.radioNew.setText("Create new document")
         self.verticalLayout_7.addWidget(self.radioNew)
         # Create a line edit for the new document name input
         self.newNameInput = QLineEdit(self.container)
         self.newNameInput.setText("")
-        self.newNameInput.setPlaceholderText("Nombre del documento")
+        self.newNameInput.setPlaceholderText("Document name")
         self.verticalLayout_7.addWidget(self.newNameInput)
         # Create a horizontal layout for the new document directory input
         self.newHorizontal = QHBoxLayout()
         self.newInput = QLineEdit(self.container)
-        self.newInput.setPlaceholderText("Seleccionar directorio")
+        self.newInput.setPlaceholderText("Select directory")
         self.newHorizontal.addWidget(self.newInput)
         self.newButton = QToolButton(self.container)
         self.newButton.setText("...")
@@ -66,25 +66,25 @@ class DialogSelectDocument(QDialog):
         self.verticalLayout_7.addLayout(self.newHorizontal)
         # Create a radio button for creating a new document
         self.radioCurrent = QRadioButton(self.container)
-        self.radioCurrent.setText("Guardar documento activo")
+        self.radioCurrent.setText("Save current document")
         self.radioCurrent.setEnabled(bool(FreeCAD.ActiveDocument))
         self.verticalLayout_7.addWidget(self.radioCurrent)
         # Create label that is shown only if no active document
         self.noActiveDocumentLabel = QLabel(self.container)
-        self.noActiveDocumentLabel.setText("No hay documento activo")
+        self.noActiveDocumentLabel.setText("No active document")
         self.noActiveDocumentLabel.setVisible(not bool(FreeCAD.ActiveDocument))
         self.noActiveDocumentLabel.setStyleSheet("color: #ff9999; font-style: italic; font-size: 10px;")
         self.verticalLayout_7.addWidget(self.noActiveDocumentLabel)
         # Create a line edit for the current document name input
         self.currentNameInput = QLineEdit(self.container)
         self.currentNameInput.setText("")
-        self.currentNameInput.setPlaceholderText("Nombre del documento")
+        self.currentNameInput.setPlaceholderText("Document name")
         self.currentNameInput.setEnabled(bool(FreeCAD.ActiveDocument))
         self.verticalLayout_7.addWidget(self.currentNameInput)
         # Create a horizontal layout for the current document directory input
         self.currentHorizontal = QHBoxLayout()
         self.currentInput = QLineEdit(self.container)
-        self.currentInput.setPlaceholderText("Seleccionar directorio")
+        self.currentInput.setPlaceholderText("Select directory")
         self.currentHorizontal.addWidget(self.currentInput)
         self.currentButton = QToolButton(self.container)
         self.currentButton.setText("...")
@@ -100,11 +100,11 @@ class DialogSelectDocument(QDialog):
         self.horizontalSpacer = QSpacerItem(37, 17, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.horizontalLayout_12.addItem(self.horizontalSpacer)
         self.cancelButton = QPushButton(self.container)
-        self.cancelButton.setText("Cancelar")
+        self.cancelButton.setText("Cancel")
         self.cancelButton.clicked.connect(self.onCancel)
         self.horizontalLayout_12.addWidget(self.cancelButton)
         self.okButton = QPushButton(self.container)
-        self.okButton.setText("Aceptar")
+        self.okButton.setText("OK")
         self.okButton.clicked.connect(self.onOk)
         self.horizontalLayout_12.addWidget(self.okButton)
         self.verticalLayout_7.addLayout(self.horizontalLayout_12)

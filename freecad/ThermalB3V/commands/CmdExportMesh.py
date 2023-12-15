@@ -33,8 +33,8 @@ class CmdExportMesh:
 
     def GetResources(self):
         return {
-            'MenuText': ("Export mesh"),
-            'ToolTip': ("Export mesh"),
+            'MenuText': ("Export Mesh"),
+            'ToolTip': ("Export Mesh"),
             'Pixmap': iconPath("Export.svg"),
         }
     

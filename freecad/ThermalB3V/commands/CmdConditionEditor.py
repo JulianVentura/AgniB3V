@@ -25,8 +25,8 @@ class CmdConditionEditor:
         
     def GetResources(self):
         return {
-            'MenuText': ("Edit Condition conditions"),
-            'ToolTip': ("Edit Condition conditions"),
+            'MenuText': ("Edit Conditions"),
+            'ToolTip': ("Edit Conditions"),
             'Pixmap': iconPath("Condition.svg"),
         }
     

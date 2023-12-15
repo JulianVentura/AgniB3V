@@ -48,11 +48,11 @@ class WidgetConditions(QWidget):
         self.conditionList.currentRowChanged.connect(self.showProperties)
 
         # Create button to add a new condition
-        addButton = QPushButton("Añadir Condición", self)
+        addButton = QPushButton("Add Condition", self)
         addButton.clicked.connect(self.addCondition)
 
         # Create ok button
-        okButton = QPushButton('Aceptar', self)
+        okButton = QPushButton('OK', self)
         okButton.setDefault(False)
         okButton.setAutoDefault(False)
         okButton.clicked.connect(self.onClose)
@@ -117,7 +117,7 @@ class WidgetConditions(QWidget):
         """
         activeDocument = FreeCAD.ActiveDocument
         
-        conditionLabel, ok = QInputDialog.getText(self, "Nueva Condición", "Nombre de la nueva condición:")
+        conditionLabel, ok = QInputDialog.getText(self, "New Condition", "Name of the new condition:")
         newCondition = labelToCamelCase(conditionLabel)
         if (newCondition in self.conditions) or (newCondition == ""):
             FreeCAD.Console.PrintError("Condition name already exists or is empty\n")

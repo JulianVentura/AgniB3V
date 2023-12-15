@@ -48,11 +48,11 @@ class WidgetMaterials(QWidget):
         self.materialList.currentRowChanged.connect(self.showProperties)
 
         # Create button to add a new material
-        addButton = QPushButton("Añadir Material", self)
+        addButton = QPushButton("Add Material", self)
         addButton.clicked.connect(self.addMaterial)
 
         # Create ok button
-        okButton = QPushButton('Aceptar', self)
+        okButton = QPushButton("OK", self)
         okButton.setDefault(False)
         okButton.setAutoDefault(False)
         okButton.clicked.connect(self.onClose)
@@ -118,7 +118,7 @@ class WidgetMaterials(QWidget):
         """
         activeDocument = FreeCAD.ActiveDocument
 
-        materialLabel, ok = QInputDialog.getText(self, "Nuevo Material", "Nombre del nuevo material:")
+        materialLabel, ok = QInputDialog.getText(self, "New material", "Name of the new material:")
         newMaterial = labelToCamelCase(materialLabel)
         if (newMaterial in self.materials) or (newMaterial == ""):
             FreeCAD.Console.PrintError("Material name already exists or is empty\n")

@@ -1,6 +1,26 @@
-<?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-<svg width="800px" height="800px" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="48" height="48" fill="white" fill-opacity="0.01"/>
-<path d="M24 44C35.0457 44 44 35.0457 44 24C44 12.9543 35.0457 4 24 4C12.9543 4 4 12.9543 4 24C4 35.0457 12.9543 44 24 44Z" fill="#2F88FF" stroke="#000000" stroke-width="4" stroke-linejoin="round"/>
-<path d="M24 36V36C30.6274 36 36 30.6274 36 24" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Creator: CorelDRAW X7 -->
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="196.16mm" height="196.16mm" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+viewBox="0 0 19616 19616"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+ <defs>
+  <style type="text/css">
+   <![CDATA[
+    .str0 {stroke:black;stroke-width:1763.89;stroke-linejoin:round}
+    .str2 {stroke:#EBECEC;stroke-width:200;stroke-linejoin:round}
+    .str1 {stroke:white;stroke-width:1763.89;stroke-linecap:round;stroke-linejoin:round}
+    .fil2 {fill:none}
+    .fil1 {fill:#D9DADA}
+    .fil0 {fill:#D9DADA;fill-opacity:0.011765}
+   ]]>
+  </style>
+ </defs>
+ <g id="Capa_x0020_1">
+  <metadata id="CorelCorpID_0Corel-Layer"/>
+  <polygon class="fil0" points="-775,20391 20391,20391 20391,-775 -775,-775 "/>
+  <path class="fil1 str0" d="M9808 18627c4871,0 8819,-3948 8819,-8819 0,-4871 -3948,-8819 -8819,-8819 -4871,0 -8819,3948 -8819,8819 0,4871 3948,8819 8819,8819z"/>
+  <path class="fil2 str1" d="M9808 15100l0 0c2923,0 5292,-2369 5292,-5292"/>
+  <path class="fil2 str2" d="M9808 19510c5358,0 9702,-4344 9702,-9702 0,-5358 -4344,-9702 -9702,-9702 -5358,0 -9702,4344 -9702,9702 0,5358 4344,9702 9702,9702z"/>
+ </g>
 </svg>

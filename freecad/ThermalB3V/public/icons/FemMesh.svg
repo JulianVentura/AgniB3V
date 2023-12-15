@@ -1,24 +1,50 @@
 <?xml version="1.0"?>
-<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" data-name="Layer 1">
+<svg width="20284" height="20284" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" clip-rule="evenodd" data-name="Layer 1" fill-rule="evenodd" version="1.1" xml:space="preserve">
  <defs>
-  <style>.cls-1{fill:none;stroke:#020202;stroke-miterlimit:10;stroke-width:1.92px;}</style>
+  <style type="text/css">
+   <![CDATA[
+    .str1 {stroke:#020202;stroke-width:1693.33}
+    .str0 {stroke:#EBECEC;stroke-width:1893.3}
+    .fil0 {fill:none}
+   ]]>
+  </style>
  </defs>
  <g class="layer">
   <title>Layer 1</title>
-  <rect class="cls-1" height="19.17" id="svg_1" width="19.17" x="2.42" y="2.42"/>
-  <line class="cls-1" id="svg_2" x1="12" x2="12" y1="23.5" y2="18.71"/>
-  <line class="cls-1" id="svg_3" x1="12" x2="12" y1="5.29" y2="0.5"/>
-  <polyline class="cls-1" id="svg_4" points="16.79 16.69 16.79 16.79 16.79 23.5"/>
-  <polyline class="cls-1" id="svg_5" points="16.79 7.31 16.79 7.21 16.79 0.5"/>
-  <polyline class="cls-1" id="svg_6" points="7.21 16.69 7.21 16.79 7.21 23.5"/>
-  <polyline class="cls-1" id="svg_7" points="7.21 7.31 7.21 7.21 7.21 0.5"/>
-  <line class="cls-1" id="svg_8" x1="23.5" x2="18.71" y1="12" y2="12"/>
-  <line class="cls-1" id="svg_9" x1="5.29" x2="0.5" y1="12" y2="12"/>
-  <polyline class="cls-1" id="svg_10" points="23.5 7.21 16.79 7.21 16.69 7.21"/>
-  <polyline class="cls-1" id="svg_11" points="7.31 7.21 7.21 7.21 0.5 7.21"/>
-  <polyline class="cls-1" id="svg_12" points="23.5 16.79 16.79 16.79 16.69 16.79"/>
-  <polyline class="cls-1" id="svg_13" points="7.31 16.79 7.21 16.79 0.5 16.79"/>
-  <path class="cls-1" d="m18.71,12a6.66,6.66 0 0 1 -1.92,4.69l-0.1,0.1a6.69,6.69 0 0 1 -9.38,0l-0.1,-0.1a6.69,6.69 0 0 1 0,-9.38l0.1,-0.1a6.69,6.69 0 0 1 9.38,0l0.1,0.1a6.66,6.66 0 0 1 1.92,4.69z" id="svg_14"/>
-  <text fill="#000000" font-family="Courier" font-size="24" font-weight="bold" id="svg_15" stroke="#000000" stroke-width="0" text-anchor="middle" transform="matrix(0.421804, 0, 0, 0.395828, -50.0079, -42.1761)" x="146.66" xml:space="preserve" y="143.98">M</text>
+  <g id="Capa_x0020_1">
+   <metadata id="CorelCorpID_0Corel-Layer"/>
+   <rect class="fil0 str0" height="16907" id="svg_1" width="16907" x="1693" y="1693"/>
+   <line class="fil0 str0" id="svg_2" x1="10142" x2="10142" y1="20284" y2="16060"/>
+   <line class="fil0 str0" id="svg_3" x1="10142" x2="10142" y1="4224" y2="0"/>
+   <polyline class="fil0 str0" id="svg_4" points="14367,14278 14367,14367 14367,20284 "/>
+   <polyline class="fil0 str0" id="svg_5" points="14367,6006 14367,5917 14367,0 "/>
+   <polyline class="fil0 str0" id="svg_6" points="5917,14278 5917,14367 5917,20284 "/>
+   <polyline class="fil0 str0" id="svg_7" points="5917,6006 5917,5917 5917,0 "/>
+   <line class="fil0 str0" id="svg_8" x1="20284" x2="16060" y1="10142" y2="10142"/>
+   <line class="fil0 str0" id="svg_9" x1="4224" x2="0" y1="10142" y2="10142"/>
+   <polyline class="fil0 str0" id="svg_10" points="20284,5917 14367,5917 14278,5917 "/>
+   <polyline class="fil0 str0" id="svg_11" points="6006,5917 5917,5917 0,5917 "/>
+   <polyline class="fil0 str0" id="svg_12" points="20284,14367 14367,14367 14278,14367 "/>
+   <polyline class="fil0 str0" id="svg_13" points="6006,14367 5917,14367 0,14367 "/>
+   <path class="fil0 str0" d="m16060,10142c0,3 0,7 0,10c0,1544 -609,3028 -1693,4126l-88,89c-1104,1084 -2590,1692 -4137,1692c-1547,0 -3033,-608 -4136,-1693l-88,-88c-1084,-1103 -1693,-2589 -1693,-4136c0,-1547 609,-3033 1693,-4136l88,-88c1103,-1085 2589,-1693 4136,-1693c1547,0 3033,608 4136,1693l88,88c1085,1098 1694,2582 1694,4126c0,3 0,7 0,10l0,0z" id="svg_14"/>
+  </g>
+  <g id="Capa_x0020_1_0" transform="matrix(1, 0, 0, 1, 0, 0)">
+   <metadata id="CorelCorpID_1Corel-Layer"/>
+   <rect class="fil0 str1" height="16907" id="svg_15" width="16907" x="1728.71" y="1693"/>
+   <line class="fil0 str1" id="svg_16" x1="10177.71" x2="10177.71" y1="20284" y2="16060"/>
+   <line class="fil0 str1" id="svg_17" x1="10177.71" x2="10177.71" y1="4224" y2="0"/>
+   <polyline class="fil0 str1" id="svg_18" points="14402.714285850525,14278 14402.714285850525,14367 14402.714285850525,20284 "/>
+   <polyline class="fil0 str1" id="svg_19" points="14402.714285850525,6006 14402.714285850525,5917 14402.714285850525,0 "/>
+   <polyline class="fil0 str1" id="svg_20" points="5952.714285850525,14278 5952.714285850525,14367 5952.714285850525,20284 "/>
+   <polyline class="fil0 str1" id="svg_21" points="5952.714285850525,6006 5952.714285850525,5917 5952.714285850525,0 "/>
+   <line class="fil0 str1" id="svg_22" x1="20319.71" x2="16095.71" y1="10142" y2="10142"/>
+   <line class="fil0 str1" id="svg_23" x1="4259.71" x2="35.71" y1="10142" y2="10142"/>
+   <polyline class="fil0 str1" id="svg_24" points="20319.714285850525,5917 14402.714285850525,5917 14313.714285850525,5917 "/>
+   <polyline class="fil0 str1" id="svg_25" points="6041.714285850525,5917 5952.714285850525,5917 35.7142858505249,5917 "/>
+   <polyline class="fil0 str1" id="svg_26" points="20319.714285850525,14367 14402.714285850525,14367 14313.714285850525,14367 "/>
+   <polyline class="fil0 str1" id="svg_27" points="6041.714285850525,14367 5952.714285850525,14367 35.7142858505249,14367 "/>
+   <path class="fil0 str1" d="m16095.71,10142c0,3 0,7 0,10c0,1544 -609,3028 -1693,4126l-88,89c-1104,1084 -2590,1692 -4137,1692c-1547,0 -3033,-608 -4136,-1693l-88,-88c-1084,-1103 -1693,-2589 -1693,-4136c0,-1547 609,-3033 1693,-4136l88,-88c1103,-1085 2589,-1693 4136,-1693c1547,0 3033,608 4136,1693l88,88c1085,1098 1694,2582 1694,4126c0,3 0,7 0,10l0,0z" id="svg_28"/>
+  </g>
+  <text fill="#000000" font-family="Monospace" font-size="24" font-weight="bold" id="svg_29" stroke="#000000" stroke-width="0" text-anchor="middle" transform="matrix(402.185, 0, 0, 279.671, -3.29518e+06, -2.87992e+06)" x="8218.57" xml:space="preserve" y="10343.22">M</text>
  </g>
 </svg>

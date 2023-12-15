@@ -30,8 +30,8 @@ pub struct ParserElement {
     nodeidx2: u32,
     nodeidx3: u32,
     material: MaterialProperties,
-    initial_temperature: f64, //TODO: Remove in final version
-    flux: f64,                //TODO: Remove in final version
+    initial_temperature: f64, //TODO: Remove in final version?
+    flux: f64,                //TODO: Remove in final version?
 }
 
 #[derive(Deserialize)]
@@ -50,13 +50,23 @@ pub struct ParserPropertiesMaterialsDetails {
     thickness: f64,
     alpha_sun: f64,
     alpha_ir: f64,
-    initial_temperature: f64, //TODO: Remove in final version
-    flux: f64,                //TODO: Remove in final version
 }
 
 #[derive(Debug, Deserialize)]
 pub struct ParserPropertiesMaterials {
     properties: HashMap<String, ParserPropertiesMaterialsDetails>,
+    elements: HashMap<String, Vec<u32>>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ParserPropertiesConditionsDetails {
+    initial_temperature: f64,
+    flux: f64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ParserPropertiesConditions {
+    properties: HashMap<String, ParserPropertiesConditionsDetails>,
     elements: HashMap<String, Vec<u32>>,
 }
 
@@ -88,6 +98,7 @@ pub struct ParserGlobalProperties {
 pub struct ParserProperties {
     global_properties: ParserGlobalProperties,
     materials: ParserPropertiesMaterials,
+    conditions: ParserPropertiesConditions,
 }
 
 #[derive(Serialize)]
@@ -206,6 +217,24 @@ pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
     let properties_file_path = &config.materials_path;
     let view_factors_path = &config.view_factors_path;
 
+
+    //Elements
+    let properties_reader = BufReader::new(
+        File::open(&properties_file_path)
+            .with_context(|| format!("Couldn't read properties file {properties_file_path}"))?,
+    );
+    let properties_json: ParserProperties = serde_json::from_reader(properties_reader)
+        .with_context(|| format!("Couldn't parser properties file {properties_file_path}"))?;
+
+    let mut global_properties = properties_json.global_properties;
+    global_properties.beta_angle = global_properties.beta_angle.to_radians();
+
+    let view_factors_parsed = deserialize_view_factors(&view_factors_path)
+        .with_context(|| "Couldn't deserialize view factors")?;
+    // Add to model
+    // global.properties.space_temperature
+    // global.properties.initial_temperature
+
     let vtk_file = Vtk::import(&vtk_file_path)
         .with_context(|| format!("Couldn't import vtk file: {vtk_file_path}"))?;
 
@@ -246,30 +275,13 @@ pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
                         nodeidx2: vtk_element[2],
                         nodeidx3: vtk_element[3],
                         material: MaterialProperties::default(),
-                        initial_temperature: 0.0, //TODO: Remove in final version
-                        flux: 0.0,                //TODO: Remove in final version
+                        initial_temperature: global_properties.initial_temperature, //TODO: Remove in final version?
+                        flux: 0.0,                                                  //TODO: Remove in final version?
                     });
                 }
             }
         }
     }
-
-    //Elements
-    let properties_reader = BufReader::new(
-        File::open(&properties_file_path)
-            .with_context(|| format!("Couldn't read properties file {properties_file_path}"))?,
-    );
-    let properties_json: ParserProperties = serde_json::from_reader(properties_reader)
-        .with_context(|| format!("Couldn't parser properties file {properties_file_path}"))?;
-
-    let mut global_properties = properties_json.global_properties;
-    global_properties.beta_angle = global_properties.beta_angle.to_radians();
-
-    let view_factors_parsed = deserialize_view_factors(&view_factors_path)
-        .with_context(|| "Couldn't deserialize view factors")?;
-    // Add to model
-    // global.properties.space_temperature
-    // global.properties.initial_temperature
 
     let mut orbit_divisions = vec![];
     for i in 0..view_factors_parsed.earth_albedo.len() {
@@ -288,10 +300,16 @@ pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
         };
         for element_id in material_elements {
             parser_elements[element_id as usize].material = material_properties.clone();
+        }
+    }
+
+    for (condition_name, condition_elements) in properties_json.conditions.elements {
+        let file_condition_properties =
+            &properties_json.conditions.properties[&condition_name];
+        for element_id in condition_elements {
             parser_elements[element_id as usize].initial_temperature =
-                file_material_properties.initial_temperature; //TODO: Remove in final version
-            parser_elements[element_id as usize].flux = file_material_properties.flux;
-            //TODO: Remove in final version
+                file_condition_properties.initial_temperature; //TODO: Remove in final version?
+            parser_elements[element_id as usize].flux = file_condition_properties.flux; //TODO: Remove in final version?
         }
     }
 

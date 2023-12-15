@@ -30,16 +30,16 @@ def run_benchmark(folder):
         lambda: subprocess.run(preprocessor), number=1
     )
     print("SOLVER CPU")
-    solver_implicit = ["../opencl/target/release/opencl", folder, "Implicit"]
+    solver_implicit = ["../solver/target/release/solver", folder, "Implicit"]
     elapsed_time_implicit = timeit.timeit(
         lambda: subprocess.run(solver_implicit), number=1
     )
 
     print("SOLVER GPU")
     wd = os.getcwd()
-    os.chdir("../opencl")
+    os.chdir("../solver")
 
-    solver_gpu = ["target/release/opencl", folder, "GPU"]
+    solver_gpu = ["target/release/solver", folder, "GPU"]
     elapsed_time_gpu = timeit.timeit(lambda: subprocess.run(solver_gpu), number=1)
 
     os.chdir(wd)

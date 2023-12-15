@@ -20,11 +20,6 @@ GLOBAL_PROPERTIES_INPUTS = {
         "unit": "K",
         "value": 4.0,
     },
-    "initialTemperature": {
-        "label": "Initial temperature",
-        "unit": "K",
-        "value": 200.0,
-    },
     "internalEmission": {
         "label": "Internal emission",
         "unit": "",

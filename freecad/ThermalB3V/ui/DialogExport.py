@@ -4,8 +4,8 @@ from PySide2.QtWidgets import *
 
 from ui.WidgetExportable import WidgetExportable
 from ui.WidgetGlobalProperties import WidgetGlobalProperties
-from ui.WidgetViewFactors import WidgetViewFactors
 from ui.WidgetMaterials import WidgetMaterials
+from ui.WidgetConditions import WidgetConditions
 
 class DialogExport(QDialog):
     """
@@ -27,7 +27,7 @@ class DialogExport(QDialog):
         """
         Initialize the UI
         """
-        self.setWindowTitle("Global Properties")
+        self.setWindowTitle("Export")
         self.setWindowFlags(Qt.WindowStaysOnTopHint)
 
         # Create sections
@@ -43,12 +43,12 @@ class DialogExport(QDialog):
             self.workbench,
             self.onCancel
         )
-        viewFactorsSection = WidgetViewFactors(
+        materialsSection = WidgetMaterials(
             self,
             self.workbench,
             self.onCancel,
         )
-        materialsSection = WidgetMaterials(
+        conditionsSection = WidgetConditions(
             self,
             self.workbench,
             self.onCancel,
@@ -61,9 +61,9 @@ class DialogExport(QDialog):
         self.tabWidget = QTabWidget(self.frame)
         self.addTabs(
             (exportableSection, "Exportable"),
-            (globalPropertiesSection, "Prop. Globales"),
-            (viewFactorsSection, "Factores de Vista"),
-            (materialsSection, "Materiales"),
+            (globalPropertiesSection, "Global Properties"),
+            (materialsSection, "Materials"),
+            (conditionsSection, "Conditions"),
         )
         self.horizontalLayout_2.addWidget(self.tabWidget)
         self.horizontalLayout.addWidget(self.frame)    

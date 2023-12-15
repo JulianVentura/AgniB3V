@@ -48,11 +48,11 @@ class WidgetConditions(QWidget):
         self.conditionList.currentRowChanged.connect(self.showProperties)
 
         # Create button to add a new condition
-        addButton = QPushButton("Añadir Condición", self)
+        addButton = QPushButton("Add Condition", self)
         addButton.clicked.connect(self.addCondition)
 
         # Create ok button
-        okButton = QPushButton('Aceptar', self)
+        okButton = QPushButton('OK', self)
         okButton.setDefault(False)
         okButton.setAutoDefault(False)
         okButton.clicked.connect(self.onClose)
@@ -78,26 +78,27 @@ class WidgetConditions(QWidget):
 
         # Show properties according to the condition
         for prop in CONDITION_PROPERTIES:
-            self.addProperty(conditionObj , prop)
+            self.addProperty(conditionObj, prop, CONDITION_PROPERTIES[prop])
 
-    def addProperty(self, conditionObj, prop):
+    def addProperty(self, conditionObj, propName, propDict):
         """
         Add a new property to the list
         """
         def setConditionProperty(value):
             mat = conditionObj.Material
-            mat[prop] = str(value)
+            mat[propName] = str(value)
             conditionObj.Material = mat
 
-        qtLabel = QLabel(str(prop), self)
+        # label and unit
+        qtLabel = QLabel(propDict["label"] + (f" ({propDict['unit']})" if propDict["unit"] else ""), self)
         qtInput = QDoubleSpinBox(self)
         # TODO: configurable?
         qtInput.setDecimals(5)
         qtInput.setMaximum(999999999)
-        if prop in conditionObj.Material:
-            qtInput.setValue(float(conditionObj.Material[prop]))
+        if propName in conditionObj.Material:
+            qtInput.setValue(float(conditionObj.Material[propName]))
         else:
-            qtInput.setValue(0)
+            qtInput.setValue(float(propDict["value"]))
             
         qtInput.valueChanged.connect(setConditionProperty)
         self.propertiesLayout.addRow(qtLabel, qtInput)
@@ -117,7 +118,7 @@ class WidgetConditions(QWidget):
         """
         activeDocument = FreeCAD.ActiveDocument
         
-        conditionLabel, ok = QInputDialog.getText(self, "Nueva Condición", "Nombre de la nueva condición:")
+        conditionLabel, ok = QInputDialog.getText(self, "New Condition", "Name of the new condition:")
         newCondition = labelToCamelCase(conditionLabel)
         if (newCondition in self.conditions) or (newCondition == ""):
             FreeCAD.Console.PrintError("Condition name already exists or is empty\n")
@@ -129,7 +130,7 @@ class WidgetConditions(QWidget):
             mat = conditionObject.Material
             # Initialize properties
             for prop in CONDITION_PROPERTIES:
-                mat[prop] = "0"
+                mat[prop] = str(CONDITION_PROPERTIES[prop]["value"])
             
             # Add needed properties
             self.addFreecadNeededProperties(mat)

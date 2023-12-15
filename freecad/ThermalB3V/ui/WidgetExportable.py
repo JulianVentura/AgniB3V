@@ -18,7 +18,7 @@ class WidgetExportable(QWidget):
     def initUI(self):
         # Label and input for export path
         self.directoryLabel = QLabel(self)
-        self.directoryLabel.setText("Directorio")
+        self.directoryLabel.setText("Directory")
         self.directoryInput = QLineEdit(self)
         self.directoryInput.setText(self.exportPath)
         self.toolButton = QToolButton(self)
@@ -43,11 +43,11 @@ class WidgetExportable(QWidget):
         self.horizontalLayout_3.addItem(self.horizontalSpacer)
 
         # Cancel and export buttons
-        self.cancelButton = QPushButton('Cancelar', self)
+        self.cancelButton = QPushButton('Cancel', self)
         self.cancelButton.setDefault(False)
         self.cancelButton.setAutoDefault(False)
         self.cancelButton.clicked.connect(self.onCancel)
-        self.exportButton = QPushButton('Exportar', self)
+        self.exportButton = QPushButton('Export', self)
         self.exportButton.setDefault(False)
         self.exportButton.setAutoDefault(False)
         self.exportButton.clicked.connect(self.onExport)

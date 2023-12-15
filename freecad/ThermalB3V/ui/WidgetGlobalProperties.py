@@ -34,13 +34,13 @@ class WidgetGlobalProperties(QWidget):
             )
 
         # create import button
-        importButton = QPushButton('Importar propiedades', self)
+        importButton = QPushButton('Import properties', self)
         importButton.setDefault(False)
         importButton.setAutoDefault(False)
         importButton.clicked.connect(self.onImportGlobalProperties)
         
         # create ok button
-        okButton = QPushButton('Aceptar', self)
+        okButton = QPushButton('OK', self)
         okButton.setDefault(False)
         okButton.setAutoDefault(False)
         okButton.clicked.connect(self.onClose)

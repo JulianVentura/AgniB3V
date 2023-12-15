@@ -22,7 +22,7 @@ class CmdInitializeProperties:
         
     def GetResources(self):
         return {
-            'MenuText': ("Initialize properties"),
-            'ToolTip': ("Initialize properties"),
+            'MenuText': ("Initialize Properties"),
+            'ToolTip': ("Initialize Properties"),
             'Pixmap': iconPath("DbInit.svg"),
         }

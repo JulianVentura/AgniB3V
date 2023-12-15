@@ -15,11 +15,6 @@ MATERIAL_PROPERTIES = {
         "unit": "kg/m3",
         "value": 2700.0,
     },
-    "flux": {
-        "label": "Flux",
-        "unit": "W/m2",
-        "value": 0.0,
-    },
     "absorptance": {
         "label": "Absorptance",
         "unit": "",
@@ -39,10 +34,5 @@ MATERIAL_PROPERTIES = {
         "label": "Alpha IR",
         "unit": "",
         "value": 0.1,
-    },
-    "initialTemperature": {
-        "label": "Initial temperature",
-        "unit": "K",
-        "value": 273.0,
     },
 }

@@ -26,8 +26,8 @@ class CmdCreateFEMMeshRegion:
         
     def GetResources(self):
         return {
-            'MenuText': ("Create FEM Mesh"),
-            'ToolTip': ("Create FEM Mesh"),
+            'MenuText': ("Create Mesh Region"),
+            'ToolTip': ("Create Mesh Region"),
             'Pixmap': iconPath("FemRegion.svg"),
         }
     

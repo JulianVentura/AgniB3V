@@ -1,6 +1,6 @@
 import FreeCAD
 from public.utils import iconPath
-from constants import CONFIG_GROUP
+from constants import CONFIG_GROUP, MATERIALS_GROUP, CONDITIONS_GROUP
 import ObjectsFem
 import FemGui
 
@@ -9,9 +9,16 @@ class CmdCreateAnalysis:
         """
         Executed when the command is activated
         """
-        # TODO: here on function IsActive, check if analysis exists
         ObjectsFem.makeAnalysis(FreeCAD.ActiveDocument, "Analysis")
         FemGui.setActiveAnalysis(FreeCAD.ActiveDocument.Analysis)
+
+        # Create materials and conditions groups
+        materialsGroup = FreeCAD.ActiveDocument.addObject("App::DocumentObjectGroupPython", MATERIALS_GROUP)
+        conditionsGroup = FreeCAD.ActiveDocument.addObject("App::DocumentObjectGroupPython", CONDITIONS_GROUP)
+        FreeCAD.ActiveDocument.Analysis.addObject(materialsGroup)
+        FreeCAD.ActiveDocument.Analysis.addObject(conditionsGroup)
+
+        FreeCAD.ActiveDocument.recompute()
 
     def IsActive(self):
         """

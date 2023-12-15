@@ -1,9 +1,18 @@
 import FreeCAD
 from PySide2.QtWidgets import *
+from constants import MATERIALS_GROUP
 from constants.material_properties import MATERIAL_PROPERTIES
+from public.utils import iconPath
+from utils.firstForCondition import firstForCondition
 from utils.camelCaseToLabel import camelCaseToLabel
 from utils.labelToCamelCase import labelToCamelCase
 import ObjectsFem
+
+from femviewprovider import view_material_common
+
+class MaterialsIcon(view_material_common.VPMaterialCommon):
+    def getIcon(self):
+        return iconPath("Material.svg")
 
 class WidgetMaterials(QWidget):
     """
@@ -12,7 +21,12 @@ class WidgetMaterials(QWidget):
     def __init__(self, parent, workbench, onClose):
         super().__init__(parent)
         self.workbench = workbench
-        self.materials = self.getMaterials(FreeCAD.ActiveDocument)
+        self.analysisObject = self.getAnalysisObject(FreeCAD.ActiveDocument)
+        self.materialsGroup = firstForCondition(
+            self.analysisObject.Group,
+            condition=lambda x: x.Name == MATERIALS_GROUP,
+        )
+        self.materials = self.getMaterials()
         self.onClose = onClose
         self.initUI()
     
@@ -103,10 +117,6 @@ class WidgetMaterials(QWidget):
         Add a new material to the list
         """
         activeDocument = FreeCAD.ActiveDocument
-        analysisObject = self.getAnalysisObject(activeDocument)
-        if analysisObject is None:
-            FreeCAD.Console.PrintError("Analysis object does not exist\n")
-            return
 
         materialLabel, ok = QInputDialog.getText(self, "Nuevo Material", "Nombre del nuevo material:")
         newMaterial = labelToCamelCase(materialLabel)
@@ -115,7 +125,8 @@ class WidgetMaterials(QWidget):
             return
 
         if ok and newMaterial:
-            materialObject = ObjectsFem.makeMaterialSolid(activeDocument, newMaterial)            
+            materialObject = ObjectsFem.makeMaterialSolid(activeDocument, newMaterial)
+            MaterialsIcon(materialObject.ViewObject)
             mat = materialObject.Material
             # Initialize properties
             for prop in MATERIAL_PROPERTIES:
@@ -129,7 +140,7 @@ class WidgetMaterials(QWidget):
             materialObject.Material = mat
             self.materials[newMaterial] = materialObject
             self.materialList.addItem(camelCaseToLabel(newMaterial))
-            analysisObject.addObject(materialObject)
+            self.materialsGroup.addObject(materialObject)
 
     def addFreecadNeededProperties(self, mat):
         """
@@ -142,6 +153,18 @@ class WidgetMaterials(QWidget):
         mat["ThermalExpansionCoefficient"] = "0 um/m/K"
         mat["SpecificHeat"] = "0 J/kg/K"
 
+    def getMaterials(self):
+        """
+        Returns the materials of the document
+        """
+        materials = {}
+        objects = self.materialsGroup.Group
+        for object in objects:
+            if object.TypeId == "App::MaterialObjectPython":
+                if "Label" in object.Material:
+                    materials[object.Material["Label"]] = object
+        return materials
+    
     def getAnalysisObject(self, document):
         """
         Returns the Analysis object or None if it does not exist
@@ -151,15 +174,3 @@ class WidgetMaterials(QWidget):
             if object.TypeId == "Fem::FemAnalysis":
                 return object
         return None
-    
-    def getMaterials(self, document):
-        """
-        Returns the materials of the document
-        """
-        materials = {}
-        objects = document.Objects
-        for object in objects:
-            if object.TypeId == "App::MaterialObjectPython":
-                if "Label" in object.Material:
-                    materials[object.Material["Label"]] = object
-        return materials

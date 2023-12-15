@@ -8,6 +8,7 @@ from commands.CmdInitializeProperties import CmdInitializeProperties
 from commands.CmdCreateAnalysis import CmdCreateAnalysis
 from commands.CmdCreateFEMMesh import CmdCreateFEMMesh
 from commands.CmdCreateFEMMeshRegion import CmdCreateFEMMeshRegion
+from commands.CmdConditionEditor import CmdConditionEditor
 
 def addCommands(workbench):
     """
@@ -21,3 +22,4 @@ def addCommands(workbench):
     FreeCADGui.addCommand('THM_Create_Analysis', CmdCreateAnalysis())
     FreeCADGui.addCommand('THM_Create_FEM_Mesh', CmdCreateFEMMesh())
     FreeCADGui.addCommand('THM_Create_FEM_Mesh_Region', CmdCreateFEMMeshRegion())
+    FreeCADGui.addCommand('THM_Condition_Editor', CmdConditionEditor(workbench))

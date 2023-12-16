@@ -6,7 +6,6 @@ pub mod executor;
 pub mod explicit_solver;
 pub mod gpu_solver;
 pub mod implicit_solver;
-pub mod opencl;
 pub mod orbit_manager;
 pub mod parser;
 pub mod point;

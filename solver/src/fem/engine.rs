@@ -48,6 +48,10 @@ impl<'a> FEMEngine<'a> {
             err!("Snapshot period must be multiple of simulation time");
         }
 
+        if !Self::is_multiple(params.snapshot_period, params.time_step) {
+            err!("Time step must be multiple of snapshot_period");
+        }
+
         let simulation_steps = (params.simulation_time / params.time_step) as usize;
         let snapshot_steps = (params.snapshot_period / params.time_step) as usize;
 

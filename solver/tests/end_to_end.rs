@@ -273,6 +273,26 @@ pub fn test_radiation_4() -> Result<()> {
 }
 
 #[test]
+pub fn test_radiation_5() -> Result<()> {
+    /*
+    One plate of 1m
+     - Density: 2700 kg/m3
+     - Specific heat: 897 J/(K kg),
+     - Thermal conductivity: 237 W/(K m)
+     - Initial temperature: 473.15 K
+     - Two side radiation: True
+    Only radiation from elements to space (both sides)
+     - Solar constant set to zero
+     - Albedo factor set to zero
+     - Earth IR set to zero
+    */
+
+    run_test("e2e_tests/radiation_5")?;
+
+    Ok(())
+}
+
+#[test]
 pub fn test_sun_1() -> Result<()> {
     /*
     One Cube of 1 m x 1 m x 1 m, thickness 5 cm.

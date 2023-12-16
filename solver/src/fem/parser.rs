@@ -25,13 +25,13 @@ pub struct FEMProblem {
 
 #[derive(Debug)]
 pub struct ParserElement {
-    id: u32,
     nodeidx1: u32,
     nodeidx2: u32,
     nodeidx3: u32,
     material: MaterialProperties,
-    initial_temperature: f64, //TODO: Remove in final version?
-    flux: f64,                //TODO: Remove in final version?
+    initial_temperature: f64,
+    flux: f64,
+    two_side_radiation: bool,
 }
 
 #[derive(Deserialize)]
@@ -60,8 +60,9 @@ pub struct ParserPropertiesMaterials {
 
 #[derive(Debug, Deserialize)]
 pub struct ParserPropertiesConditionsDetails {
-    initial_temperature: f64,
-    flux: f64,
+    initial_temperature: Option<f64>,
+    flux: Option<f64>,
+    two_side_radiation: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -217,7 +218,6 @@ pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
     let properties_file_path = &config.materials_path;
     let view_factors_path = &config.view_factors_path;
 
-
     //Elements
     let properties_reader = BufReader::new(
         File::open(&properties_file_path)
@@ -267,16 +267,16 @@ pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
                 vertices,
             } = &vtk_piece.cells.cell_verts
             {
-                for (id, vtk_element) in vertices.chunks(4).enumerate() {
+                for vtk_element in vertices.chunks(4) {
                     assert!(vtk_element.len() == 4);
                     parser_elements.push(ParserElement {
-                        id: id as u32,
                         nodeidx1: vtk_element[1],
                         nodeidx2: vtk_element[2],
                         nodeidx3: vtk_element[3],
                         material: MaterialProperties::default(),
-                        initial_temperature: global_properties.initial_temperature, //TODO: Remove in final version?
-                        flux: 0.0,                                                  //TODO: Remove in final version?
+                        initial_temperature: global_properties.initial_temperature,
+                        flux: 0.0,
+                        two_side_radiation: false,
                     });
                 }
             }
@@ -304,12 +304,18 @@ pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
     }
 
     for (condition_name, condition_elements) in properties_json.conditions.elements {
-        let file_condition_properties =
-            &properties_json.conditions.properties[&condition_name];
+        let file_condition_properties = &properties_json.conditions.properties[&condition_name];
         for element_id in condition_elements {
-            parser_elements[element_id as usize].initial_temperature =
-                file_condition_properties.initial_temperature; //TODO: Remove in final version?
-            parser_elements[element_id as usize].flux = file_condition_properties.flux; //TODO: Remove in final version?
+            let id = element_id as usize;
+            if let Some(value) = file_condition_properties.initial_temperature {
+                parser_elements[id].initial_temperature = value;
+            }
+            if let Some(value) = file_condition_properties.flux {
+                parser_elements[id].flux = value;
+            }
+            if let Some(value) = file_condition_properties.two_side_radiation {
+                parser_elements[id].two_side_radiation = value;
+            }
         }
     }
 
@@ -383,6 +389,7 @@ pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
                 global_properties.earth_ir,
                 global_properties.albedo,
                 parser_element.flux,
+                parser_element.two_side_radiation,
                 orbit_divisions,
             )
             .with_context(|| format!("Couldn't create element of id {}", elements.len()))?,

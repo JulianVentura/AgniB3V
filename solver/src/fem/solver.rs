@@ -234,6 +234,7 @@ mod tests {
             earth_ir,
             albedo_factor,
             0.0,
+            false,
             &divisions,
         )
         .unwrap();
@@ -248,6 +249,7 @@ mod tests {
             earth_ir,
             albedo_factor,
             0.0,
+            false,
             &divisions,
         )
         .unwrap();

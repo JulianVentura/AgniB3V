@@ -8,6 +8,7 @@ from utils.constants import ROUTES, RESULTS_SERIES, DOCUMENTATION_URL
 from utils.getFileWithExtension import getFileWithExtension
 from public.paths import iconPath
 
+
 class ProjectWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__()
@@ -45,7 +46,7 @@ class ProjectWidget(QWidget):
         headerButtonsLayout = QHBoxLayout()
 
         goBackButton = QPushButton()
-        goBackButton.setText(QCoreApplication.translate("Dialog", u"<", None))
+        goBackButton.setText(QCoreApplication.translate("Dialog", "<", None))
         goBackButton.setFixedSize(30, 30)
         goBackButton.clicked.connect(self.goToLanding)
 
@@ -85,15 +86,19 @@ class ProjectWidget(QWidget):
         """
         headerLayout = QHBoxLayout()
 
-        horizontalSpacerLeft = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        horizontalSpacerLeft = QSpacerItem(
+            40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum
+        )
 
         title = QLabel(frame)
         font = QFont()
         font.setPointSize(24)
         title.setFont(font)
-        title.setText(QCoreApplication.translate("Dialog", u"Thermal B3V", None))
+        title.setText(QCoreApplication.translate("Dialog", "Thermal B3V", None))
 
-        horizontalSpacerRight = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        horizontalSpacerRight = QSpacerItem(
+            40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum
+        )
 
         headerLayout.addItem(horizontalSpacerLeft)
         headerLayout.addWidget(title)
@@ -106,19 +111,23 @@ class ProjectWidget(QWidget):
         """
         verticalLayout = QVBoxLayout()
         modelSectionLabel = QLabel(frame)
-        modelSectionLabel.setText(QCoreApplication.translate("Dialog", u"Modelado", None))
+        modelSectionLabel.setText(
+            QCoreApplication.translate("Dialog", "Modelado", None)
+        )
 
         horizontalLayout = QHBoxLayout()
         freecadButton = QPushButton(frame)
-        freecadButton.setText(QCoreApplication.translate("Dialog", u"FreeCAD", None))
+        freecadButton.setText(QCoreApplication.translate("Dialog", "FreeCAD", None))
         freecadButton.clicked.connect(self.openFreeCAD)
 
         gmatButton = QPushButton(frame)
-        gmatButton.setText(QCoreApplication.translate("Dialog", u"GMAT", None))
+        gmatButton.setText(QCoreApplication.translate("Dialog", "GMAT", None))
         gmatButton.clicked.connect(self.openGMAT)
 
         visualizeMaterialButton = QPushButton(frame)
-        visualizeMaterialButton.setText(QCoreApplication.translate("Dialog", u"Visualizar Materiales", None))
+        visualizeMaterialButton.setText(
+            QCoreApplication.translate("Dialog", "Visualizar Materiales", None)
+        )
         visualizeMaterialButton.clicked.connect(self.visualizeMaterials)
 
         verticalLayout.addWidget(modelSectionLabel)
@@ -134,27 +143,37 @@ class ProjectWidget(QWidget):
         """
         verticalLayout = QVBoxLayout()
         dialogSectionLabel = QLabel(frame)
-        dialogSectionLabel.setText(QCoreApplication.translate("Dialog", u"Procesamiento", None))
+        dialogSectionLabel.setText(
+            QCoreApplication.translate("Dialog", "Procesamiento", None)
+        )
 
         horizontalLayout = QHBoxLayout()
         calculateVFButton = QPushButton(frame)
-        calculateVFButton.setText(QCoreApplication.translate("Dialog", u"Calcular Factores de Vista", None))
+        calculateVFButton.setText(
+            QCoreApplication.translate("Dialog", "Calcular Factores de Vista", None)
+        )
         calculateVFButton.clicked.connect(self.calculateViewFactors)
 
         solverButton = QPushButton(frame)
-        solverButton.setText(QCoreApplication.translate("Dialog", u"Realizar Simulaci\u00f3n", None))
+        solverButton.setText(
+            QCoreApplication.translate("Dialog", "Realizar Simulaci\u00f3n", None)
+        )
         solverButton.clicked.connect(self.runSimulation)
 
         solverAndVFButton = QPushButton(frame)
-        solverAndVFButton.setText(QCoreApplication.translate("Dialog", u"Calcular Factores de Vista y Realizar Simulaci\u00f3n", None))
-        solverAndVFButton.clicked.connect(self.calculateViewFactorsAndRunSimulation) 
+        solverAndVFButton.setText(
+            QCoreApplication.translate(
+                "Dialog", "Calcular Factores de Vista y Realizar Simulaci\u00f3n", None
+            )
+        )
+        solverAndVFButton.clicked.connect(self.calculateViewFactorsAndRunSimulation)
 
         verticalLayout.addWidget(dialogSectionLabel)
         horizontalLayout.addWidget(calculateVFButton)
         horizontalLayout.addWidget(solverButton)
         verticalLayout.addLayout(horizontalLayout)
         verticalLayout.addWidget(solverAndVFButton)
-        return verticalLayout       
+        return verticalLayout
 
     def getPostprocessingSectionLayout(self, frame):
         """
@@ -162,15 +181,17 @@ class ProjectWidget(QWidget):
         """
         verticalLayout = QVBoxLayout()
         postProcessingDialog = QLabel(frame)
-        postProcessingDialog.setText(QCoreApplication.translate("Dialog", u"Postprocesamiento", None))
+        postProcessingDialog.setText(
+            QCoreApplication.translate("Dialog", "Postprocesamiento", None)
+        )
 
         horizontalLayout = QHBoxLayout()
         paraviewButton = QPushButton(frame)
-        paraviewButton.setText(QCoreApplication.translate("Dialog", u"ParaView", None))
+        paraviewButton.setText(QCoreApplication.translate("Dialog", "ParaView", None))
         paraviewButton.clicked.connect(self.openParaView)
 
         plotterButton = QPushButton(frame)
-        plotterButton.setText(QCoreApplication.translate("Dialog", u"Plotter", None))
+        plotterButton.setText(QCoreApplication.translate("Dialog", "Plotter", None))
         plotterButton.clicked.connect(self.openPlotter)
 
         verticalLayout.addWidget(postProcessingDialog)
@@ -261,6 +282,7 @@ class ProjectWidget(QWidget):
         cmd = [
             "python3",
             self.appState.globalConfiguration.getExecutable("plotter"),
+            self.appState.projectDirectory + "/results/result.vtk.series",
         ]
         subprocess.Popen(cmd)
 

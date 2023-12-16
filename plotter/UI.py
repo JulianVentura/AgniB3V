@@ -26,7 +26,7 @@ import os
 
 
 class MainWindow(QWidget):
-    def __init__(self):
+    def __init__(self, initial_file_path=None):
         super().__init__()
 
         self.layout = QVBoxLayout()
@@ -76,7 +76,13 @@ class MainWindow(QWidget):
         self.setWindowTitle("Graph Selector")
 
         self.results = None
-        self.file = None
+        self.file = initial_file_path
+
+    def load_initial(self):
+        if self.file:
+            self.get_results(self.file)
+            self.loader_label.hide()
+            self.reload_button.show()
 
     def show_graph(self):
         graph_type = self.combo_box.currentText()
@@ -158,7 +164,11 @@ class MainWindow(QWidget):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyle("Fusion")  # Use Fusion style
-    window = MainWindow()
+    initial_file_path = None
+    if len(sys.argv) > 1:
+        initial_file_path = sys.argv[1]
+    window = MainWindow(initial_file_path)
     window.setGeometry(100, 100, 400, 200)  # Set a fixed size for the window
     window.show()
+    window.load_initial()
     sys.exit(app.exec_())

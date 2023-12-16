@@ -62,6 +62,7 @@ impl Element {
         earth_ir: f64,
         albedo_factor: f64,
         generated_heat: f64,
+        two_side_radiation: bool,
         orbit_divisions: &Vec<(usize, bool)>,
     ) -> Result<Self> {
         Self::check_point_length(&p1)?;
@@ -90,7 +91,7 @@ impl Element {
             properties.thickness,
         );
 
-        let e = Self::calculate_e(area, properties.alpha_ir);
+        let e = Self::calculate_e(area, properties.alpha_ir, two_side_radiation);
 
         let f = Self::calculate_f_array(
             area,
@@ -163,6 +164,7 @@ impl Element {
             earth_ir,
             albedo_factor,
             generated_heat,
+            false,
             &divisions,
         )
     }
@@ -258,18 +260,23 @@ impl Element {
         m
     }
 
-    fn calculate_e(area: f64, alpha: f64) -> Matrix {
+    fn calculate_e(area: f64, alpha: f64, two_side_radiation: bool) -> Matrix {
+        let factor = match two_side_radiation {
+            true => 2.0,  //Doubles the radiation loss
+            false => 1.0, //Radiation loss only in the element normal direction
+        };
+
         let e = Matrix::from_row_slice(
             3,
             3,
             &[
-                1.0, 0.0, 0.0, //Row 1
-                0.0, 1.0, 0.0, //Row 2
-                0.0, 0.0, 1.0, //Row 3
+                1.0, 0.0, 0.0, //
+                0.0, 1.0, 0.0, //
+                0.0, 0.0, 1.0, //
             ],
         );
 
-        (BOLTZMANN * alpha * area / 3.0) * e
+        (factor * BOLTZMANN * alpha * area / 3.0) * e
     }
 
     fn calculate_f_array(

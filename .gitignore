@@ -404,3 +404,4 @@ solver/Sonia/*
 solver/e2e_tests
 standalone-raytrace/files/*
 benchmarks/*/
+**/globalConfiguration.json

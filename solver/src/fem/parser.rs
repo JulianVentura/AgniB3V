@@ -231,8 +231,6 @@ pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
 
     let view_factors_parsed = deserialize_view_factors(&view_factors_path)
         .with_context(|| "Couldn't deserialize view factors")?;
-    // TODO: Add to model
-    // global.properties.space_temperature
 
     let vtk_file = Vtk::import(&vtk_file_path)
         .with_context(|| format!("Couldn't import vtk file: {vtk_file_path}"))?;

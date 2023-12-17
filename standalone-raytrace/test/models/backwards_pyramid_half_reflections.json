@@ -13,7 +13,7 @@
                 "alpha_ir": 1.0
             },
             "MaterialB": {
-                "alpha_ir": 0.1
+                "alpha_ir": 0.0
             }
         },
         "elements": {

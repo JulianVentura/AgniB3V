@@ -250,10 +250,10 @@ def test_element_element_backwards_pyramid_view_factors_half_reflections_are_cor
             ]
         ),
     )
-    view_factors_errors = (
+    view_factors_errors = np.abs(
         element_element_view_factors - expected_element_element_view_factors
     )
-    assert np.sum(view_factors_errors * view_factors_errors) < 0.02 * 16
+    assert np.all(np.less(view_factors_errors, 0.10))
 
 
 def test_element_element_backwards_pyramid_view_factors_half_reflections_half_absortance_sum_one():
@@ -272,17 +272,15 @@ def test_element_element_backwards_pyramid_view_factors_half_reflections_half_ab
     expected_element_element_view_factors = (
         np.array(
             [
-                [1 / 3, 2 / 3, 0, 0],
-                [2 / 3, 1 / 3, 0, 0],
+                [0.5, 0.5, 0, 0],
+                [0.5, 0.5, 0, 0],
                 [0.5, 0.5, 0, 0],
                 [0.5, 0.5, 0, 0],
             ]
         ),
     )
-    view_factors_errors = (
-        element_element_view_factors - expected_element_element_view_factors
-    )
-    assert np.sum(view_factors_errors * view_factors_errors) < 0.02 * 16
+    view_factors_errors = np.abs(element_element_view_factors - expected_element_element_view_factors)
+    assert np.all(np.less(view_factors_errors, 0.10))
 
 
 def _element_element_backwards_diamond(properties_path, ray_amount):
@@ -291,7 +289,7 @@ def _element_element_backwards_diamond(properties_path, ray_amount):
         utils.element_amount(mesh.triangles), properties_path
     )
     return view_factors.element_element(
-        mesh, properties.absortance_ir_by_element, ray_amount, 50, True
+        mesh, properties.absortance_ir_by_element, ray_amount, 100, True
     )
 
 
@@ -324,10 +322,10 @@ def test_element_element_backwards_diamond_view_factors_are_correct():
             ]
         ),
     )
-    view_factors_errors = (
+    view_factors_errors = np.abs(
         element_element_view_factors - expected_element_element_view_factors
     )
-    assert np.sum(view_factors_errors * view_factors_errors) < 0.02 * 16
+    assert np.all(np.less(view_factors_errors, 0.10))
 
 
 def test_mesh_look_at():

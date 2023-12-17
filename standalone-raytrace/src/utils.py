@@ -1,8 +1,4 @@
 import numpy as np
-import os
-
-
-
 
 def normalize(v):
     norm = np.sqrt(v.dot(v))
@@ -118,13 +114,3 @@ def flip_vectors_around_axis(axis, vectors):
 	rot_matrix = _rotation_matrix(axis, np.pi)
 	return np.dot(rot_matrix, vectors.T).T
 
-def get_file_with_name(filename: str, directory: str) -> str or None:
-    """
-    Given a filename and a directory, it looks for a file that matches the name 
-    in the given directory and returns its path.
-    """
-    files = [f for f in os.listdir(directory)]
-    for file in files:
-        if filename in file:
-            return file
-    return None

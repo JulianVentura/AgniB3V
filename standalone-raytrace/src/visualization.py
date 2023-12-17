@@ -4,7 +4,7 @@ import seaborn as sb
 from . import utils
 
 RESET = "\033[0m"
-COLOR_BACKGROUND = [9, 10, 20]
+BACKGROUND_COLOR = np.array([9, 10, 20]) / 255
 
 
 def _get_color_escape(rgb_color):
@@ -17,6 +17,10 @@ def _color_item_str(rbg_color):
 
 
 def view_material(mesh, props):
+    """
+    Receives a mesh, adds opposite side faces inplace and colors them
+    according to the element material. Pallete is generated automatically.
+    """
     print("REFERENCE:")
     palette = sb.color_palette("tab10", len(props.materials))
     for i in range(len(palette)):
@@ -28,78 +32,65 @@ def view_material(mesh, props):
         colors.append(palette[material_id])
     colors = np.array(colors)
     colors = np.vstack((colors, colors))
+
     mesh.faces = np.vstack((mesh.faces, np.fliplr(mesh.faces)))
     mesh.unmerge_vertices()
     mesh.visual.vertex_colors = None
     mesh.visual.face_colors = colors
     scene = trimesh.Scene([mesh])
-    scene.show(background=COLOR_BACKGROUND, smooth=True)
+    scene.show(background=BACKGROUND_COLOR, smooth=True)
 
 
 def view_normal(mesh):
+    """
+    Receives a mesh, adds opposite side faces inplace and colors them
+    according to the element normals orientation.
+    """
     print("REFERENCE:")
-    palette = np.array([[63, 96, 181], [165, 48, 48]]) / 255
-    print(_color_item_str(palette[0]), "+n")
-    print(_color_item_str(palette[1]), "-n")
+    POSITIVE_COLOR = np.array([63, 96, 181]) / 255
+    NEGATIVE_COLOR = np.array([165, 48, 48]) / 255
+    print(_color_item_str(POSITIVE_COLOR), "+n")
+    print(_color_item_str(NEGATIVE_COLOR), "-n")
 
     mesh.faces = np.vstack((mesh.faces, np.fliplr(mesh.faces)))
 
     side_amount = utils.element_amount(mesh.triangles) // 2
-    postiive_side_colors = np.broadcast_to(palette[0], (side_amount, 3))
-    negative_side_colors = np.broadcast_to(palette[1], (side_amount, 3))
+    postiive_side_colors = np.broadcast_to(POSITIVE_COLOR, (side_amount, 3))
+    negative_side_colors = np.broadcast_to(NEGATIVE_COLOR, (side_amount, 3))
     side_colors = np.vstack((postiive_side_colors, negative_side_colors))
 
     mesh.unmerge_vertices()
     mesh.visual.vertex_colors = None
     mesh.visual.face_colors = side_colors
     scene = trimesh.Scene([mesh])
-    scene.show(background=COLOR_BACKGROUND, smooth=True)
+    scene.show(background=BACKGROUND_COLOR, smooth=True)
 
 
-def view_raycast(mesh, emmiting_element_idx, ray_origins, ray_directions):
-    mesh.unmerge_vertices()
-    mesh.visual.vertex_colors = None
-    mesh.visual.face_colors = [
-        [255, 0, 0, 255] if emmiting_element_idx == i else [255, 255, 255, 255]
-        for i in range(len(mesh.triangles))
-    ]
+def view_raycast(ray_origins, ray_directions, mesh=None, emmiting_element_id=-1):
+    """
+    Receives ray origins and directions and displays them in 3D space.
+    Optionally it can show the mesh and color the element from which rays
+    are being cast.
+    """
+    RAY_COLOR = np.array([232, 193, 112])
+    OTHER_ELEMENTS_COLOR = np.array([235, 237, 233])
+    EMMITING_ELEMENT_COLOR = np.array([70, 130, 50])
+
     rays = trimesh.load_path(
         np.hstack((ray_origins, ray_origins + ray_directions)).reshape(-1, 2, 3)
     )
-    scene = trimesh.Scene([mesh, rays])
-    scene.show()
+    rays.colors = np.broadcast_to(RAY_COLOR, (ray_origins.size // 3, 3))
+    if mesh:
+        mesh.unmerge_vertices()
+        mesh.visual.vertex_colors = None
+        mesh.visual.face_colors = [
+            EMMITING_ELEMENT_COLOR
+            if element_id == emmiting_element_id
+            else OTHER_ELEMENTS_COLOR
+            for element_id in range(utils.element_amount(mesh.triangles))
+        ]
+        scene = trimesh.Scene([mesh, rays])
+    else:
+        scene = trimesh.Scene([rays])
 
-
-def view_element_view_factors(mesh, emmiting_element_idx, element_view_factors):
-    mesh.unmerge_vertices()
-    mesh.visual.vertex_colors = None
-    mesh.visual.face_colors = [
-        [int(255 * element_view_factors[i] * 10), 0, 0, 255]
-        if emmiting_element_idx != i
-        else [0, 255, 0, 255]
-        for i in range(len(mesh.triangles))
-    ]
-    scene = trimesh.Scene([mesh])
-    scene.show()
-
-
-def view_other_view_factors(mesh, element_view_factors):
-    mesh.unmerge_vertices()
-    mesh.visual.vertex_colors = None
-    mesh.visual.face_colors = [
-        [int(255 * element_view_factors[i]), 0, 0, 255]
-        for i in range(len(mesh.triangles))
-    ]
-    scene = trimesh.Scene([mesh])
-    scene.show()
-
-
-def view_invisible_points(mesh, sun_direction, invisible_nodes):
-    sun_ray = trimesh.load_path(
-        [mesh.center_mass, mesh.center_mass - 10 * sun_direction]
-    )
-    sun_ray.colors = [[255, 233, 92, 255]]
-    point_cloud = trimesh.PointCloud(invisible_nodes)
-    mesh.unmerge_vertices()
-    scene = trimesh.Scene([mesh, point_cloud, sun_ray])
-    scene.show()
+    scene.show(background=BACKGROUND_COLOR, smooth=True)

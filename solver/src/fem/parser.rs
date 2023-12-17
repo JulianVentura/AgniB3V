@@ -231,9 +231,8 @@ pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
 
     let view_factors_parsed = deserialize_view_factors(&view_factors_path)
         .with_context(|| "Couldn't deserialize view factors")?;
-    // Add to model
+    // TODO: Add to model
     // global.properties.space_temperature
-    // global.properties.initial_temperature
 
     let vtk_file = Vtk::import(&vtk_file_path)
         .with_context(|| format!("Couldn't import vtk file: {vtk_file_path}"))?;
@@ -321,7 +320,6 @@ pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
 
     let mut elements: Vec<Element> = Vec::new();
 
-    
     let initial_temperatures: HashMap<u32, (f64, u32)> =
         calculate_node_initial_temperatures(&parser_elements);
 
@@ -339,7 +337,6 @@ pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
         let mut p2 = points[parser_element.nodeidx2 as usize].clone();
         let mut p3 = points[parser_element.nodeidx3 as usize].clone();
 
-        
         p1.temperature = initial_temperatures[&parser_element.nodeidx1].0
             / initial_temperatures[&parser_element.nodeidx1].1 as f64;
         p2.temperature = initial_temperatures[&parser_element.nodeidx2].0
@@ -406,7 +403,6 @@ pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
         orbit_manager,
     })
 }
-
 
 fn calculate_node_initial_temperatures(
     parser_elements: &Vec<ParserElement>,

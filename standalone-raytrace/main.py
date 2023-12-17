@@ -153,6 +153,13 @@ def op_visualize_material(mesh_file_path, properties_file_path):
     props = properties_atlas.PropertiesAtlas(len(mesh.triangles), properties_file_path)
     visualization.view_material(mesh, props)
 
+def op_visualize_normal(mesh_file_path):
+    """
+    Receives the mesh file path (vtk) and creates a visualization of normals direction.
+    """
+    print("Starting visualization of normals")
+    mesh = vtk_io.load_vtk(mesh_file_path)
+    visualization.view_normal(mesh)
 
 def op_show_help(argv):
     """
@@ -207,6 +214,10 @@ def main():
 
         case "viewm":
             op_visualize_material(mesh_file_path, properties_file_path)
+        
+        case "viewn":
+            op_visualize_normal(mesh_file_path)
+        
         case _:
             op_show_help(sys.argv)
 

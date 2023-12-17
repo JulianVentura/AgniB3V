@@ -238,7 +238,7 @@ impl Element {
             ],
         );
 
-        //TODO: Check if thickness is correct
+        
         k = k * thickness * conductivity / (4.0 * area);
         k
     }
@@ -254,7 +254,7 @@ impl Element {
             ],
         );
 
-        //TODO: Check if thickness is correct
+        
         m = m * (area * specific_heat * density * thickness / 12.0);
 
         m

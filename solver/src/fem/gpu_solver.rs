@@ -95,6 +95,11 @@ impl GPUSolver {
         })
     }
 
+    /// The function `step` enqueues multiple kernels in a specific order and returns a `Result`
+    ///
+    /// Returns:
+    ///
+    /// The `step` function returns a `Result` type.
     pub fn step(&mut self) -> Result<()> {
         unsafe {
             self.kernels.kernel_t_4.enq()?;
@@ -108,6 +113,16 @@ impl GPUSolver {
         Ok(())
     }
 
+    /// The `run_for` function runs a given number of steps.
+    ///
+    /// Arguments:
+    ///
+    /// * `steps`: The `steps` parameter is of type `usize` and represents the number of steps to run
+    /// the code for.
+    ///
+    /// Returns:
+    ///
+    /// The `run_for` function returns a `Result<()>`.
     pub fn run_for(&mut self, steps: usize) -> Result<()> {
         for _ in 0..steps {
             self.step()?;
@@ -120,6 +135,16 @@ impl GPUSolver {
         &self.points
     }
 
+    /// The function `update_f` updates a buffer with a constant value at a specified index.
+    ///
+    /// Arguments:
+    ///
+    /// * `f_index`: The `f_index` parameter is an index that specifies which element of the `f_const`
+    /// array will be used to update.
+    ///
+    /// Returns:
+    ///
+    /// The function `update_f` returns a `Result<()>`.
     pub fn update_f(&mut self, f_index: usize) -> Result<()> {
         self.buffers
             .buffer_f_const
@@ -130,6 +155,11 @@ impl GPUSolver {
         Ok(())
     }
 
+    /// The function `temperature` reads the contents of a buffer and returns a reference to the data.
+    ///
+    /// Returns:
+    ///
+    /// a Result containing a reference to a Vector.
     pub fn temperature(&mut self) -> Result<&Vector> {
         self.program.queue.finish()?;
 
@@ -144,6 +174,18 @@ impl GPUSolver {
         Ok(&self.temp)
     }
 
+    /// The function `start_opencl_program` reads OpenCL kernel code from a file, connects to an OpenCL
+    /// device, builds a program, and creates a queue for executing OpenCL commands.
+    ///
+    /// Arguments:
+    ///
+    /// * `src_path`: The `src_path` parameter is a string that represents the path to the OpenCL kernel
+    /// code file. This file contains the code that will be executed on the OpenCL device.
+    ///
+    /// Returns:
+    ///
+    /// The function `start_opencl_program` returns a `Result` containing an `OpenCLProgram` if the
+    /// program is successfully created, or an error if any of the steps in the process fail.
     fn start_opencl_program(src_path: &str) -> Result<OpenCLProgram> {
         let kernel_code = std::fs::read_to_string(src_path)
             .with_context(|| format!("Couldn't read kernel code on {src_path}"))?;
@@ -169,6 +211,25 @@ impl GPUSolver {
         })
     }
 
+    /// The function `start_opencl_buffers` creates OpenCL buffers for various input data types and
+    /// returns them as a struct.
+    ///
+    /// Arguments:
+    ///
+    /// * `session`: The `session` parameter is a mutable reference to an `OpenCLProgram` object. It is
+    /// used to access the OpenCL queue for creating the buffers.
+    /// * `t`: A vector of type f64.
+    /// * `h`: The parameter `h` is a matrix.
+    /// * `f_const`: The `f_const` parameter is a vector of type `Vector` which contains floating-point
+    /// values. It is used to create an OpenCL buffer named `buffer_f_const`.
+    /// * `d`: `d` is a matrix.
+    /// * `a_inverse`: `a_inverse` is a matrix represented as a `Matrix` struct. It is passed as a
+    /// reference to the `start_opencl_buffers` function.
+    ///
+    /// Returns:
+    ///
+    /// The function `start_opencl_buffers` returns a `Result` containing an `OpenCLBuffers` struct if
+    /// the creation of all the OpenCL buffers is successful.
     fn start_opencl_buffers(
         session: &mut OpenCLProgram,
         t: &Vector,
@@ -258,6 +319,22 @@ impl GPUSolver {
         })
     }
 
+    /// The function `start_opencl_kernels` creates and initializes OpenCL kernels for various
+    /// operations.
+    ///
+    /// Arguments:
+    ///
+    /// * `session`: `session` is a mutable reference to an `OpenCLProgram` struct. This struct contains
+    /// information about the OpenCL program, such as the program itself, the command queue, and other
+    /// necessary details for executing OpenCL kernels.
+    /// * `buffers`: The `buffers` parameter is of type `OpenCLBuffers` and contains OpenCL buffer
+    /// objects. These buffer objects are used to store data that will be accessed by the OpenCL
+    /// kernels.
+    /// * `t`: t is a reference to a Vector
+    ///
+    /// Returns:
+    ///
+    /// a Result<OpenCLKernels> object.
     fn start_opencl_kernels(
         session: &mut OpenCLProgram,
         buffers: &OpenCLBuffers,

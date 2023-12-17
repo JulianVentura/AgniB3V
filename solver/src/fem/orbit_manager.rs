@@ -38,6 +38,17 @@ impl OrbitManager {
         &self.eclipse_divisions
     }
 
+    /// The function calculates the time remaining until the next division based on the current time and
+    /// a list of time divisions.
+    ///
+    /// Arguments:
+    ///
+    /// * `time`: The `time` parameter represents the current time in seconds.
+    ///
+    /// Returns:
+    ///
+    /// The function `time_to_next` returns a `f64` value, which represents the time remaining until the
+    /// next division in the orbit.
     pub fn time_to_next(&mut self, time: f64) -> f64 {
         let orbit_time = time % self.orbit_period;
         self.update_division_idx(orbit_time);
@@ -49,12 +60,28 @@ impl OrbitManager {
         }
     }
 
+    /// The function `current_index` returns the current division index based on the given time and
+    /// orbit period.
+    ///
+    /// Arguments:
+    ///
+    /// * `time`: The `time` parameter represents the current time in seconds.
+    ///
+    /// Returns:
+    ///
+    /// The function `current_index` returns the value of `self.division_idx`.
     pub fn current_index(&mut self, time: f64) -> usize {
         let orbit_time = time % self.orbit_period;
         self.update_division_idx(orbit_time);
         self.division_idx
     }
 
+    /// The function updates the division index based on the given orbit time and a set of time
+    /// divisions.
+    ///
+    /// Arguments:
+    ///
+    /// * `orbit_time`: The `orbit_time` parameter represents the current time in the orbit.
     fn update_division_idx(&mut self, orbit_time: f64) {
         let divisions = &self.time_divisions;
         let idx = &mut self.division_idx;
@@ -75,6 +102,21 @@ impl OrbitManager {
         }
     }
 
+    /// The function `expand_time_divisions` takes a vector of orbit divisions and the start and end
+    /// times of an eclipse, and returns a vector of tuples containing the index and time values of the
+    /// orbit divisions that fall within the eclipse.
+    ///
+    /// Arguments:
+    ///
+    /// * `orbit_divisions`: A vector of f64 values representing the time divisions of an orbit. Each
+    /// value represents a specific point in time within the orbit.
+    /// * `eclipse_start`: The `eclipse_start` parameter represents the start time of an eclipse event.
+    /// * `eclipse_end`: The `eclipse_end` parameter represents the end time of an eclipse event.
+    ///
+    /// Returns:
+    ///
+    /// The function `expand_time_divisions` returns a vector of tuples, where each tuple contains an
+    /// index and a floating-point number.
     fn expand_time_divisions(
         orbit_divisions: &Vec<f64>,
         eclipse_start: f64,
@@ -105,6 +147,22 @@ impl OrbitManager {
         expanded_divisions
     }
 
+    /// The function `expand_eclipse_divisions` takes a vector of expanded time divisions, an eclipse
+    /// start time, and an eclipse end time, and returns a vector of tuples indicating whether each time
+    /// division is in eclipse or not.
+    ///
+    /// Arguments:
+    ///
+    /// * `expanded_time_divisions`: A vector of tuples, where each tuple contains an index (usize) and
+    /// a time value (f64). This vector represents the expanded time divisions.
+    /// * `eclipse_start`: The `eclipse_start` parameter represents the start time of an eclipse event.
+    /// * `eclipse_end`: The `eclipse_end` parameter represents the end time of an eclipse event.
+    ///
+    /// Returns:
+    ///
+    /// The function `expand_eclipse_divisions` returns a vector of tuples, where each tuple contains an
+    /// index value and a boolean indicating whether the corresponding orbit time is within the
+    /// specified eclipse start and end times.
     fn expand_eclipse_divisions(
         expanded_time_divisions: &Vec<(usize, f64)>,
         eclipse_start: f64,
@@ -120,6 +178,17 @@ impl OrbitManager {
         eclipse_divisions
     }
 
+    /// The function determines if a given orbit time falls within an eclipse period.
+    ///
+    /// Arguments:
+    ///
+    /// * `eclipse_start`: The `eclipse_start` parameter represents the start time of the eclipse event.
+    /// * `eclipse_end`: The `eclipse_end` parameter represents the end time of the eclipse event.
+    /// * `orbit_time`: The `orbit_time` parameter represents the current time in the orbit.
+    ///
+    /// Returns:
+    ///
+    /// a boolean value.
     fn is_in_eclipse(eclipse_start: f64, eclipse_end: f64, orbit_time: f64) -> bool {
         if eclipse_start <= eclipse_end {
             return orbit_time >= eclipse_start && orbit_time < eclipse_end;

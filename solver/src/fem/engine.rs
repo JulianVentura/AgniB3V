@@ -65,6 +65,12 @@ impl<'a> FEMEngine<'a> {
         })
     }
 
+    /// The `run` function runs a simulation for a specified number of steps, saving results at each
+    /// step and updating the simulation state.
+    ///
+    /// Returns:
+    ///
+    /// The `run` function returns a `Result<()>`.
     pub fn run(&mut self) -> Result<()> {
         println!("Running for {} steps", self.simulation_steps);
 
@@ -82,6 +88,16 @@ impl<'a> FEMEngine<'a> {
         Ok(())
     }
 
+    /// The function `update_f` updates the value of `f_index` and calls the `update_f` method of the
+    /// appropriate solver based on the current value of `f_index`.
+    ///
+    /// Arguments:
+    ///
+    /// * `step`: The `step` parameter represents the current step number in the simulation.
+    ///
+    /// Returns:
+    ///
+    /// The function `update_f` returns a `Result<()>`.
     fn update_f(&mut self, step: usize) -> Result<()> {
         let time = step as f64 * self.time_step;
         let idx = self.orbit_manager.current_index(time);
@@ -99,6 +115,24 @@ impl<'a> FEMEngine<'a> {
         Ok(())
     }
 
+    /// The function calculates the number of iteration steps needed based on the next division time,
+    /// snapshot steps, current step, and time step.
+    ///
+    /// Arguments:
+    ///
+    /// * `next_division_time`: The `next_division_time` parameter represents the time at which the next
+    /// division will occur.
+    /// * `snapshot_steps`: The `snapshot_steps` parameter represents the number of steps between each
+    /// snapshot. It determines how often a snapshot of the calculation is taken.
+    /// * `current_step`: The `current_step` parameter represents the current iteration step in a loop
+    /// or simulation. It is of type `usize`, which means it is an unsigned integer.
+    /// * `time_step`: The `time_step` parameter represents the duration of each time step in the
+    /// simulation. It is a floating-point number (f64) that indicates the length of time that each
+    /// iteration of the simulation represents.
+    ///
+    /// Returns:
+    ///
+    /// The function `calculate_iteration_steps` returns a `usize` value.
     fn calculate_iteration_steps(
         next_division_time: f64,
         snapshot_steps: usize,
@@ -111,6 +145,17 @@ impl<'a> FEMEngine<'a> {
         usize::min(next_snap_steps, next_division_steps)
     }
 
+    /// The function `execute_solver` runs a simulation for a specified number of steps using a specific
+    /// solver algorithm.
+    ///
+    /// Arguments:
+    ///
+    /// * `current_step`: The `current_step` parameter represents the current iteration step in the
+    /// simulation. It is of type `usize`, which means it is an unsigned integer.
+    ///
+    /// Returns:
+    ///
+    /// The function `execute_solver` returns a `Result<usize>`.
     fn execute_solver(&mut self, current_step: usize) -> Result<usize> {
         let next_division_time = self
             .orbit_manager
@@ -132,6 +177,16 @@ impl<'a> FEMEngine<'a> {
         Ok(sim_steps)
     }
 
+    /// The function saves the temperature results at regular intervals during a simulation.
+    ///
+    /// Arguments:
+    ///
+    /// * `current_step`: The `current_step` parameter represents the current step or iteration in the
+    /// process.
+    ///
+    /// Returns:
+    ///
+    /// The function `save_results` returns a `Result<()>`.
     fn save_results(&mut self, current_step: usize) -> Result<()> {
         if current_step % self.snapshot_steps == 0 {
             let temp = match &mut self.solver {
@@ -145,6 +200,18 @@ impl<'a> FEMEngine<'a> {
         Ok(())
     }
 
+    /// The function checks if a given dividend is a multiple of a given divisor.
+    ///
+    /// Arguments:
+    ///
+    /// * `dividend`: The dividend is the number that is being divided. It is the number that is being
+    /// divided by the divisor.
+    /// * `divisor`: The divisor is the number that divides the dividend. It is the number that we want
+    /// to check if it is a multiple of the dividend.
+    ///
+    /// Returns:
+    ///
+    /// a boolean value, indicating whether the dividend is a multiple of the divisor.
     fn is_multiple(dividend: f64, divisor: f64) -> bool {
         (dividend / divisor).fract().abs() < 1e-12
     }

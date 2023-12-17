@@ -125,24 +125,6 @@ def op_process_view_factors(
     )
     print("Done")
 
-
-def op_visualize_view_factors(mesh_file_path, properties_file_path, element_id):
-    """
-    Receives the mesh file path (vtk), the properties file path (json) and the element id
-    and creates a visualization of the view factors of the element.
-    """
-    print("Starting visualization of view factors")
-    mesh = vtk_io.load_vtk(mesh_file_path)
-    element_id = int(element_id)
-    material_file = open(properties_file_path)
-    material_json = json.load(material_file)
-
-    # visualization.view_other_view_factors(mesh, material_json["view_factors"]["earth"])
-    visualization.view_element_view_factors(
-        mesh, element_id, material_json["view_factors"]["elements"][element_id]
-    )
-
-
 def op_visualize_material(mesh_file_path, properties_file_path):
     """
     Receives the mesh file path (vtk) and the properties file path (json) and creates
@@ -152,6 +134,7 @@ def op_visualize_material(mesh_file_path, properties_file_path):
     mesh = vtk_io.load_vtk(mesh_file_path)
     props = properties_atlas.PropertiesAtlas(len(mesh.triangles), properties_file_path)
     visualization.view_material(mesh, props)
+    print("Done")
 
 def op_visualize_normal(mesh_file_path):
     """
@@ -160,6 +143,7 @@ def op_visualize_normal(mesh_file_path):
     print("Starting visualization of normals")
     mesh = vtk_io.load_vtk(mesh_file_path)
     visualization.view_normal(mesh)
+    print("Done")
 
 def op_show_help(argv):
     """
@@ -220,11 +204,6 @@ def main():
         
         case _:
             op_show_help(sys.argv)
-
-        # TODO: Read vf from processed files
-        # case "viewvf":
-        #    op_visualize_view_factors(mesh_file_path, properties_file_path, element_id)
-
 
 if __name__ == "__main__":
     main()

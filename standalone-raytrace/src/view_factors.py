@@ -105,19 +105,23 @@ def element_sun(mesh, sun_direction):
 
     return element_sun_view_factors
 
-
 def _filter_reflected_rays_by_element_absorptance(
     absorptance, hit_points, hit_ray_ids, hit_element_ids
 ):
-    random_values = np.random.rand(len(hit_element_ids))
-    reflected_rays = random_values > absorptance[hit_element_ids]
-    absorbed_rays = random_values <= absorptance[hit_element_ids]
+    random_values = np.random.rand(hit_element_ids.size)
+    reflected_mask = random_values > absorptance[hit_element_ids]
+    absorbed_mask = random_values <= absorptance[hit_element_ids]
 
-    _hit_points = hit_points[reflected_rays]
-    _hit_ray_ids = hit_ray_ids[reflected_rays]
-    _hit_element_ids = hit_element_ids[reflected_rays]
-
-    return _hit_points, _hit_ray_ids, _hit_element_ids, hit_element_ids[absorbed_rays]
+    reflected_hit_points = hit_points[reflected_mask]
+    reflected_hit_ray_ids = hit_ray_ids[reflected_mask]
+    reflected_element_ids = hit_element_ids[reflected_mask]
+    absorbed_element_ids = hit_element_ids[absorbed_mask]
+    return (
+        reflected_hit_points,
+        reflected_hit_ray_ids,
+        reflected_element_ids,
+        absorbed_element_ids,
+    )
 
 
 def element_element(
@@ -162,13 +166,16 @@ def element_element(
         ) = _filter_reflected_rays_by_element_absorptance(
             absorptance_by_element, hit_points, hit_ray_ids, hit_element_ids
         )
-        for absorbed_ray_id in absorbed_element_ids:
-            view_factors_row[absorbed_ray_id] += 1
+
+        for absorbed_element_id in absorbed_element_ids:
+            view_factors_row[absorbed_element_id] += 1
 
         # Reflexions
-        for j in range(max_reflections_amount):
-            if len(ray_origins) == 0:
+        for _ in range(max_reflections_amount):
+            if hit_element_ids.size == 0:
                 break
+
+            hit_points += RAY_DISPLACEMENT * element_normals[hit_element_ids]
 
             ray_directions = utils.reflected_rays(
                 ray_directions[hit_ray_ids], element_normals[hit_element_ids]
@@ -190,7 +197,6 @@ def element_element(
             ) = _filter_reflected_rays_by_element_absorptance(
                 absorptance_by_element, hit_points, hit_ray_ids, hit_element_ids
             )
-            hit_points += RAY_DISPLACEMENT * element_normals[hit_element_ids]
 
             for absorbed_element_id in absorbed_element_ids:
                 view_factors_row[absorbed_element_id] += 1

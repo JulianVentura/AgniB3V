@@ -79,12 +79,26 @@ class MainWindow(QWidget):
         self.file = initial_file_path
 
     def load_initial(self):
+        """
+        Loads the initial data and results based on the selected file.
+        If a file is selected, it retrieves the results and updates the UI accordingly.
+        """
         if self.file:
             self.get_results(self.file)
             self.loader_label.hide()
             self.reload_button.show()
 
     def show_graph(self):
+        """
+        Displays a graph based on the selected graph type.
+
+        The graph type is determined by the current text of the combo box.
+        The available graph types are:
+        - "All Temperatures Over Time": Plots all temperatures over time.
+        - "Temperature Over Time": Plots the temperature over time for a specific node ID.
+        - "Average Temperature Over Time": Plots the average temperature over time.
+        - "Standard Deviation Over Time": Plots the standard deviation of temperatures over time.
+        """
         graph_type = self.combo_box.currentText()
 
         if graph_type == "All Temperatures Over Time":
@@ -99,6 +113,10 @@ class MainWindow(QWidget):
             plot_std_temperature(self.results)
 
     def open_file_dialog(self):
+        """
+        Opens a file dialog to choose a .vtk.series file.
+        After selecting the file, it calls the get_results method with the selected file name.
+        """
         self.loader_label.show()
         options = QFileDialog.Options()
         file_name, _ = QFileDialog.getOpenFileName(
@@ -114,18 +132,42 @@ class MainWindow(QWidget):
         self.reload_button.show()
 
     def progress(self, percentage):
+        """
+        Update the progress label with the given percentage.
+
+        Args:
+            percentage (int): The progress percentage.
+
+        Returns:
+            None
+        """
         percentage = int(percentage)
         self.loader_label.setText(f"Loading... {percentage} %")
         self.loader_label.show()
         QApplication.processEvents()
 
     def reload(self):
+        """
+        Reloads the results from the specified file and updates the UI.
+        """
         self.loader_label.show()
         file_name = self.file
         self.get_results(file_name)
         self.loader_label.hide()
 
     def get_results(self, file_name):
+        """
+        Retrieves and parses the results from the specified file.
+
+        Args:
+            file_name (str): The name of the file to retrieve the results from.
+
+        Raises:
+            Exception: If the file type is invalid.
+
+        Returns:
+            None
+        """
         if file_name:
             try:
                 extension = os.path.splitext(file_name)[1]

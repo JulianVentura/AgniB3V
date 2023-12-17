@@ -169,6 +169,17 @@ impl Element {
         )
     }
 
+    /// The function calculates the area of a triangle using the cross product of two vectors.
+    ///
+    /// Arguments:
+    ///
+    /// * `p1`: The parameter `p1` is a reference to a `Point` object.
+    /// * `p2`: The parameter `p2` represents the second point in a triangle.
+    /// * `p3`: The `p3` parameter represents the third point of a triangle.
+    ///
+    /// Returns:
+    ///
+    /// The function `calculate_area` returns a `f64` value, which represents the calculated area.
     fn calculate_area(p1: &Point, p2: &Point, p3: &Point) -> f64 {
         let ab = &p2.position - &p1.position;
         let ac = &p3.position - &p1.position;
@@ -181,6 +192,17 @@ impl Element {
         (a * a + b * b + c * c).sqrt() / 2.0
     }
 
+    /// The function calculates the squared distance between two points in a three-dimensional space.
+    ///
+    /// Arguments:
+    ///
+    /// * `p1`: A reference to a Point struct representing the first point.
+    /// * `p2`: The `p2` parameter is a reference to a `Point` object.
+    ///
+    /// Returns:
+    ///
+    /// The function `calculate_sqr_distance` returns a `f64` value, which represents the squared
+    /// distance between two points.
     fn calculate_sqr_distance(p1: &Point, p2: &Point) -> f64 {
         let mut distance = (p1.position[0] - p2.position[0]).powi(2);
         distance += (p1.position[1] - p2.position[1]).powi(2);
@@ -189,6 +211,18 @@ impl Element {
         distance
     }
 
+    /// The function calculates the dot product between two edges defined by their endpoints.
+    ///
+    /// Arguments:
+    ///
+    /// * `a`: The parameter `a` is a tuple containing two references to `Point` objects. The first
+    /// element of the tuple (`a.0`) represents the starting point of the first edge, and the second
+    /// element (`a.1`) represents the ending point of the first edge.
+    ///
+    /// Returns:
+    ///
+    /// The function `edges_dot_product` returns a `f64` value, which is the dot product between two
+    /// edges.
     fn edges_dot_product(a: (&Point, &Point), b: (&Point, &Point)) -> f64 {
         //Calculate the dot product between two edges
         let edge1 = &a.1.position - &a.0.position;
@@ -197,6 +231,11 @@ impl Element {
         edge1.dot(&edge2)
     }
 
+    /// The function `check_point_length` checks if a point has the correct dimensionality.
+    ///
+    /// Arguments:
+    ///
+    /// * `point`: A reference to a `Point` object.
     fn check_point_length(point: &Point) -> Result<()> {
         if point.position.len() != 3 {
             err!("Point with wrong dimensionality");
@@ -205,6 +244,28 @@ impl Element {
         Ok(())
     }
 
+    /// The function calculates the conductivity matrix for a given set of points, conductivity, area,
+    /// and thickness.
+    ///
+    /// Arguments:
+    ///
+    /// * `p1`: The parameter `p1` represents the first point in a 3D coordinate system. It is of
+    /// type `Point`, which is a custom data structure that holds the coordinates of a point.
+    /// * `p2`: The parameter `p2` represents the coordinates of the second point in a three-point
+    /// system.
+    /// * `p3`: p3 is a reference to a Point object.
+    /// * `conductivity`: The conductivity parameter represents the thermal conductivity of the
+    /// material. It is a measure of how well the material conducts heat.
+    /// * `area`: The parameter "area" represents the cross-sectional area of the material through which
+    /// heat is being conducted. It is a measure of the size of the surface through which heat is
+    /// flowing.
+    /// * `thickness`: The "thickness" parameter represents the thickness of the material through which
+    /// heat is being conducted. It is a scalar value that indicates the distance between the two
+    /// surfaces of the material.
+    ///
+    /// Returns:
+    ///
+    /// The function `calculate_k` returns a `Matrix` object.
     fn calculate_k(
         p1: &Point,
         p2: &Point,
@@ -242,6 +303,20 @@ impl Element {
         k
     }
 
+    /// The function calculates the m matrix for a given area, specific heat, density, and thickness.
+    ///
+    /// Arguments:
+    ///
+    /// * `area`: The parameter "area" represents the surface area of the object in square units.
+    /// * `specific_heat`: Specific heat is the amount of heat energy required to raise the temperature
+    /// of a substance by a certain amount.
+    /// * `density`: Density refers to the mass per unit volume of a substance. In this context, it
+    /// represents the density of the material being considered for the calculation.
+    /// * `thickness`: The "thickness" parameter represents the thickness of the material.
+    ///
+    /// Returns:
+    ///
+    /// The function `calculate_m` returns a matrix of type `Matrix`.
     fn calculate_m(area: f64, specific_heat: f64, density: f64, thickness: f64) -> Matrix {
         let mut m = Matrix::from_row_slice(
             3,
@@ -258,6 +333,22 @@ impl Element {
         m
     }
 
+    /// The function calculates the e matrix based on the area, alpha, and whether two-side
+    /// radiation is considered.
+    ///
+    /// Arguments:
+    ///
+    /// * `area`: The `area` parameter represents the surface area of the element for which you want to
+    /// calculate the radiation loss.
+    /// * `alpha`: Alpha is the absorptivity of the material. It represents the fraction of incident
+    /// radiation that is absorbed by the material.
+    /// * `two_side_radiation`: The parameter `two_side_radiation` is a boolean value that indicates
+    /// whether the radiation loss occurs on both sides of the element or only in the element's normal
+    /// direction. If `two_side_radiation` is `true`, it means that the radiation loss is doubled
+    ///
+    /// Returns:
+    ///
+    /// The function `calculate_e` returns a `Matrix` object.
     fn calculate_e(area: f64, alpha: f64, two_side_radiation: bool) -> Matrix {
         let factor = match two_side_radiation {
             true => 2.0,  //Doubles the radiation loss
@@ -277,6 +368,12 @@ impl Element {
         (factor * BOLTZMANN * alpha * area / 3.0) * e
     }
 
+    /// The function `calculate_f_array` calculates the F values for each orbit division based on
+    /// various input parameters.
+    ///
+    /// Returns:
+    ///
+    /// The function `calculate_f_array` returns a `Vec<Vector>`.
     fn calculate_f_array(
         area: f64,
         properties: &MaterialProperties,
@@ -306,6 +403,39 @@ impl Element {
             .collect()
     }
 
+    /// The function calculates the magnitude of the heat generated by a system based on various
+    /// factors.
+    ///
+    /// Arguments:
+    ///
+    /// * `area`: The `area` parameter represents the surface area of the object for which the heat flux
+    /// is being calculated.
+    /// * `properties`: The `properties` parameter is of type `MaterialProperties` and contains the
+    /// properties of the material being considered.
+    /// * `factors`: The `factors` parameter is of type `ViewFactors` and represents the view factors
+    /// between the surface and other objects in the environment.
+    /// * `solar_intensity`: The solar_intensity parameter represents the intensity of solar radiation
+    /// incident on the surface. It is a measure of the amount of solar energy per unit area.
+    /// * `earth_ir`: The parameter `earth_ir` represents the intensity of infrared radiation emitted by
+    /// the Earth.
+    /// * `albedo_factor`: The `albedo_factor` parameter represents the factor by which the albedo
+    /// (reflectivity) of the surface affects the heat generation. It is multiplied with the solar
+    /// intensity and the earth view factor for albedo to calculate the albedo contribution to the heat
+    /// generation.
+    /// * `generated_heat`: The `generated_heat` parameter represents the amount of heat generated by
+    /// the element. It is a `f64` (floating-point number) value.
+    /// * `earth_view_factor_albedo`: The parameter `earth_view_factor_albedo` represents the view
+    /// factor between the surface and the Earth for the albedo component. It is used to calculate the
+    /// contribution of reflected solar radiation from the Earth's surface to the overall heat
+    /// generation.
+    /// * `earth_view_factor_ir`: The parameter `earth_view_factor_ir` represents the view factor
+    /// between the surface and the Earth for infrared radiation. It is used to calculate the
+    /// contribution of Earth's infrared radiation to the overall heat generation.
+    /// * `in_eclipse`: A boolean value indicating whether the element is in eclipse or not.
+    ///
+    /// Returns:
+    ///
+    /// a Vector.
     fn calculate_f(
         area: f64,
         properties: &MaterialProperties,

@@ -1,6 +1,6 @@
 import os
 import sys
-from src import operations
+from src import commands
 
 def _get_file_with_name(directory, filename):
     """
@@ -24,7 +24,7 @@ def main():
         viewn: given the mesh file it displays the normal orientation of each mesh element.
     """
     if len(sys.argv) < 3:
-        operations.show_help(sys.argv)
+        commands.show_help(sys.argv)
         return
 
     [_, opcode, files_directory_path] = sys.argv
@@ -49,7 +49,7 @@ def main():
                 except FileNotFoundError as e:
                     print("Error: File not found", e)
                     return -1
-                operations.process_view_factors(
+                commands.process_view_factors(
                     mesh_file_path,
                     properties_file_path,
                     gmat_report_file_path,
@@ -58,13 +58,13 @@ def main():
                 )
 
             case "viewm":
-                operations.visualize_material(mesh_file_path, properties_file_path)
+                commands.visualize_material(mesh_file_path, properties_file_path)
             
             case "viewn":
-                operations.visualize_normal(mesh_file_path)
+                commands.visualize_normal(mesh_file_path)
             
             case _:
-                operations.show_help(sys.argv)
+                commands.show_help(sys.argv)
     except Exception as  e:
         print("Error:" , e)
 

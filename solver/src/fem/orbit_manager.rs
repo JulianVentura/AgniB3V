@@ -75,9 +75,6 @@ impl OrbitManager {
         }
     }
 
-    //TODO:
-    // - Optimization: If the eclipse start or end happens to be equal or very close to a division,
-    // we could save on one new division.
     fn expand_time_divisions(
         orbit_divisions: &Vec<f64>,
         eclipse_start: f64,

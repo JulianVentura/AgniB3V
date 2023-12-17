@@ -23,7 +23,6 @@ pub fn construct_points_array(elements: &Vec<Element>, n_points: usize) -> Vec<P
 
     points.resize(n_points, Default::default());
 
-    // TODO: This is not very efficient, we can check if the point already exists
     for e in elements {
         points[e.p1.global_id as usize] = e.p1.clone();
         points[e.p2.global_id as usize] = e.p2.clone();

@@ -7,7 +7,6 @@ use super::{
     explicit_solver::ExplicitSolver, gpu_solver::GPUSolver, implicit_solver::ImplicitSolver,
 };
 
-//TODO: Check how much slower the solver gets if we use a dyn (dynamic dispatch) over the Solver
 //object
 pub enum Solver {
     Explicit(ExplicitSolver),

@@ -73,6 +73,12 @@ impl ExplicitSolver {
         Ok(())
     }
 
+    /// The `step` function calculates the temperature at the next time step based on a linear system of
+    /// equations.
+    ///
+    /// Returns:
+    ///
+    /// a `Result<()>`.
     pub fn step(&mut self) -> Result<()> {
         solver::fourth_power(&self.temp, &mut self.t_4);
 
@@ -88,6 +94,16 @@ impl ExplicitSolver {
         Ok(())
     }
 
+    /// The `run_for` function runs a given number of steps.
+    ///
+    /// Arguments:
+    ///
+    /// * `steps`: The `steps` parameter is of type `usize` and represents the number of steps to run
+    /// the code for.
+    ///
+    /// Returns:
+    ///
+    /// The `run_for` function returns a `Result<()>`.
     pub fn run_for(&mut self, steps: usize) -> Result<()> {
         for _ in 0..steps {
             self.step()?;

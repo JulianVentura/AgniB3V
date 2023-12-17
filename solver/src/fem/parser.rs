@@ -121,6 +121,22 @@ struct VTKSeries {
     files: Vec<VTKSeriesContent>,
 }
 
+/// The function `result_to_vtk` converts simulation results into VTK format for visualization.
+///
+/// Arguments:
+///
+/// * `results_path`: A string representing the path where the VTK file will be saved.
+/// * `points`: A vector of Point structs, where each Point struct represents a point in 3D space and
+/// contains the position of the point as an array of three coordinates (x, y, z).
+/// * `elements`: The `elements` parameter is a vector of `Element` structs. Each `Element` struct
+/// represents a geometric element in the mesh. It contains information about the vertices that make up
+/// the element, such as their global IDs.
+/// * `result`: The `result` parameter is a reference to a `Vector` which contains the result values for
+/// each point in the `points` vector.
+///
+/// Returns:
+///
+/// a `Result` type.
 fn result_to_vtk(
     results_path: String,
     points: &Vec<Point>,
@@ -174,6 +190,22 @@ fn result_to_vtk(
     Ok(())
 }
 
+/// The function writes a partial VTK result file based on the given configuration, points, elements,
+/// result, and id.
+///
+/// Arguments:
+///
+/// * `config`: A reference to a ParserConfig struct, which contains configuration settings for the
+/// parser.
+/// * `points`: A vector of Point objects, representing the coordinates of the points in the mesh.
+/// * `elements`: A vector containing the elements of the mesh.
+/// * `result`: The `result` parameter is of type `Vector`.
+/// * `id`: The `id` parameter is an identifier used to differentiate between different result files. It
+/// is of type `usize`, which means it represents a non-negative integer value.
+///
+/// Returns:
+///
+/// a `Result` type.
 pub fn write_partial_vtk_result(
     config: &ParserConfig,
     points: &Vec<Point>,
@@ -190,6 +222,21 @@ pub fn write_partial_vtk_result(
     Ok(())
 }
 
+/// The function `write_vtk_series` creates a VTK series file with a specified number of files and time
+/// intervals.
+///
+/// Arguments:
+///
+/// * `config`: A configuration object that contains information about the results path and other
+/// settings.
+/// * `size`: The `size` parameter represents the number of snapshots in the VTK series.
+/// It determines how many VTK files will be generated in the series.
+/// * `snapshot_period`: The `snapshot_period` parameter represents the time interval between each
+/// snapshot in the VTK series.
+///
+/// Returns:
+///
+/// a `Result` type.
 pub fn write_vtk_series(config: &ParserConfig, size: usize, snapshot_period: f64) -> Result<()> {
     let results_path = &config.results_path;
 
@@ -213,6 +260,12 @@ pub fn write_vtk_series(config: &ParserConfig, size: usize, snapshot_period: f64
     Ok(())
 }
 
+/// The function `fem_problem_from_vtk` parses VTK files and creates a FEMProblem struct for further
+/// analysis.
+///
+/// Returns:
+///
+/// a Result<FEMProblem>
 pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
     let vtk_file_path = &config.vtk_path;
     let properties_file_path = &config.materials_path;
@@ -402,6 +455,16 @@ pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
     })
 }
 
+/// The function calculates the initial temperatures of nodes based on a list of parser elements.
+///
+/// Arguments:
+///
+/// * `parser_elements`: The `parser_elements` parameter is a reference to a vector of `ParserElement`
+/// structs. Each `ParserElement` struct contains information about an element
+///
+/// Returns:
+///
+/// The function `calculate_node_initial_temperatures` returns a `HashMap<u32, (f64, u32)>`.
 fn calculate_node_initial_temperatures(
     parser_elements: &Vec<ParserElement>,
 ) -> HashMap<u32, (f64, u32)> {
@@ -426,6 +489,18 @@ fn calculate_node_initial_temperatures(
     initial_temperatures
 }
 
+/// The function updates the initial temperatures of nodes in a HashMap by adding a new temperature
+/// value and incrementing the count.
+///
+/// Arguments:
+///
+/// * `initial_temperatures`: A mutable reference to a HashMap where the key is of type u32 and the
+/// value is a tuple of type (f64, u32). This HashMap stores the initial temperatures for different
+/// nodes.
+/// * `node`: The `node` parameter is an unsigned 32-bit integer that represents a unique identifier for
+/// a node in a system or network.
+/// * `temperature`: The `temperature` parameter is a `f64` type, which represents a floating-point
+/// number used to store the temperature value.
 fn update_initial_temperatures(
     initial_temperatures: &mut HashMap<u32, (f64, u32)>,
     node: u32,
@@ -435,6 +510,17 @@ fn update_initial_temperatures(
     *entry = (entry.0 + temperature, entry.1 + 1);
 }
 
+/// The function `parse_config` takes a directory path as input and returns a `ParserConfig` struct with
+/// file paths based on the input directory path.
+///
+/// Arguments:
+///
+/// * `directory_path`: The `directory_path` parameter is a string that represents the path to a
+/// directory.
+///
+/// Returns:
+///
+/// a Result object containing a ParserConfig struct.
 pub fn parse_config(directory_path: &str) -> Result<ParserConfig> {
     return Ok(ParserConfig {
         vtk_path: format!("{}/{}", directory_path, VTK_FILE_NAME),
@@ -446,6 +532,15 @@ pub fn parse_config(directory_path: &str) -> Result<ParserConfig> {
 
 const FACTOR: f64 = 1.0 / ((1 << 16) - 1) as f64;
 
+/// The function `deserialize_matrix` reads matrix data from a file and returns a `Matrix` object.
+///
+/// Arguments:
+///
+/// * `file`: `file` is a mutable reference to a `File` object. It is used to read data from the file.
+///
+/// Returns:
+///
+/// The function `deserialize_matrix` returns a `Result<Matrix>`.
 fn deserialize_matrix(file: &mut File) -> Result<Matrix> {
     let rows = file
         .read_u16::<BigEndian>()
@@ -468,6 +563,16 @@ fn deserialize_matrix(file: &mut File) -> Result<Matrix> {
     ))
 }
 
+/// The function `deserialize_vector` reads data from a file and returns a tuple containing a vector and
+/// a start time.
+///
+/// Arguments:
+///
+/// * `file`: A mutable reference to a `File` object, which represents a file that will be read from.
+///
+/// Returns:
+///
+/// The function `deserialize_vector` returns a `Result` containing a tuple `(Vector, f32)`.
 fn deserialize_vector(file: &mut File) -> Result<(Vector, f32)> {
     let size = file
         .read_u16::<BigEndian>()
@@ -487,6 +592,17 @@ fn deserialize_vector(file: &mut File) -> Result<(Vector, f32)> {
     Ok((vec, start_time))
 }
 
+/// The function `deserialize_multiple_vectors` reads a file and deserializes multiple vectors along
+/// with their associated float values.
+///
+/// Arguments:
+///
+/// * `file`: A mutable reference to a `File` object, which represents a file that will be read from.
+///
+/// Returns:
+///
+/// The function `deserialize_multiple_vectors` returns a `Result` containing a `Vec` of tuples
+/// `(Vector, f32)`.
 fn deserialize_multiple_vectors(file: &mut File) -> Result<Vec<(Vector, f32)>> {
     let len = file
         .read_u16::<BigEndian>()
@@ -502,6 +618,18 @@ fn deserialize_multiple_vectors(file: &mut File) -> Result<Vec<(Vector, f32)>> {
     Ok(vectors)
 }
 
+/// The function `deserialize_view_factors` reads data from a file and deserializes it into a struct
+/// called `ParserViewFactors`.
+///
+/// Arguments:
+///
+/// * `filename`: The `filename` parameter is a string that represents the name of the file that
+/// contains the view factors data.
+///
+/// Returns:
+///
+/// The function `deserialize_view_factors` returns a `Result` containing a `ParserViewFactors` struct
+/// if the deserialization is successful.
 fn deserialize_view_factors(filename: &str) -> Result<ParserViewFactors> {
     let mut file = File::open(filename)
         .with_context(|| format!("Couldn't open view factors file {filename}"))?;

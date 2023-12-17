@@ -5,6 +5,15 @@ use super::structures::{Matrix, Vector};
 use super::{element::Element, point::Point};
 use std::cmp::max;
 
+/// The function calculates the number of points based on the maximum global ID of the elements.
+///
+/// Arguments:
+///
+/// * `elements`: The `elements` parameter is a vector of `Element` objects.
+///
+/// Returns:
+///
+/// the number of points in the `elements` vector.
 pub fn calculate_number_of_points(elements: &Vec<Element>) -> usize {
     let mut size: u32 = 0;
     for e in elements {
@@ -17,6 +26,18 @@ pub fn calculate_number_of_points(elements: &Vec<Element>) -> usize {
     (size + 1) as usize
 }
 
+/// The function constructs an array of points by populating it with elements from a given vector.
+///
+/// Arguments:
+///
+/// * `elements`: `elements` is a vector of `Element` structs. Each `Element` struct contains three
+/// `Point` structs (`p1`, `p2`, and `p3`).
+/// * `n_points`: The `n_points` parameter represents the number of points that should be present in the
+/// resulting `points` array.
+///
+/// Returns:
+///
+/// The function `construct_points_array` returns a `Vec<Point>`.
 pub fn construct_points_array(elements: &Vec<Element>, n_points: usize) -> Vec<Point> {
     let mut points: Vec<Point> = Vec::new();
     points.reserve_exact(n_points);
@@ -32,6 +53,22 @@ pub fn construct_points_array(elements: &Vec<Element>, n_points: usize) -> Vec<P
     points
 }
 
+/// The function constructs a global matrix by iterating over a vector of elements and mapping their
+/// local matrices to the corresponding positions in the global matrix.
+///
+/// Arguments:
+///
+/// * `elements`: A vector of elements. Each element contains information about three points (p1, p2,
+/// p3) and a global_id.
+/// * `n_points`: The parameter `n_points` represents the number of points in the global matrix. It
+/// specifies the size of the square matrix that will be constructed.
+/// * `key`: The `key` parameter is a function that takes an `Element` as input and returns a reference
+/// to a `Matrix`. This function is used to retrieve the local matrix associated with each element in
+/// the `elements` vector.
+///
+/// Returns:
+///
+/// The function `construct_global_matrix` returns a `Matrix` object.
 pub fn construct_global_matrix(
     elements: &Vec<Element>,
     n_points: usize,
@@ -56,6 +93,20 @@ pub fn construct_global_matrix(
     m
 }
 
+/// The function constructs an L matrix using view factors and other parameters for a given set of
+/// elements and number of points.
+///
+/// Arguments:
+///
+/// * `elements`: A vector of `Element` structs, which represent the elements in the system. Each
+/// `Element` struct contains information about the element's points (`p1`, `p2`, `p3`), view factors
+/// (`view_factors`), alpha values (`alpha_ir`), and area (`area`)
+/// * `n_points`: The `n_points` parameter represents the number of points in the system. It is used to
+/// determine the size of the resulting matrix `L`, which will have dimensions `n_points` x `n_points`.
+///
+/// Returns:
+///
+/// a matrix, specifically the L matrix.
 pub fn construct_l_matrix(elements: &Vec<Element>, n_points: usize) -> Matrix {
     //P[i][j] = F[i][j] * alpha_ir_i * alpha_ir_j * area_i
     //
@@ -101,6 +152,17 @@ pub fn construct_l_matrix(elements: &Vec<Element>, n_points: usize) -> Matrix {
     l * BOLTZMANN / 9.0
 }
 
+/// The function constructs a global vector by iterating over the divisions of elements and applying a
+/// function to each element.
+///
+/// Arguments:
+///
+/// * `elements`: A vector of elements. Each element has a field `f` which is an array of values.
+/// * `n_points`: The `n_points` parameter represents the number of points in the vector.
+///
+/// Returns:
+///
+/// The function `construct_global_vector_f_const_array` returns a `Vec<Vector>`.
 pub fn construct_global_vector_f_const_array(
     elements: &Vec<Element>,
     n_points: usize,
@@ -114,7 +176,21 @@ pub fn construct_global_vector_f_const_array(
         .map(|i| construct_global_vector_f_const(elements, n_points, |e: &Element| &e.f[i]))
         .collect()
 }
-
+/// The function constructs a global vector by summing up the local vectors of each element based on a
+/// given key function.
+///
+/// Arguments:
+///
+/// * `elements`: A reference to a vector of elements. Each element has three points (p1, p2, p3) and a
+/// global_id.
+/// * `n_points`: The `n_points` parameter represents the number of points in the global vector `f`. It
+/// specifies the size of the vector that will be constructed.
+/// * `key`: The `key` parameter is a closure that takes an `Element` as input and returns a reference
+/// to a `Vector`. It is used to extract the local vector associated with each element.
+///
+/// Returns:
+///
+/// The function `construct_global_vector_f_const` returns a `Vector` object.
 fn construct_global_vector_f_const(
     elements: &Vec<Element>,
     n_points: usize,
@@ -136,6 +212,14 @@ fn construct_global_vector_f_const(
     f
 }
 
+/// The function `fourth_power` takes an input array, and raises each elementto the fourth power
+///
+/// Arguments:
+///
+/// * `source_array`: source_array is a reference to a Vector, which is a collection of elements. It is
+/// the input array from which we will calculate the fourth power of each element.
+/// * `result_array`: The `result_array` parameter is a mutable reference to a `Vector`. It is used to
+/// store the fourth power of each element in the `source_array`.
 pub fn fourth_power(source_array: &Vector, result_array: &mut Vector) {
     for (idx, val) in source_array.iter().enumerate() {
         let aux = val * val;

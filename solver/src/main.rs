@@ -4,6 +4,12 @@ use std::env;
 
 use log::error;
 
+/// This function takes command line arguments for a directory path and a method, and then runs the solver
+/// using the specified method and the directory.
+///
+/// Returns:
+///
+/// The `run()` function is returning a `Result` type.
 fn run() -> Result<()> {
     let args: Vec<String> = env::args().collect();
 

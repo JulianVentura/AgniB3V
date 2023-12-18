@@ -3,13 +3,9 @@ use anyhow::Result;
 
 use super::orbit_manager::OrbitManager;
 use super::results_writer::ResultsWriterWorker;
-use super::{
-    explicit_solver::ExplicitSolver, gpu_solver::GPUSolver, implicit_solver::ImplicitSolver,
-};
+use super::{gpu_solver::GPUSolver, implicit_solver::ImplicitSolver};
 
-//object
 pub enum Solver {
-    Explicit(ExplicitSolver),
     Implicit(ImplicitSolver),
     GPU(GPUSolver),
 }
@@ -107,7 +103,6 @@ impl<'a> FEMEngine<'a> {
 
         self.f_index = idx;
         match &mut self.solver {
-            Solver::Explicit(s) => s.update_f(self.f_index)?,
             Solver::Implicit(s) => s.update_f(self.f_index)?,
             Solver::GPU(s) => s.update_f(self.f_index)?,
         };
@@ -169,7 +164,6 @@ impl<'a> FEMEngine<'a> {
         );
 
         match &mut self.solver {
-            Solver::Explicit(s) => s.run_for(sim_steps)?,
             Solver::Implicit(s) => s.run_for(sim_steps)?,
             Solver::GPU(s) => s.run_for(sim_steps)?,
         };
@@ -190,7 +184,6 @@ impl<'a> FEMEngine<'a> {
     fn save_results(&mut self, current_step: usize) -> Result<()> {
         if current_step % self.snapshot_steps == 0 {
             let temp = match &mut self.solver {
-                Solver::Explicit(s) => s.temperature()?,
                 Solver::Implicit(s) => s.temperature()?,
                 Solver::GPU(s) => s.temperature()?,
             };

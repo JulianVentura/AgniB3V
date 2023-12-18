@@ -192,7 +192,7 @@ class MainWindow(QWidget):
                 else:
                     raise Exception("Invalid file type")
                 self.file = file_name
-                self.file_label.setText("File Choosen: " + file_name)
+                self.file_label.setText("Chosen File: " + file_name)
                 self.file_label.show()
                 self.button.show()
             except Exception as e:

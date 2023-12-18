@@ -119,7 +119,6 @@ fn run_test_on_solver(directory_path: &str, solver: &str) -> Result<()> {
 
 fn run_test(test_path: &str) -> Result<()> {
     run_test_on_solver(test_path, "Implicit")?;
-    //run_test_solver(test_number, "Explicit")?;
     run_test_on_solver(test_path, "GPU")?;
     Ok(())
 }

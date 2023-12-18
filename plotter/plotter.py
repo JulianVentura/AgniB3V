@@ -12,6 +12,15 @@ import xml.etree.ElementTree as ET
 
 
 def parse_vtk(vtk_path):
+    """
+    The function `parse_vtk` reads a VTK file and returns a dictionary of temperatures associated with
+    each point in the mesh.
+
+    :param vtk_path: The `vtk_path` parameter is a string that represents the file path to the VTK file
+    that you want to parse
+    :return: a dictionary called "temperatures" which contains the temperature values parsed from the
+    VTK file.
+    """
     # print("Parsing ", vtk_path)
     temperatures = {}
     try:
@@ -24,6 +33,13 @@ def parse_vtk(vtk_path):
 
 
 def get_positions(vtk_path):
+    """
+    The function "get_positions" reads a VTK file and returns a dictionary of positions, where the keys
+    are indices and the values are corresponding positions.
+
+    :param vtk_path: The `vtk_path` parameter is the path to the VTK file that contains the mesh data
+    :return: a dictionary called "positions" which contains the positions of points in a VTK file.
+    """
     print("Getting positions")
     positions = {}
     meshio_mesh = meshio.read(vtk_path, file_format="vtk")
@@ -77,6 +93,21 @@ def parse_results_xml(directory, path, progress):
 
 
 def parse_results_vtk_series(directory, vtk_series_path, progress):
+    """
+    The function `parse_results_vtk_series` parses a VTK series file, loads the VTK files, and returns
+    the temperatures and positions from each VTK file.
+
+    :param directory: The `directory` parameter is the path to the directory where the VTK series file
+    and VTK files are located
+    :param vtk_series_path: The `vtk_series_path` parameter is the path to the vtk.series file. This
+    file contains information about a series of VTK files, including their names and corresponding time
+    steps
+    :param progress: The "progress" parameter is a callback function that is called periodically during
+    the execution of the function to provide updates on the progress of the parsing process. It takes a
+    single argument, which represents the progress as a percentage (0-100)
+    :return: The function `parse_results_vtk_series` returns two dictionaries: `results_temperatures`
+    and `results_positions`.
+    """
     results_temperatures = {}
     results_positions = {}
     with open(directory + "/" + vtk_series_path) as file:
@@ -105,6 +136,16 @@ plt.style.use("ggplot")
 
 
 def plot_temperature_by_id(id, results):
+    """
+    Plot the temperatures of a specific node over time.
+
+    Args:
+        id (int): The ID of the node.
+        results (dict): A dictionary containing the temperature results for each time.
+
+    Returns:
+        None
+    """
     times = []
     temperatures = []
     for time, result in results.items():
@@ -124,6 +165,15 @@ def plot_temperature_by_id(id, results):
 
 
 def plot_all_temperatures(results):
+    """
+    Plot all temperatures over time.
+
+    Args:
+        results (dict): A dictionary containing the temperature results for each time.
+
+    Returns:
+        None
+    """
     times = []
     id_temperatures = {}
 
@@ -150,6 +200,15 @@ def plot_all_temperatures(results):
 
 
 def plot_average_temperature(results):
+    """
+    Plots the average temperatures over time.
+
+    Args:
+        results (dict): A dictionary containing the temperature results for each time.
+
+    Returns:
+        None
+    """
     times = []
     average_temperatures = []
 
@@ -170,6 +229,15 @@ def plot_average_temperature(results):
 
 
 def plot_std_temperature(results):
+    """
+    Plots the standard deviation of temperatures over time.
+
+    Parameters:
+    results (dict): A dictionary containing time as keys and temperature values as values.
+
+    Returns:
+    None
+    """
     times = []
     std_temperatures = []
 

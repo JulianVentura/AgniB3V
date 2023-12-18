@@ -74,9 +74,8 @@ impl GPUSolver {
             .try_inverse()
             .with_context(|| "Couldn't inverse matrix A")?;
 
-        //TODO: Modify this path to eliminate cwd dependency
-        let mut program = Self::start_opencl_program("./src/opencl_kernels/matrix_mult.cl")
-            .with_context(|| "Couldn't start opencl program")?;
+        let mut program =
+            Self::start_opencl_program().with_context(|| "Couldn't start opencl program")?;
         let buffers =
             Self::start_opencl_buffers(&mut program, &temp, &h, &f_const[0], &d, &a_inverse)
                 .with_context(|| "Couldn't start opencl buffers")?;
@@ -144,9 +143,9 @@ impl GPUSolver {
         Ok(&self.temp)
     }
 
-    fn start_opencl_program(src_path: &str) -> Result<OpenCLProgram> {
-        let kernel_code = std::fs::read_to_string(src_path)
-            .with_context(|| format!("Couldn't read kernel code on {src_path}"))?;
+    fn start_opencl_program() -> Result<OpenCLProgram> {
+        //Kernel loads at compile time
+        let kernel_code = include_str!("../opencl_kernels/matrix_mult.cl");
         let platform = Platform::default();
         let device = Device::first(platform).with_context(|| "Opencl device not found")?;
         let context = Context::builder()

@@ -10,6 +10,7 @@ use serde_json;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufReader;
+use std::path::Path;
 use vtkio::model::DataSet;
 use vtkio::model::*;
 
@@ -215,6 +216,12 @@ pub fn write_partial_vtk_result(
 ) -> Result<()> {
     let results_path = &config.results_path;
     let file_path = format!("{results_path}/result_{id}");
+    let vtk_series_path = format!("{results_path}/result.vtk.series");
+
+    let dir_path = Path::new(&vtk_series_path);
+    if dir_path.exists() {
+        std::fs::remove_dir_all(&results_path)?;
+    }
 
     std::fs::create_dir_all(&results_path)?;
     result_to_vtk(file_path, points, elements, &result)?;

@@ -2,9 +2,7 @@ use super::element::Element;
 use super::engine::{FEMEngine, Solver};
 use super::parser;
 use super::results_writer::ResultsWriterWorker;
-use super::{
-    explicit_solver::ExplicitSolver, gpu_solver::GPUSolver, implicit_solver::ImplicitSolver,
-};
+use super::{gpu_solver::GPUSolver, implicit_solver::ImplicitSolver};
 use crate::err;
 use anyhow::{Context, Result};
 
@@ -31,7 +29,6 @@ pub fn run_solver(directory_path: &str, solver_id: &str) -> Result<()> {
         .with_context(|| "Couldn't initialize FEM solver")?;
 
     let points = match &solver {
-        Solver::Explicit(s) => s.points().clone(),
         Solver::Implicit(s) => s.points().clone(),
         Solver::GPU(s) => s.points().clone(),
     };
@@ -61,7 +58,7 @@ pub fn run_solver(directory_path: &str, solver_id: &str) -> Result<()> {
 /// Arguments:
 ///
 /// * `solver_id`: A string representing the type of solver to be built. It can be one of the following
-/// values: "Explicit", "Implicit", or "GPU".
+/// values: "Implicit", or "GPU".
 /// * `elements`: The `elements` parameter is a vector of `Element` objects. It represents the elements
 /// that will be used in the solver.
 /// * `time_step`: The `time_step` parameter represents the time interval between each iteration or time
@@ -74,7 +71,6 @@ pub fn run_solver(directory_path: &str, solver_id: &str) -> Result<()> {
 /// a `Result<Solver>`.
 fn build_solver(solver_id: &str, elements: &Vec<Element>, time_step: f64) -> Result<Solver> {
     match solver_id {
-        "Explicit" => Ok(Solver::Explicit(ExplicitSolver::new(elements, time_step)?)),
         "Implicit" => Ok(Solver::Implicit(ImplicitSolver::new(elements, time_step)?)),
         "GPU" => Ok(Solver::GPU(GPUSolver::new(elements, time_step)?)),
         _ => err!("Solver not recognized"),

@@ -3,7 +3,6 @@ pub mod element;
 pub mod engine;
 pub mod error;
 pub mod executor;
-pub mod explicit_solver;
 pub mod gpu_solver;
 pub mod implicit_solver;
 pub mod orbit_manager;

@@ -83,9 +83,8 @@ pub fn construct_l_matrix(elements: &Vec<Element>, n_points: usize) -> Matrix {
     for i in 0..elements.len() {
         for j in 0..elements.len() {
             let alpha_i = &elements[i].alpha_ir;
-            let alpha_j = &elements[j].alpha_ir;
             let area = &elements[i].area;
-            p[(i, j)] *= alpha_i * alpha_j * area;
+            p[(i, j)] *= alpha_i * area;
         }
     }
 
@@ -256,32 +255,17 @@ mod tests {
 
         let mut l = solver::construct_l_matrix(&vec![e1, e2], 4);
 
-        l /= BOLTZMANN / 3.0;
+        l /= BOLTZMANN / 9.0;
 
         let expected = Matrix::from_row_slice(
             4,
             4,
             &[
                 //Row 1
-                49.0 / 6000.0,
-                119.0 / 6000.0,
-                119.0 / 6000.0,
-                7.0 / 600.0,
-                //Row 2
-                77.0 / 3000.0,
-                27.0 / 500.0,
-                27.0 / 500.0,
-                17.0 / 600.0,
-                //Row 3
-                77.0 / 3000.0,
-                27.0 / 500.0,
-                27.0 / 500.0,
-                17.0 / 600.0,
-                //Row 4
-                7.0 / 400.0,
-                41.0 / 1200.0,
-                41.0 / 1200.0,
-                1.0 / 60.0,
+                0.035, 0.085, 0.085, 0.05, //Row 2
+                0.14, 0.29, 0.29, 0.15, //Row 3
+                0.14, 0.29, 0.29, 0.15, //Row 4
+                0.105, 0.205, 0.205, 0.1,
             ],
         );
 

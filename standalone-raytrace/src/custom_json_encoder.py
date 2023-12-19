@@ -1,6 +1,9 @@
 import json
 
 class CustomJsonEncoder(json.JSONEncoder):
+    """
+    Configuration object to specify output json format.
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.indent_str = ' ' * self.indent

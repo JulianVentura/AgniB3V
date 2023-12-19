@@ -1,5 +1,5 @@
 import numpy as np
-from . import utils, properties_atlas, vtk_io, view_factors, visualization, serializer
+import vector_math, mesh_ops, properties_atlas, vtk_io, view_factors, visualization, serializer
 
 def _is_closest_orbit_point(step, elapsed_secs, target_time):
     if step == len(elapsed_secs) - 1:
@@ -34,7 +34,7 @@ def process_view_factors(
 
     print(f"Loading properties")
     properties = properties_atlas.PropertiesAtlas(
-        len(mesh.triangles),
+        mesh_ops.element_amount(mesh),
         properties_file_path,
         orbit_report_file_path,
         orbit_eclipse_file_path,
@@ -48,15 +48,15 @@ def process_view_factors(
     orbit_divisions = properties.global_properties["orbit_divisions"]
     division_time = properties.orbit_properties.period / orbit_divisions
     elapsed_secs = properties.orbit_properties.elapsed_secs
-    sun_direction = utils.normalize(properties.orbit_properties.sun_position)
+    sun_direction = vector_math.normalize(properties.orbit_properties.sun_position)
 
     if orbit_divisions > len(elapsed_secs):
         raise Exception(
             "Orbit divisions ({orbit_divisions}) is greater than GMAT data rows ({len(elapsed_secs)})"
         )
 
-    print("Setting up bodies")
-    view_factors.mesh_look_at(mesh, sun_direction)
+    print("Setting up celestial bodies")
+    mesh_ops.look_at(mesh, sun_direction)
 
     print("Calculating element-element ir view factors")
     element_element_ir_view_factors = view_factors.element_element(
@@ -86,7 +86,7 @@ def process_view_factors(
         ):
             continue
 
-        earth_direction = utils.normalize(
+        earth_direction = vector_math.normalize(
             -properties.orbit_properties.sat_position[step]
         )
 
@@ -126,7 +126,7 @@ def visualize_material(mesh_file_path, properties_file_path):
     """
     print("Starting visualization of material")
     mesh = vtk_io.load_vtk(mesh_file_path)
-    props = properties_atlas.PropertiesAtlas(len(mesh.triangles), properties_file_path)
+    props = properties_atlas.PropertiesAtlas(mesh_ops.element_amount(mesh), properties_file_path)
     visualization.view_material(mesh, props)
 
 

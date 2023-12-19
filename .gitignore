@@ -407,5 +407,5 @@ benchmarks/*/
 **/globalConfiguration.json
 **/benchmarks
 *.csv
-graphics_template/energy/*
+graphics_template/sources/*
 graphics_template/images/*

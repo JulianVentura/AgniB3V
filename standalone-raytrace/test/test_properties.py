@@ -1,5 +1,5 @@
-from .test_config import *
-from src import vtk_io, utils, properties_atlas
+from test_config import *
+from src import mesh_ops, vtk_io, properties_atlas, vector_math
 import json
 
 test_property = {"a": 0, "b": [1, 2, 3]}
@@ -8,10 +8,10 @@ test_property = {"a": 0, "b": [1, 2, 3]}
 def test_properties_loading():
     mesh = vtk_io.load_vtk(ICOSPHERE_GEOMETRY_PATH)
     properties = properties_atlas.PropertiesAtlas(
-        len(mesh.triangles), ICOSPHERE_PROPERTIES_PATH
+        mesh_ops.element_amount(mesh), ICOSPHERE_PROPERTIES_PATH
     )
 
-    for element_id in range(utils.element_amount(mesh.triangles)):
+    for element_id in range(mesh_ops.element_amount(mesh)):
         material = properties.get_element_material(element_id)
         if element_id <= 9:
             assert material["test_id"] == 0

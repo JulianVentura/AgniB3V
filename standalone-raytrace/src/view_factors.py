@@ -1,6 +1,6 @@
 import numpy as np
 import trimesh
-from . import utils, visualization
+from . import mesh_ops, vector_math, elements, rays, visualization
 
 DEBUG_VISUALIZATION_ENABLED = False
 RAY_DISPLACEMENT = 1e-4
@@ -27,19 +27,20 @@ def element_earth(
     Finds the view factors of the elements of the mesh with the earth and returns
     a list of the view factors.
     """
+    elements_amount = mesh_ops.element_amount(mesh)
     element_normals = trimesh.triangles.normals(mesh.triangles)[0]
-    ir_view_factors = np.zeros(utils.element_amount(mesh.triangles))
-    albedo_view_factors = np.zeros(utils.element_amount(mesh.triangles))
+    ir_view_factors = np.zeros(elements_amount)
+    albedo_view_factors = np.zeros(elements_amount)
 
-    for element_id in range(utils.element_amount(mesh.triangles)):
+    for element_id in range(elements_amount):
         emitting_element = mesh.triangles[element_id]
         emitting_element_normal = element_normals[element_id]
 
-        ray_origins = utils.generate_random_points_in_element(
+        ray_origins = elements.random_points_in_element(
             emitting_element, ray_amount
         )
-        ray_directions = utils.generate_random_unit_vectors(ray_amount)
-        utils.orient_vector_towards_normal(ray_directions, earth_direction)
+        ray_directions = vector_math.random_unit_vectors(ray_amount)
+        vector_math.orient_towards_direction(ray_directions, earth_direction)
         ray_origins += ray_directions * RAY_DISPLACEMENT
 
         if DEBUG_VISUALIZATION_ENABLED:
@@ -49,8 +50,8 @@ def element_earth(
         mask = np.ones(ray_amount, dtype=bool)
         mask[hit_element_ids >= 0] = 0
         not_hit_ray_directions = ray_directions[mask]
-        not_hit_ray_directions = utils.flip_vectors_around_axis(
-            earth_direction, not_hit_ray_directions
+        not_hit_ray_directions = vector_math.flip_around_axis(
+            not_hit_ray_directions, earth_direction
         )
 
         if not_hit_ray_directions.size == 0:
@@ -59,17 +60,17 @@ def element_earth(
             continue
 
         ray_sat_dot_product = np.abs(
-            utils.array_dot(not_hit_ray_directions, emitting_element_normal)
+            vector_math.array_dot(not_hit_ray_directions, emitting_element_normal)
         )
 
         # IR
-        ray_earth_dot_product = utils.array_dot(not_hit_ray_directions, earth_direction)
+        ray_earth_dot_product = vector_math.array_dot(not_hit_ray_directions, earth_direction)
         ray_earth_dot_product[ray_earth_dot_product < 0] = 0
         ir_view_factor = IR_SCALE_FACTOR * ray_earth_dot_product * ray_sat_dot_product
         ir_view_factors[element_id] = np.sum(ir_view_factor) / ray_amount
 
         # Albedo
-        ray_sun_dot_product = utils.array_dot(not_hit_ray_directions, -sun_direction)
+        ray_sun_dot_product = vector_math.array_dot(not_hit_ray_directions, -sun_direction)
         albedo_view_factor = (
             ray_earth_dot_product
             * ray_sat_dot_product
@@ -93,7 +94,7 @@ def element_sun(mesh, sun_direction):
 
     ray_origins = element_centers + sun_direction * RAY_DISPLACEMENT
     ray_directions = np.broadcast_to(sun_direction, (len(ray_origins), 3))
-    element_sun_view_factors = utils.aparent_element_area_multiplier(
+    element_sun_view_factors = rays.aparent_element_area_multiplier(
         ray_directions, element_normals
     )
     intersected = mesh.ray.intersects_any(ray_origins, ray_directions)
@@ -130,21 +131,22 @@ def element_element(
     Finds the view factors of the elements of the mesh with the other elements and returns
     a list of the view factors.
     """
+    element_amount = mesh_ops.element_amount(mesh)
     element_normals = trimesh.triangles.normals(mesh.triangles)[0]
-    view_factors = np.zeros((len(mesh.triangles), len(mesh.triangles)))
+    view_factors = np.zeros((element_amount, element_amount))
 
-    for element_id in range(len(mesh.triangles)):
+    for element_id in range(element_amount):
         emitting_element = mesh.triangles[element_id]
         emitting_element_normal = element_normals[element_id]
-        view_factors_row = np.zeros(len(mesh.triangles))
+        view_factors_row = np.zeros(element_amount)
 
         # Original emission
-        ray_origins = utils.generate_random_points_in_element(
+        ray_origins = elements.random_points_in_element(
             emitting_element, ray_amount
         )
-        ray_directions = utils.generate_random_unit_vectors(ray_amount)
+        ray_directions = vector_math.random_unit_vectors(ray_amount)
         if not internal_emission:
-            utils.orient_vector_towards_normal(ray_directions, emitting_element_normal)
+            vector_math.orient_towards_direction(ray_directions, emitting_element_normal)
 
         ray_origins += ray_directions * RAY_DISPLACEMENT
 
@@ -173,7 +175,7 @@ def element_element(
 
             hit_points += RAY_DISPLACEMENT * element_normals[hit_element_ids]
 
-            ray_directions = utils.reflected_rays(
+            ray_directions = rays.reflected_rays(
                 ray_directions[hit_ray_ids], element_normals[hit_element_ids]
             )
 
@@ -201,11 +203,3 @@ def element_element(
         view_factors[element_id] = view_factors_row
 
     return view_factors
-
-
-def mesh_look_at(mesh, direction):
-    norm, phi, theta = utils.vector_spherical_cordinates(direction)
-    rot_matrix = trimesh.transformations.rotation_matrix(theta, [1, 0, 0])
-    mesh.apply_transform(rot_matrix)
-    rot_matrix = trimesh.transformations.rotation_matrix(phi, [0, 0, 1])
-    mesh.apply_transform(rot_matrix)

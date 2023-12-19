@@ -1,7 +1,7 @@
 import trimesh
 import numpy as np
 import seaborn as sb
-from . import utils
+from . import mesh_ops
 
 RESET = "\033[0m"
 BACKGROUND_COLOR = np.array([9, 10, 20]) / 255
@@ -27,7 +27,7 @@ def view_material(mesh, props):
         print(_color_item_str(palette[i]), props.materials[i]["name"])
 
     colors = []
-    for element_id in range(utils.element_amount(mesh.triangles)):
+    for element_id in range(mesh_ops.element_amount(mesh)):
         material_id = props.material_by_element[element_id]
         colors.append(palette[material_id])
     colors = np.array(colors)
@@ -54,7 +54,7 @@ def view_normal(mesh):
 
     mesh.faces = np.vstack((mesh.faces, np.fliplr(mesh.faces)))
 
-    side_amount = utils.element_amount(mesh.triangles) // 2
+    side_amount = mesh_ops.element_amount(mesh) // 2
     postiive_side_colors = np.broadcast_to(POSITIVE_COLOR, (side_amount, 3))
     negative_side_colors = np.broadcast_to(NEGATIVE_COLOR, (side_amount, 3))
     side_colors = np.vstack((postiive_side_colors, negative_side_colors))
@@ -87,7 +87,7 @@ def view_raycast(ray_origins, ray_directions, mesh=None, emmiting_element_id=-1)
             EMMITING_ELEMENT_COLOR
             if element_id == emmiting_element_id
             else OTHER_ELEMENTS_COLOR
-            for element_id in range(utils.element_amount(mesh.triangles))
+            for element_id in range(mesh_ops.element_amount(mesh))
         ]
         scene = trimesh.Scene([mesh, rays])
     else:

@@ -1,5 +1,5 @@
-from .test_config import *
-from src import vtk_io, utils, properties_atlas, view_factors, visualization
+from test_config import *
+from src import vtk_io, properties_atlas, view_factors, mesh_ops
 import numpy as np
 
 
@@ -191,7 +191,7 @@ def test_earth_albedo_no_umbra():
 def _element_element_backwards_pyramid(properties_path, ray_amount):
     mesh = vtk_io.load_vtk(BACKWARDS_PYRAMID_GEOMETRY_PATH)
     properties = properties_atlas.PropertiesAtlas(
-        utils.element_amount(mesh.triangles), properties_path
+        mesh_ops.element_amount(mesh), properties_path
     )
     return view_factors.element_element(
         mesh, properties.absortance_ir_by_element, ray_amount, 50, False
@@ -279,14 +279,16 @@ def test_element_element_backwards_pyramid_view_factors_half_reflections_half_ab
             ]
         ),
     )
-    view_factors_errors = np.abs(element_element_view_factors - expected_element_element_view_factors)
+    view_factors_errors = np.abs(
+        element_element_view_factors - expected_element_element_view_factors
+    )
     assert np.all(np.less(view_factors_errors, 0.10))
 
 
 def _element_element_backwards_diamond(properties_path, ray_amount):
     mesh = vtk_io.load_vtk(BACKWARDS_DIAMOND_GEOMETRY_PATH)
     properties = properties_atlas.PropertiesAtlas(
-        utils.element_amount(mesh.triangles), properties_path
+        mesh_ops.element_amount(mesh), properties_path
     )
     return view_factors.element_element(
         mesh, properties.absortance_ir_by_element, ray_amount, 100, True
@@ -326,52 +328,3 @@ def test_element_element_backwards_diamond_view_factors_are_correct():
         element_element_view_factors - expected_element_element_view_factors
     )
     assert np.all(np.less(view_factors_errors, 0.10))
-
-
-def test_mesh_look_at():
-    directions = np.array(
-        [[1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, -1], [1, 1, 1], [2, 3, 4]]
-    )
-    expected_vertices = [
-        [
-            [1.0, 1.0, 1.0],
-            [1.0, -1.0, -1.0],
-            [1.0, 1.0, -1.0],
-            [-1.0, 1.0, -1.0],
-        ],
-        [
-            [-1.0, 1.0, 1.0],
-            [1.0, 1.0, -1.0],
-            [-1.0, 1.0, -1.0],
-            [-1.0, -1.0, -1.0],
-        ],
-        [
-            [1.0, 1.0, 1.0],
-            [-1.0, -1.0, 1.0],
-            [1.0, -1.0, 1.0],
-            [1.0, -1.0, -1.0],
-        ],
-        [
-            [1.0, -1.0, -1.0],
-            [-1.0, 1.0, -1.0],
-            [1.0, 1.0, -1.0],
-            [1.0, 1.0, 1.0],
-        ],
-        [
-            [-0.53800478, 0.87620878, 1.3938468],
-            [1.69270532, 0.27849175, -0.23914626],
-            [0.27849182, 1.6927053, -0.23914631],
-            [-0.87620872, 0.53800476, -1.39384685],
-        ],
-        [
-            [-0.87268056, 0.4937548, 1.41231538],
-            [1.61546191, 0.62041722, 0.07324733],
-            [-0.04863861, 1.72981762, 0.07324729],
-            [-0.79141996, 0.61564559, -1.41231542],
-        ],
-    ]
-
-    for i, direction in enumerate(directions):
-        mesh = vtk_io.load_vtk(ARROWS_GEOMETRY_PATH)
-        view_factors.mesh_look_at(mesh, direction)
-        assert np.allclose(mesh.vertices, np.array(expected_vertices[i]).reshape(4, 3))

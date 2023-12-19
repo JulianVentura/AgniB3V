@@ -36,4 +36,5 @@ GMAT_ECLIPSE_LOCATOR_FILE_PATH_NO_ECLIPSE = (
     "./test/models/gmat_eclipse_locator_no_eclipse.txt"
 )
 
+sys.path.append("..")
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))

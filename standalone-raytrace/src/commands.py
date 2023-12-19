@@ -1,5 +1,5 @@
 import numpy as np
-import vector_math, mesh_ops, properties_atlas, vtk_io, view_factors, visualization, serializer
+from . import vector_math, mesh_ops, properties_atlas, vtk_io, view_factors, visualization, serializer
 
 def _is_closest_orbit_point(step, elapsed_secs, target_time):
     if step == len(elapsed_secs) - 1:

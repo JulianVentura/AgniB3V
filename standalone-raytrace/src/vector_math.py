@@ -44,6 +44,18 @@ def array_dot(vectors, other_vector):
     return vectors @ (other_vector)[:, np.newaxis]
 
 
+def array_array_dot(vectors, other_vectors):
+    return np.einsum("...j,...j", vectors, other_vectors)
+
+
+def array_array_cos(vectors, other_vectors):
+    dot_products = array_array_dot(vectors, other_vectors)
+    norm_products = np.linalg.norm(vectors, axis=1) * np.linalg.norm(
+        other_vectors, axis=1
+    )
+    return dot_products / norm_products
+
+
 # TODO: If vector is ortogonal to direction it will be multiplied by zero
 def orient_towards_direction(vectors, direction):
     vectors *= np.sign(vectors @ direction[:, np.newaxis])

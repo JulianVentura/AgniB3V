@@ -17,6 +17,22 @@ def test_proportionalize():
     assert np.array_equal(proportionalized_array, np.array([0.2, 0.2, 0.6]))
 
 
+def test_array_dot():
+    vectors = np.array([[1, 0, 0], [2, 3, 4], [-5, 6, 7], [9, 9, 6]])
+    other_vector = np.array([1, 2, 3])
+    dot_products = vector_math.array_dot(vectors, other_vector)
+    for i in range(len(vectors)):
+        assert np.abs(dot_products[i] - np.dot(vectors[i], other_vector)) < 1e-6
+
+
+def test_array_array_dot():
+    vectors = np.array([[1, 0, 0], [2, 3, 4], [-5, 6, 7], [9, 9, 6]])
+    other_vectors = np.array([[1, 0, 0], [-1, 8, 8], [3, 0, 4], [3, 4, 5]])
+    dot_products = vector_math.array_array_dot(vectors, other_vectors)
+    for i in range(len(vectors)):
+        assert np.abs(dot_products[i] - np.dot(vectors[i], other_vectors[i])) < 1e-6
+
+
 def test_random_unit_vectors_norm():
     unit_vectors = vector_math.random_unit_vectors(10)
     unit_vectors_norm = np.linalg.norm(unit_vectors, axis=1)

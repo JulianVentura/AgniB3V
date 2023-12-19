@@ -6,7 +6,7 @@ import vtk_parser
 
 
 def plot():
-    file_name = "./energy/results/result.vtk.series"
+    file_name = "./sources/energy/results/result.vtk.series"
 
     temperatures = vtk_parser.parse_results_vtk_series(
         os.path.dirname(file_name),
@@ -15,12 +15,12 @@ def plot():
     )[0]
 
     fluxes = []
-    with open("./energy/output.csv", newline="") as output:
+    with open("./sources/energy/output.csv", newline="") as output:
         reader = csv.reader(output, delimiter=",")
         for row in reader:
             fluxes.append([float(r) for r in row])
 
-    with open("./energy/areas.csv", newline="") as csvfile:
+    with open("./sources/energy/areas.csv", newline="") as csvfile:
         reader = csv.reader(csvfile, delimiter=",")
         for row in reader:
             areas = row

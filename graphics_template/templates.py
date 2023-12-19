@@ -15,6 +15,7 @@ def template_plot(graph, xlabel, ylabel, title):
     )  # Adding grid lines with specific style and transparency
     graph.tick_params(axis="x", rotation=45)
     graph.figure.tight_layout()
+    graph.legend()
 
 
 def template_save_image(graph, name):

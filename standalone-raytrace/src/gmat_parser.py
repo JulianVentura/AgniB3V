@@ -123,7 +123,7 @@ def translate_parameters(params: list[str]) -> list[str]:
     return list(map(lambda x: translation[x] if x in translation else x, params))
 
 
-def calculate_eclipse_start_and_finish(data, start_epoch, period, idx_from_param):
+def _calculate_eclipse_start_and_finish(data, start_epoch, period, idx_from_param):
     eclipse_start = dateparser.parse(data[idx_from_param["Start Time (UTC)"]])
     eclipse_finish = dateparser.parse(data[idx_from_param["Stop Time (UTC)"]])
     start_epoch = dateparser.parse(start_epoch)
@@ -203,7 +203,7 @@ def parse_eclipse_locator(eclipse_locator_filename, parameters):
                 break
             data = split_line(line)
             if data[type_id] == "Umbra" and data[event_number_id] == "2":
-                eclipse_start_and_finish = calculate_eclipse_start_and_finish(
+                eclipse_start_and_finish = _calculate_eclipse_start_and_finish(
                     data, start_epoch, period, idx_from_param
                 )
                 break

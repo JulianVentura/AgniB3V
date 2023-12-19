@@ -2,6 +2,11 @@ import numpy as np
 from . import vector_math, mesh_ops, properties_atlas, vtk_io, view_factors, visualization, serializer
 
 def _is_closest_orbit_point(step, elapsed_secs, target_time):
+    """
+    Recieves a step (time), an array of elapsed_secs and an ideal target_time, and
+    Returns true if the step point time is the closest to the target time or
+    false otherwise.
+    """
     if step == len(elapsed_secs) - 1:
         return True
     curr_elapsed_seconds = elapsed_secs[step]

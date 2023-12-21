@@ -1,9 +1,6 @@
 import vtk_parser
 import matplotlib.pyplot as plt
 import templates
-import numpy as np
-import std_deviation
-import cuadratic_error
 
 
 def plot():

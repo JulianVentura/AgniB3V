@@ -409,3 +409,6 @@ benchmarks/*/
 *.csv
 graphics_template/sources/*
 graphics_template/images/*
+graphics_template/orbits.py
+graphics_template/caja_rellena.py
+

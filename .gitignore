@@ -393,16 +393,16 @@ plotter/results
 plotter/cilinder_vtk_results
 
 plotter/vtk_cilinder_results_cond
-standalone-raytrace/*.json
-standalone-raytrace/*.vtk
+preprocessor/*.json
+preprocessor/*.vtk
 solver/Unit_tests
 solver/e2e_tests
-standalone-raytrace/EclipseLocator1.txt
-standalone-raytrace/ReportFile1.txt
+preprocessor/EclipseLocator1.txt
+preprocessor/ReportFile1.txt
 solver/timing.txt
 solver/Sonia/*
 solver/e2e_tests
-standalone-raytrace/files/*
+preprocessor/files/*
 benchmarks/*/
 **/globalConfiguration.json
 **/benchmarks

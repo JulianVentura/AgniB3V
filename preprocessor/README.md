@@ -1,4 +1,4 @@
-# Standalone-raytrace
+# Preprocessor
 
 ### Installation
 

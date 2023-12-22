@@ -32,7 +32,7 @@ pub struct ParserElement {
     material: MaterialProperties,
     initial_temperature: f64,
     flux: f64,
-    two_side_radiation: bool,
+    two_sides_radiation: bool,
 }
 
 #[derive(Deserialize)]
@@ -65,7 +65,7 @@ pub struct ParserPropertiesConditionsDetails {
     initial_temperature_on: bool,
     flux: f64,
     flux_on: bool,
-    two_side_radiation: bool,
+    two_sides_radiation: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -335,7 +335,7 @@ pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
                         material: MaterialProperties::default(),
                         initial_temperature: global_properties.initial_temperature,
                         flux: 0.0,
-                        two_side_radiation: false,
+                        two_sides_radiation: false,
                     });
                 }
             }
@@ -372,7 +372,7 @@ pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
             if file_condition_properties.flux_on {
                 parser_elements[id].flux = file_condition_properties.flux;
             }
-            parser_elements[id].two_side_radiation = file_condition_properties.two_side_radiation;
+            parser_elements[id].two_sides_radiation = file_condition_properties.two_sides_radiation;
         }
     }
 
@@ -444,7 +444,7 @@ pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
                 global_properties.earth_ir,
                 global_properties.albedo,
                 parser_element.flux,
-                parser_element.two_side_radiation,
+                parser_element.two_sides_radiation,
                 orbit_divisions,
             )
             .with_context(|| format!("Couldn't create element of id {}", elements.len()))?,

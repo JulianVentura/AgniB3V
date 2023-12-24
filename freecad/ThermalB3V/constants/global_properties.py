@@ -21,7 +21,7 @@ GLOBAL_PROPERTIES_INPUTS = {
         "value": 4.0,
     },
     "initialTemperature": {
-        "label": "Initial temperature",
+        "label": "Default initial temperature",
         "unit": "K",
         "value": 200.0,
     },

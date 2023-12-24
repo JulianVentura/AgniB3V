@@ -1,5 +1,6 @@
 import FreeCAD
 from PySide2.QtWidgets import *
+from PySide2.QtGui import *
 from constants import MATERIALS_GROUP
 from constants.material_properties import MATERIAL_PROPERTIES
 from public.utils import iconPath
@@ -9,6 +10,19 @@ from utils.labelToCamelCase import labelToCamelCase
 import ObjectsFem
 
 from femviewprovider import view_material_common
+
+class MaterialsInitializer:
+    def __init__(self, obj):
+        for name, prop in MATERIAL_PROPERTIES.items():
+            if type(prop['value']) == float:
+                obj.addProperty("App::PropertyFloat", name)
+            elif type(prop['value']) == int:
+                obj.addProperty("App::PropertyInteger", name)
+            elif type(prop['value']) == bool:
+                obj.addProperty("App::PropertyBool", name)
+            else:
+                obj.addProperty("App::PropertyString", name)
+            setattr(obj, name, prop['value'])
 
 class MaterialsIcon(view_material_common.VPMaterialCommon):
     def getIcon(self):
@@ -85,22 +99,24 @@ class WidgetMaterials(QWidget):
         Add a new property to the list
         """
         def setMaterialProperty(value):
-            mat = materialObj.Material
-            mat[propName] = str(value)
-            materialObj.Material = mat
+            setattr(materialObj, propName, value)
 
         # label and unit
-        qtLabel = QLabel(propDict["label"] + (f" ({propDict['unit']})" if propDict["unit"] else ""), self)
-        qtInput = QDoubleSpinBox(self)
-        # TODO: configurable?
-        qtInput.setDecimals(5)
-        qtInput.setMaximum(999999999)
-        if propName in materialObj.Material:
-            qtInput.setValue(float(materialObj.Material[propName]))
-        else:
-            qtInput.setValue(float(propDict["value"]))
-            
-        qtInput.valueChanged.connect(setMaterialProperty)
+        propLabel = propDict["label"]
+        propUnit = propDict["unit"]
+        propValue = (
+            getattr(materialObj, propName, None)
+                if getattr(materialObj, propName, None)
+                else propDict["value"]
+        )
+
+        qtLabel, qtInput = self.createLabel(
+            propLabel,
+            propUnit,
+            propValue,
+            setMaterialProperty,
+        )
+
         self.propertiesLayout.addRow(qtLabel, qtInput)
 
     def clearProperties(self):
@@ -126,15 +142,11 @@ class WidgetMaterials(QWidget):
 
         if ok and newMaterial:
             materialObject = ObjectsFem.makeMaterialSolid(activeDocument, newMaterial)
+            MaterialsInitializer(materialObject)
             MaterialsIcon(materialObject.ViewObject)
             mat = materialObject.Material
-            # Initialize properties
-            for prop in MATERIAL_PROPERTIES:
-                mat[prop] = str(MATERIAL_PROPERTIES[prop]["value"])
-            
             # Add needed properties
             self.addFreecadNeededProperties(mat)
-            
             mat["Name"] = newMaterial
             mat["Label"] = newMaterial
             materialObject.Material = mat
@@ -174,3 +186,31 @@ class WidgetMaterials(QWidget):
             if object.TypeId == "Fem::FemAnalysis":
                 return object
         return None
+
+    def createLabel(self, label, unit, value, callback):
+        """
+        Creates a label and an input from the attribute label,
+        unit, value and callback
+        """
+        qtLabel = QLabel(label + (f" ({unit})" if unit else ""), self)
+        if type(value) == float:
+            qtInput = QDoubleSpinBox(self)
+            qtInput.setDecimals(5)
+            qtInput.setMaximum(999999999)
+            qtInput.setValue(value)
+            qtInput.valueChanged.connect(lambda x: callback(x))
+        elif type(value) == int:
+            qtInput = QLineEdit(self)
+            qtInput.setValidator(QIntValidator())
+            qtInput.setText(str(value))
+            qtInput.textChanged.connect(lambda x: callback(int(x)))
+        elif type(value) == bool:
+            qtInput = QCheckBox(self)
+            qtInput.setChecked(value)
+            qtInput.stateChanged.connect(lambda x: callback(x))
+        else:
+            qtInput = QLineEdit(self)
+            qtInput.setText(value)
+            qtInput.textChanged.connect(lambda x: callback(x))
+
+        return qtLabel, qtInput

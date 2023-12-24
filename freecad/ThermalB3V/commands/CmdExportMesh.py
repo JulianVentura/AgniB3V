@@ -125,17 +125,14 @@ class CmdExportMesh:
     
     def getProperties(self, material, propertiesRequired):
         """Returns a dictionary of the neccessary properties of the material"""
-        # Check if every material property exists in the material
-        for property in propertiesRequired:
-            if property not in material:
-                return None
-
-        # Format the material properties to remove units
         materialWithoutUnits = {}
-        for property in propertiesRequired:
-            matches = re.findall(r"\d+.\d+|\d+", material[property])
-            if matches:
-                materialWithoutUnits[property] = float(matches[0])
+
+        # Check if every material property exists in the material
+        for propertyRequired in propertiesRequired:
+            print(propertyRequired, getattr(material, propertyRequired, None))
+            if getattr(material, propertyRequired, None) == None:
+                return None
+            materialWithoutUnits[propertyRequired] = getattr(material, propertyRequired, None)
 
         return materialWithoutUnits
     
@@ -180,7 +177,6 @@ class CmdExportMesh:
         elements = {}
         properties = {}
 
-        print(f"propertiesRequired: {propertiesRequired}")
         for materialObject in materialObjects:
             FreeCAD.Console.PrintMessage(f"Getting elements and properties for {materialObject.Label}\n")
             elementsWithMaterial = self.getElementsWithMaterial(materialObject)
@@ -195,12 +191,12 @@ class CmdExportMesh:
             
             # TODO: is better key to be the name, label, id or something else?
             elements[materialObject.Name] = trianglesWithMaterial
-            properties[materialObject.Name] = self.getProperties(materialObject.Material, propertiesRequired)
+            properties[materialObject.Name] = self.getProperties(materialObject, propertiesRequired)
             if not properties[materialObject.Name]:
                 FreeCAD.Console.PrintError(f"Some of the material properties are missing in {materialObject.Label}\n")
                 # console the missing properties
                 for property in propertiesRequired:
-                    if property not in materialObject.Material:
+                    if not getattr(materialObject, property, None):
                         FreeCAD.Console.PrintError(f"  Missing property: {property}\n")
                 return
         

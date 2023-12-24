@@ -131,10 +131,17 @@ class ProjectWidget(QWidget):
         )
         visualizeMaterialButton.clicked.connect(self.visualizeMaterials)
 
+        visualizeNormalsButton = QPushButton(frame)
+        visualizeNormalsButton.setText(
+            QCoreApplication.translate("Dialog", "Visualizar Normales", None)
+        )
+        visualizeNormalsButton.clicked.connect(self.visualizeNormals)
+
         verticalLayout.addWidget(modelSectionLabel)
         horizontalLayout.addWidget(gmatButton)
         horizontalLayout.addWidget(freecadButton)
         horizontalLayout.addWidget(visualizeMaterialButton)
+        horizontalLayout.addWidget(visualizeNormalsButton)
         verticalLayout.addLayout(horizontalLayout)
         return verticalLayout
 
@@ -221,6 +228,18 @@ class ProjectWidget(QWidget):
         cmd = [
             gmat_executable,
             gmat_script,
+        ]
+        subprocess.Popen(cmd)
+
+    def visualizeNormals(self):
+        """
+        Opens normal visualization.
+        """
+        cmd = [
+            "python3",
+            self.appState.globalConfiguration.getExecutable("preprocessor"),
+            "viewn",
+            self.appState.projectDirectory,
         ]
         subprocess.Popen(cmd)
 

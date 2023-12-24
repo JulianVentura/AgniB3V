@@ -55,9 +55,6 @@ class AgniWorkbench(FreeCADGui.Workbench):
         self.createAttributes("exportPath", "")
         self.createAttributes("documentPath", "")
 
-        # Initialize raytrace path
-        self.createAttributes("raytracePath", "")
-
         # Initialize materials
         self.createAttributes("materials", {})
 
@@ -182,7 +179,6 @@ class AgniWorkbench(FreeCADGui.Workbench):
             WorkbenchSettings.addProperty(propertyName, props['value'])
         WorkbenchSettings.addProperty("exportPath", self.exportPath)
         WorkbenchSettings.addProperty("documentPath", self.documentPath)
-        WorkbenchSettings.addProperty("raytracePath", self.raytracePath)
 
         # Check if workbenchSettings exists
         FreeCAD.Console.PrintMessage("Getting if workbench settings exist\n")
@@ -223,8 +219,6 @@ class AgniWorkbench(FreeCADGui.Workbench):
         else:
             self.setDocumentPath(path.dirname(FreeCAD.ActiveDocument.FileName))
             WorkbenchSettings.addProperty("documentPath", self.documentPath)
-        if (propValue := getattr(workbenchSettings, "raytracePath", None)) != None:
-            self.setRaytracePath(propValue)
 
         WorkbenchSettings(workbenchSettings)
         FreeCAD.ActiveDocument.recompute()

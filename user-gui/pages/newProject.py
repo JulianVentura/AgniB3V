@@ -71,16 +71,17 @@ class NewProjectWidget(QWidget):
 
         horizontalSpacerLeft = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
-        title = QLabel(frame)
-        font = QFont()
-        font.setPointSize(24)
-        title.setFont(font)
-        title.setText(QCoreApplication.translate("Dialog", u"Agni", None))
+        imageLabel = QLabel(frame)
+        pixmap = QPixmap(iconPath("agni.png"))
+        imageLabel.setPixmap(pixmap)
+        imageLabel.setScaledContents(True)
+        imageLabel.setAlignment(Qt.AlignCenter)
+        imageLabel.setFixedSize(pixmap.width()*0.25, pixmap.height()*0.25)
 
         horizontalSpacerRight = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         headerLayout.addItem(horizontalSpacerLeft)
-        headerLayout.addWidget(title)
+        headerLayout.addWidget(imageLabel)
         headerLayout.addItem(horizontalSpacerRight)
         return headerLayout
     

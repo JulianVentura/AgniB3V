@@ -72,7 +72,6 @@ class LandingWidget(QWidget):
         imageLabel.setPixmap(pixmap)
         imageLabel.setScaledContents(True)
         imageLabel.setAlignment(Qt.AlignCenter)
-        #resize
         imageLabel.setFixedSize(pixmap.width()*0.25, pixmap.height()*0.25)
 
         horizontalSpacerRight = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)

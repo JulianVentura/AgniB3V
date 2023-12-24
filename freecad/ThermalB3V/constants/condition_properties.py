@@ -8,6 +8,11 @@ CONDITION_PROPERTIES = {
     "initialTemperature": {
         "label": "Initial temperature",
         "unit": "K",
-        "value": 200.0,
+        "value": 0.0,
+    },
+    "twoSidesRadiation": {
+        "label": "Two sides radiation",
+        "unit": "",
+        "value": False,
     },
 }

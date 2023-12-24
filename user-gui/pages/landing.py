@@ -2,7 +2,7 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 from utils.appState import AppState
-from utils.constants import ROUTES
+from utils.constants import DOCUMENTATION_URL, ROUTES
 from public.paths import iconPath
 
 class LandingWidget(QWidget):
@@ -67,16 +67,18 @@ class LandingWidget(QWidget):
 
         horizontalSpacerLeft = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
-        title = QLabel(frame)
-        font = QFont()
-        font.setPointSize(24)
-        title.setFont(font)
-        title.setText(QCoreApplication.translate("Dialog", u"Thermal B3V", None))
+        imageLabel = QLabel(frame)
+        pixmap = QPixmap(iconPath("agni.png"))
+        imageLabel.setPixmap(pixmap)
+        imageLabel.setScaledContents(True)
+        imageLabel.setAlignment(Qt.AlignCenter)
+        #resize
+        imageLabel.setFixedSize(pixmap.width()*0.25, pixmap.height()*0.25)
 
         horizontalSpacerRight = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         headerLayout.addItem(horizontalSpacerLeft)
-        headerLayout.addWidget(title)
+        headerLayout.addWidget(imageLabel)
         headerLayout.addItem(horizontalSpacerRight)
         return headerLayout
     
@@ -142,4 +144,4 @@ class LandingWidget(QWidget):
         """
         Opens the documentation in the browser.
         """
-        QDesktopServices.openUrl(QUrl("https://thermalb3v.github.io/", QUrl.TolerantMode))
+        QDesktopServices.openUrl(QUrl(DOCUMENTATION_URL, QUrl.TolerantMode))

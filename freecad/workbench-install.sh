@@ -15,7 +15,7 @@ else
     exit 1
 fi
 
-plugin_name="ThermalB3V"
+plugin_name="Agni"
 plugin_dir="${freecad_directory}/Mod/${plugin_name}"
 
 

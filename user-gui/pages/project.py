@@ -94,7 +94,7 @@ class ProjectWidget(QWidget):
         font = QFont()
         font.setPointSize(24)
         title.setFont(font)
-        title.setText(QCoreApplication.translate("Dialog", "Thermal B3V", None))
+        title.setText(QCoreApplication.translate("Dialog", "Agni", None))
 
         horizontalSpacerRight = QSpacerItem(
             40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum

@@ -4,7 +4,7 @@ from PySide2.QtWidgets import *
 import os
 from utils.appState import AppState
 from utils.setUpNewProject import setUpNewProject
-from utils.constants import ROUTES
+from utils.constants import DOCUMENTATION_URL, ROUTES
 from public.paths import iconPath
 
 class NewProjectWidget(QWidget):
@@ -75,7 +75,7 @@ class NewProjectWidget(QWidget):
         font = QFont()
         font.setPointSize(24)
         title.setFont(font)
-        title.setText(QCoreApplication.translate("Dialog", u"Thermal B3V", None))
+        title.setText(QCoreApplication.translate("Dialog", u"Agni", None))
 
         horizontalSpacerRight = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
@@ -208,4 +208,4 @@ class NewProjectWidget(QWidget):
         """
         Opens the documentation in the browser.
         """
-        QDesktopServices.openUrl(QUrl("https://thermalb3v.github.io/", QUrl.TolerantMode))
+        QDesktopServices.openUrl(QUrl(DOCUMENTATION_URL, QUrl.TolerantMode))

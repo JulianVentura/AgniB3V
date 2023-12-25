@@ -19,7 +19,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.loadTranslations()
-        self.setWindowTitle("ThermalB3V")
+        self.setWindowTitle("Agni")
         self.resize(800, 600)
         self.setCentralWidget(PagesWidget())
         self.show()
@@ -27,7 +27,7 @@ class MainWindow(QMainWindow):
     def loadTranslations(self):
         translator = QTranslator()
         locale = QLocale.system().name()
-        if translator.load(f"translations/thermal_{locale}"):
+        if translator.load(f"translations/agni_{locale}"):
             QCoreApplication.installTranslator(translator)
 
 if __name__ == "__main__":

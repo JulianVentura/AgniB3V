@@ -5,7 +5,7 @@ GLOBAL_PROPERTIES_INPUTS = {
         "unit": "",
         "value": 0.2,
     },
-    "earthIR": {
+    "earthIr": {
         "label": "Earth IR",
         "unit": "W/m2",
         "value": 225.0,

@@ -2,6 +2,7 @@ import FreeCAD
 import os
 import json
 import re
+from utils.jsonToCamelCase import dictToCamelCase
 from utils.firstForCondition import firstForCondition
 from public.utils import iconPath
 from utils.CustomJsonEncoder import CustomJsonEncoder
@@ -232,16 +233,27 @@ class CmdExportMesh:
         """Writes the material as a json file"""
         materialPath = os.path.join(path, "properties.json")
         globalProperties = self.workbench.getGlobalPropertiesValues()
-        globalProperties = { key: globalProperties[key]["value"] for key in globalProperties }
+        globalProperties = {key: globalProperties[key]["value"] for key in globalProperties}
+        dataToUpdate = {
+            "globalProperties": globalProperties,
+            "materials": materials,
+            "conditions": conditions,
+        }
+
+        FreeCAD.Console.PrintMessage(f"Checking if {materialPath} exists\n")
+        if os.path.exists(materialPath):
+            FreeCAD.Console.PrintMessage(f"File {materialPath} exists\n")
+            with open(materialPath, "r") as file:
+                loadedData = json.load(file)
+                dataToUpdate = dictToCamelCase(loadedData)
+                dataToUpdate["globalProperties"].update(globalProperties)
+        else:
+            FreeCAD.Console.PrintMessage(f"File {materialPath} does not exists\n")
 
         FreeCAD.Console.PrintMessage(f"Writing to file {materialPath}\n")
         with open(materialPath, "w") as file:
             json.dump(
-                {
-                    "global_properties": globalProperties,
-                    "materials": materials,
-                    "conditions": conditions,
-                },
+                dataToUpdate,
                 file,
                 indent=4,
                 cls=CustomJsonEncoder,

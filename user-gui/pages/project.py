@@ -90,18 +90,19 @@ class ProjectWidget(QWidget):
             40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum
         )
 
-        title = QLabel(frame)
-        font = QFont()
-        font.setPointSize(24)
-        title.setFont(font)
-        title.setText(QCoreApplication.translate("Dialog", "Thermal B3V", None))
+        imageLabel = QLabel(frame)
+        pixmap = QPixmap(iconPath("agni.png"))
+        imageLabel.setPixmap(pixmap)
+        imageLabel.setScaledContents(True)
+        imageLabel.setAlignment(Qt.AlignCenter)
+        imageLabel.setFixedSize(pixmap.width()*0.25, pixmap.height()*0.25)
 
         horizontalSpacerRight = QSpacerItem(
             40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum
         )
 
         headerLayout.addItem(horizontalSpacerLeft)
-        headerLayout.addWidget(title)
+        headerLayout.addWidget(imageLabel)
         headerLayout.addItem(horizontalSpacerRight)
         return headerLayout
 
@@ -130,10 +131,17 @@ class ProjectWidget(QWidget):
         )
         visualizeMaterialButton.clicked.connect(self.visualizeMaterials)
 
+        visualizeNormalsButton = QPushButton(frame)
+        visualizeNormalsButton.setText(
+            QCoreApplication.translate("Dialog", "Visualizar Normales", None)
+        )
+        visualizeNormalsButton.clicked.connect(self.visualizeNormals)
+
         verticalLayout.addWidget(modelSectionLabel)
         horizontalLayout.addWidget(gmatButton)
         horizontalLayout.addWidget(freecadButton)
         horizontalLayout.addWidget(visualizeMaterialButton)
+        horizontalLayout.addWidget(visualizeNormalsButton)
         verticalLayout.addLayout(horizontalLayout)
         return verticalLayout
 
@@ -220,6 +228,18 @@ class ProjectWidget(QWidget):
         cmd = [
             gmat_executable,
             gmat_script,
+        ]
+        subprocess.Popen(cmd)
+
+    def visualizeNormals(self):
+        """
+        Opens normal visualization.
+        """
+        cmd = [
+            "python3",
+            self.appState.globalConfiguration.getExecutable("preprocessor"),
+            "viewn",
+            self.appState.projectDirectory,
         ]
         subprocess.Popen(cmd)
 

@@ -54,7 +54,7 @@ class ConfigurationWidget(QWidget):
         
         saveButton = QPushButton(frame)
         saveButton.setText(QCoreApplication.translate("Dialog", u"Guardar", None))
-        saveButton.clicked.connect(self.saveConfiguration)
+        saveButton.clicked.connect(self.goBack)
         
         verticalLayout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
         verticalLayout.addWidget(saveButton, 1)
@@ -87,5 +87,6 @@ class ConfigurationWidget(QWidget):
         """
         Goes back to the project page.
         """
+        self.saveConfiguration()
         self.parent.setCurrentIndex(AppState().popLastRoute())
         

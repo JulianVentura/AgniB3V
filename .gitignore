@@ -403,12 +403,11 @@ solver/timing.txt
 solver/Sonia/*
 solver/e2e_tests
 preprocessor/files/*
-benchmarks/*/
+analysis/benchmarks/*/
 **/globalConfiguration.json
-**/benchmarks
 *.csv
-graphics_template/sources/*
-graphics_template/images/*
-graphics_template/orbits.py
-graphics_template/caja_rellena.py
+analysis/graphics/sources/*
+analysis/graphics/images/*
+analysis/graphics/orbits.py
+analysis/graphics/caja_rellena.py
 

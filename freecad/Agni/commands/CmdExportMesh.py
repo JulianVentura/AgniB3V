@@ -2,6 +2,7 @@ import FreeCAD
 import os
 import json
 import re
+from utils.jsonToCamelCase import dictToCamelCase
 from utils.firstForCondition import firstForCondition
 from public.utils import iconPath
 from utils.CustomJsonEncoder import CustomJsonEncoder
@@ -125,17 +126,14 @@ class CmdExportMesh:
     
     def getProperties(self, material, propertiesRequired):
         """Returns a dictionary of the neccessary properties of the material"""
-        # Check if every material property exists in the material
-        for property in propertiesRequired:
-            if property not in material:
-                return None
-
-        # Format the material properties to remove units
         materialWithoutUnits = {}
-        for property in propertiesRequired:
-            matches = re.findall(r"\d+.\d+|\d+", material[property])
-            if matches:
-                materialWithoutUnits[property] = float(matches[0])
+
+        # Check if every material property exists in the material
+        for propertyRequired in propertiesRequired:
+            print(propertyRequired, getattr(material, propertyRequired, None))
+            if getattr(material, propertyRequired, None) == None:
+                return None
+            materialWithoutUnits[propertyRequired] = getattr(material, propertyRequired, None)
 
         return materialWithoutUnits
     
@@ -180,7 +178,6 @@ class CmdExportMesh:
         elements = {}
         properties = {}
 
-        print(f"propertiesRequired: {propertiesRequired}")
         for materialObject in materialObjects:
             FreeCAD.Console.PrintMessage(f"Getting elements and properties for {materialObject.Label}\n")
             elementsWithMaterial = self.getElementsWithMaterial(materialObject)
@@ -195,12 +192,12 @@ class CmdExportMesh:
             
             # TODO: is better key to be the name, label, id or something else?
             elements[materialObject.Name] = trianglesWithMaterial
-            properties[materialObject.Name] = self.getProperties(materialObject.Material, propertiesRequired)
+            properties[materialObject.Name] = self.getProperties(materialObject, propertiesRequired)
             if not properties[materialObject.Name]:
                 FreeCAD.Console.PrintError(f"Some of the material properties are missing in {materialObject.Label}\n")
                 # console the missing properties
                 for property in propertiesRequired:
-                    if property not in materialObject.Material:
+                    if not getattr(materialObject, property, None):
                         FreeCAD.Console.PrintError(f"  Missing property: {property}\n")
                 return
         
@@ -219,14 +216,22 @@ class CmdExportMesh:
         reader.Update()
 
         # Access the data object
-        data_object = reader.GetOutput()
+        dataObject = reader.GetOutput()
+
+        # Divide every node by 1000
+        points = dataObject.GetPoints()
+        numPoints = points.GetNumberOfPoints()
+        for i in range(numPoints):
+            point = points.GetPoint(i)
+            point = [coord / 1000 for coord in point]
+            points.SetPoint(i, point)
 
         # Modify the version of the VTK file as needed
         # Write the modified VTK file
         # TODO: write vtk using data from workbench and not from file
         writer = vtk.vtkUnstructuredGridWriter()
         writer.SetFileName(meshPath)
-        writer.SetInputData(data_object)
+        writer.SetInputData(dataObject)
         writer.SetFileVersion(42)
         writer.Write()
 
@@ -236,16 +241,27 @@ class CmdExportMesh:
         """Writes the material as a json file"""
         materialPath = os.path.join(path, "properties.json")
         globalProperties = self.workbench.getGlobalPropertiesValues()
-        globalProperties = { key: globalProperties[key]["value"] for key in globalProperties }
+        globalProperties = {key: globalProperties[key]["value"] for key in globalProperties}
+        dataToUpdate = {
+            "globalProperties": globalProperties,
+            "materials": materials,
+            "conditions": conditions,
+        }
+
+        FreeCAD.Console.PrintMessage(f"Checking if {materialPath} exists\n")
+        if os.path.exists(materialPath):
+            FreeCAD.Console.PrintMessage(f"File {materialPath} exists\n")
+            with open(materialPath, "r") as file:
+                loadedData = dictToCamelCase(json.load(file))
+                dataToUpdate["globalProperties"] = loadedData["globalProperties"]
+                dataToUpdate["globalProperties"].update(globalProperties)
+        else:
+            FreeCAD.Console.PrintMessage(f"File {materialPath} does not exists\n")
 
         FreeCAD.Console.PrintMessage(f"Writing to file {materialPath}\n")
         with open(materialPath, "w") as file:
             json.dump(
-                {
-                    "global_properties": globalProperties,
-                    "materials": materials,
-                    "conditions": conditions,
-                },
+                dataToUpdate,
                 file,
                 indent=4,
                 cls=CustomJsonEncoder,

@@ -13,7 +13,7 @@ def setUpNewProject(directory: str) -> bool:
     
     # Copy templates
     templatesDirectory = os.path.join(os.path.dirname(__file__), "../templates")
-    templates = ["gmat.script", "thermal.FCStd"]
+    templates = ["gmat.script", "agni.FCStd"]
     for template in templates:
         shutil.copyfile(os.path.join(templatesDirectory, template), os.path.join(directory, template))
 

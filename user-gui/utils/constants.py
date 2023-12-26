@@ -9,4 +9,5 @@ CONFIG_FILE_PATH = "./files/globalConfiguration.json"
 
 RESULTS_SERIES="results/results.vtk.series"
 
-DOCUMENTATION_URL="https://thermalb3v.github.io/"
+# TODO: check if this is the correct path
+DOCUMENTATION_URL="https://agni.github.io/"

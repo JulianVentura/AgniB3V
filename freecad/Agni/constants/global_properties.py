@@ -5,7 +5,7 @@ GLOBAL_PROPERTIES_INPUTS = {
         "unit": "",
         "value": 0.2,
     },
-    "earthIR": {
+    "earthIr": {
         "label": "Earth IR",
         "unit": "W/m2",
         "value": 225.0,
@@ -21,7 +21,7 @@ GLOBAL_PROPERTIES_INPUTS = {
         "value": 4.0,
     },
     "initialTemperature": {
-        "label": "Initial temperature",
+        "label": "Default initial temperature",
         "unit": "K",
         "value": 200.0,
     },

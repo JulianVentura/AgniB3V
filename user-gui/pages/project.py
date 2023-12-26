@@ -282,7 +282,20 @@ class ProjectWidget(QWidget):
         """
         Calculates view factors and runs solver simulation.
         """
-        pass
+        # run calculate view factors, wait till ends and run simulation
+        cmd = [
+            "python3",
+            self.appState.globalConfiguration.getExecutable("preprocessor"),
+            "process",
+            self.appState.projectDirectory,
+        ]
+        subprocess.Popen(cmd).communicate()
+        cmd = [
+            self.appState.globalConfiguration.getExecutable("solver"),
+            self.appState.projectDirectory,
+            self.appState.globalConfiguration.getSolverConfiguration("mode"),
+        ]
+        subprocess.Popen(cmd)
 
     def openParaView(self):
         """

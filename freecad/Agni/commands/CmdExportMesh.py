@@ -244,8 +244,8 @@ class CmdExportMesh:
         if os.path.exists(materialPath):
             FreeCAD.Console.PrintMessage(f"File {materialPath} exists\n")
             with open(materialPath, "r") as file:
-                loadedData = json.load(file)
-                dataToUpdate = dictToCamelCase(loadedData)
+                loadedData = dictToCamelCase(json.load(file))
+                dataToUpdate["globalProperties"] = loadedData["globalProperties"]
                 dataToUpdate["globalProperties"].update(globalProperties)
         else:
             FreeCAD.Console.PrintMessage(f"File {materialPath} does not exists\n")

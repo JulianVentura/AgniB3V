@@ -111,20 +111,35 @@ class MainWindow(QWidget):
         elif graph_type == "Standard Deviation Over Time":
             plot_std_temperature(self.results)
 
+    def get_file_with_extension(self, extension: str, directory: str) -> str or None:
+        """
+        Given an extension and a directory, it looks for a file with that extension in the
+        given directory and returns its path.
+        """
+        files = [os.path.join(directory, f) for f in os.listdir(directory)]
+        for file in files:
+            if file.endswith(extension):
+                return file
+        return None
+    
     def open_file_dialog(self):
         """
-        Opens a file dialog to choose a .vtk.series file.
-        After selecting the file, it calls the get_results method with the selected file name.
+        Opens a file dialog to choose a directory that has a .vtk.series file.
+        After selecting the directory, it calls the get_results method with the
+        .vtk.series found inside the selected directory.
         """
         self.loader_label.show()
-        options = QFileDialog.Options()
-        file_name, _ = QFileDialog.getOpenFileName(
-            self,
-            "Choose the .vtk.series file",
-            "",
-            "All Files (*);;Python Files (*.py)",
-            options=options,
-        )
+        directory = QFileDialog.getExistingDirectory(self, "Select Directory")
+        file_name = self.get_file_with_extension(".vtk.series", directory)
+        if not file_name:
+            QMessageBox.critical(
+                self,
+                "Error",
+                "The selected directory does not contain a .vtk.series file.",
+            )
+            self.loader_label.hide()
+            return
+
         self.get_results(file_name)
 
         self.loader_label.hide()

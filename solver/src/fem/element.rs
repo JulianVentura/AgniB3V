@@ -62,7 +62,7 @@ impl Element {
         earth_ir: f64,
         albedo_factor: f64,
         generated_heat: f64,
-        two_side_radiation: bool,
+        two_sides_radiation: bool,
         orbit_divisions: &Vec<(usize, bool)>,
     ) -> Result<Self> {
         Self::check_point_length(&p1)?;
@@ -91,7 +91,7 @@ impl Element {
             properties.thickness,
         );
 
-        let e = Self::calculate_e(area, properties.alpha_ir, two_side_radiation);
+        let e = Self::calculate_e(area, properties.alpha_ir, two_sides_radiation);
 
         let f = Self::calculate_f_array(
             area,
@@ -342,15 +342,15 @@ impl Element {
     /// calculate the radiation loss.
     /// * `alpha`: Alpha is the absorptivity of the material. It represents the fraction of incident
     /// radiation that is absorbed by the material.
-    /// * `two_side_radiation`: The parameter `two_side_radiation` is a boolean value that indicates
+    /// * `two_sides_radiation`: The parameter `two_sides_radiation` is a boolean value that indicates
     /// whether the radiation loss occurs on both sides of the element or only in the element's normal
-    /// direction. If `two_side_radiation` is `true`, it means that the radiation loss is doubled
+    /// direction. If `two_sides_radiation` is `true`, it means that the radiation loss is doubled
     ///
     /// Returns:
     ///
     /// The function `calculate_e` returns a `Matrix` object.
-    fn calculate_e(area: f64, alpha: f64, two_side_radiation: bool) -> Matrix {
-        let factor = match two_side_radiation {
+    fn calculate_e(area: f64, alpha: f64, two_sides_radiation: bool) -> Matrix {
+        let factor = match two_sides_radiation {
             true => 2.0,  //Doubles the radiation loss
             false => 1.0, //Radiation loss only in the element normal direction
         };

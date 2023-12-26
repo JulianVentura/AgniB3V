@@ -49,7 +49,6 @@ def process_view_factors(
     element_max_reflections_amount = properties.global_properties[
         "element_max_reflections_amount"
     ]
-    internal_emission = properties.global_properties["internal_emission"]
     orbit_divisions = properties.global_properties["orbit_divisions"]
     division_time = properties.orbit_properties.period / orbit_divisions
     elapsed_secs = properties.orbit_properties.elapsed_secs
@@ -67,9 +66,9 @@ def process_view_factors(
     element_element_ir_view_factors = view_factors.element_element(
         mesh,
         properties.absortance_ir_by_element,
+        properties.two_sides_emission_by_element,
         element_ray_amount,
-        element_max_reflections_amount,
-        internal_emission,
+        element_max_reflections_amount
     )
 
     print("Calculating sun view factors")

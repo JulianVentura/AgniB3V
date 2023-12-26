@@ -21,6 +21,9 @@ BACKWARDS_PYRAMID_PROPERTIES_PATH_HALF_REFLECTIONS_HALF_ABSORTANCE = (
 BACKWARDS_PYRAMID_PROPERTIES_PATH_FULL_REFLECTIONS = (
     "./test/models/backwards_pyramid_full_reflections.json"
 )
+BACKWARDS_PYRAMID_PROPERTIES_PATH_MIXED_EMISSION = (
+    "./test/models/backwards_pyramid_mixed_emission.json"
+)
 
 BACKWARDS_DIAMOND_GEOMETRY_PATH = "./test/models/backwards_diamond.vtk"
 BACKWARDS_DIAMOND_PROPERTIES_PATH = "./test/models/backwards_diamond.json"

@@ -28,6 +28,23 @@ class PropertiesAtlas:
             if material_id < 0:
                 print(f"Warning: Element {element_id} does not have a material")
 
+    def _build_condition_index(self, elements_amount, properties_json):
+        self.two_sides_emission_by_element = None
+        
+        if self.global_properties["internal_emission"]:
+            self.two_sides_emission_by_element = np.ones(elements_amount, dtype=bool)
+        else:
+            self.two_sides_emission_by_element = np.zeros(elements_amount, dtype=bool)
+    
+        if not properties_json.get("conditions", None):
+            return
+        properties = properties_json["conditions"]["properties"]
+        elements = properties_json["conditions"]["elements"]
+        for condition_name, condition_props in properties.items():
+            two_sides_emission = condition_props["two_sides_emission"] if condition_props["two_sides_emission"] else False
+            for element_id in elements[condition_name]:
+                self.two_sides_emission_by_element[element_id] = two_sides_emission
+
     def _add_global_orbit_properties(self):
         self.global_properties["beta_angle"] = self.orbit_properties.beta_angle
         self.global_properties["orbital_period"] = self.orbit_properties.period
@@ -57,6 +74,7 @@ class PropertiesAtlas:
             else:
                 self.orbit_properties = None
             self._build_material_index(elements_amount, self.properties_json)
+            self._build_condition_index(elements_amount, self.properties_json)
 
     def get_element_material(self, element_index):
         """

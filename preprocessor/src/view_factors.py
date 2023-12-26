@@ -36,9 +36,7 @@ def element_earth(
         emitting_element = mesh.triangles[element_id]
         emitting_element_normal = element_normals[element_id]
 
-        ray_origins = elements.random_points_in_element(
-            emitting_element, ray_amount
-        )
+        ray_origins = elements.random_points_in_element(emitting_element, ray_amount)
         ray_directions = vector_math.random_unit_vectors(ray_amount)
         vector_math.orient_towards_direction(ray_directions, earth_direction)
         ray_origins += ray_directions * RAY_DISPLACEMENT
@@ -64,13 +62,17 @@ def element_earth(
         )
 
         # IR
-        ray_earth_dot_product = vector_math.array_dot(not_hit_ray_directions, earth_direction)
+        ray_earth_dot_product = vector_math.array_dot(
+            not_hit_ray_directions, earth_direction
+        )
         ray_earth_dot_product[ray_earth_dot_product < 0] = 0
         ir_view_factor = IR_SCALE_FACTOR * ray_earth_dot_product * ray_sat_dot_product
         ir_view_factors[element_id] = np.sum(ir_view_factor) / ray_amount
 
         # Albedo
-        ray_sun_dot_product = vector_math.array_dot(not_hit_ray_directions, -sun_direction)
+        ray_sun_dot_product = vector_math.array_dot(
+            not_hit_ray_directions, -sun_direction
+        )
         albedo_view_factor = (
             ray_earth_dot_product
             * ray_sat_dot_product
@@ -102,6 +104,7 @@ def element_sun(mesh, sun_direction):
 
     return element_sun_view_factors
 
+
 def _filter_reflected_rays_by_element_absorptance(
     absorptance, hit_points, hit_ray_ids, hit_element_ids
 ):
@@ -122,7 +125,11 @@ def _filter_reflected_rays_by_element_absorptance(
 
 
 def element_element(
-    mesh, absorptance_by_element, ray_amount, max_reflections_amount, internal_emission
+    mesh,
+    absorptance_by_element,
+    two_sides_emission_by_element,
+    ray_amount,
+    max_reflections_amount,
 ):
     """
     Receives a trimesh mesh object, a function that returns the material properties of an element,
@@ -141,12 +148,12 @@ def element_element(
         view_factors_row = np.zeros(element_amount)
 
         # Original emission
-        ray_origins = elements.random_points_in_element(
-            emitting_element, ray_amount
-        )
+        ray_origins = elements.random_points_in_element(emitting_element, ray_amount)
         ray_directions = vector_math.random_unit_vectors(ray_amount)
-        if not internal_emission:
-            vector_math.orient_towards_direction(ray_directions, emitting_element_normal)
+        if not two_sides_emission_by_element[element_id]:
+            vector_math.orient_towards_direction(
+                ray_directions, emitting_element_normal
+            )
 
         ray_origins += ray_directions * RAY_DISPLACEMENT
 

@@ -194,7 +194,11 @@ def _element_element_backwards_pyramid(properties_path, ray_amount):
         mesh_ops.element_amount(mesh), properties_path
     )
     return view_factors.element_element(
-        mesh, properties.absortance_ir_by_element, ray_amount, 50, False
+        mesh,
+        properties.absortance_ir_by_element,
+        properties.two_sides_emission_by_element,
+        ray_amount,
+        50,
     )
 
 
@@ -291,7 +295,11 @@ def _element_element_backwards_diamond(properties_path, ray_amount):
         mesh_ops.element_amount(mesh), properties_path
     )
     return view_factors.element_element(
-        mesh, properties.absortance_ir_by_element, ray_amount, 100, True
+        mesh,
+        properties.absortance_ir_by_element,
+        properties.two_sides_emission_by_element,
+        ray_amount,
+        100,
     )
 
 
@@ -327,4 +335,25 @@ def test_element_element_backwards_diamond_view_factors_are_correct():
     view_factors_errors = np.abs(
         element_element_view_factors - expected_element_element_view_factors
     )
+    assert np.all(np.less(view_factors_errors, 0.10))
+
+
+def test_element_element_backwards_pyramid_view_factors_mixed_emissions():
+    element_element_view_factors = _element_element_backwards_pyramid(
+        BACKWARDS_PYRAMID_PROPERTIES_PATH_MIXED_EMISSION, 10000
+    )
+    expected_element_element_view_factors = (
+        np.array(
+            [
+                [0, 1 / 6, 1 / 6, 1 / 6],
+                [1 / 6, 0, 1 / 6, 1 / 6],
+                [1 / 3, 1 / 3, 0, 1 / 3],
+                [1 / 3, 1 / 3, 1 / 3, 0],
+            ]
+        ),
+    )
+    view_factors_errors = np.abs(
+        element_element_view_factors - expected_element_element_view_factors
+    )
+    print(element_element_view_factors)
     assert np.all(np.less(view_factors_errors, 0.10))

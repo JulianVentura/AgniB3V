@@ -216,14 +216,22 @@ class CmdExportMesh:
         reader.Update()
 
         # Access the data object
-        data_object = reader.GetOutput()
+        dataObject = reader.GetOutput()
+
+        # Divide every node by 1000
+        points = dataObject.GetPoints()
+        numPoints = points.GetNumberOfPoints()
+        for i in range(numPoints):
+            point = points.GetPoint(i)
+            point = [coord / 1000 for coord in point]
+            points.SetPoint(i, point)
 
         # Modify the version of the VTK file as needed
         # Write the modified VTK file
         # TODO: write vtk using data from workbench and not from file
         writer = vtk.vtkUnstructuredGridWriter()
         writer.SetFileName(meshPath)
-        writer.SetInputData(data_object)
+        writer.SetInputData(dataObject)
         writer.SetFileVersion(42)
         writer.Write()
 

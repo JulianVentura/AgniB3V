@@ -15,20 +15,10 @@ GLOBAL_PROPERTIES_INPUTS = {
         "unit": "W/m2",
         "value": 1361.0,
     },
-    "spaceTemperature": {
-        "label": "Space temperature",
-        "unit": "K",
-        "value": 4.0,
-    },
     "initialTemperature": {
         "label": "Default initial temperature",
         "unit": "K",
         "value": 200.0,
-    },
-    "internalEmission": {
-        "label": "Internal emission",
-        "unit": "",
-        "value": False,
     },
     "simulationTime": {
         "label": "Simulation time",
@@ -53,7 +43,7 @@ GLOBAL_PROPERTIES_INPUTS = {
     "elementMaxReflectionsAmount": {
         "label": "Element max reflections amount",
         "unit": "",
-        "value": 3,
+        "value": 100,
     },
     "earthRayAmount": {
         "label": "Earth ray amount",

@@ -49,8 +49,8 @@ def view_normal(mesh):
     print("REFERENCE:")
     POSITIVE_COLOR = np.array([63, 96, 181]) / 255
     NEGATIVE_COLOR = np.array([165, 48, 48]) / 255
-    print(_color_item_str(POSITIVE_COLOR), "+n")
-    print(_color_item_str(NEGATIVE_COLOR), "-n")
+    print(_color_item_str(POSITIVE_COLOR), "Towards surface normal")
+    print(_color_item_str(NEGATIVE_COLOR), "Against surface normal")
 
     mesh.faces = np.vstack((mesh.faces, np.fliplr(mesh.faces)))
 

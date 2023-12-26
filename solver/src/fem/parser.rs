@@ -61,9 +61,11 @@ pub struct ParserPropertiesMaterials {
 
 #[derive(Debug, Deserialize)]
 pub struct ParserPropertiesConditionsDetails {
-    initial_temperature: Option<f64>,
-    flux: Option<f64>,
-    two_side_radiation: Option<bool>,
+    initial_temperature: f64,
+    initial_temperature_on: bool,
+    flux: f64,
+    flux_on: bool,
+    two_side_radiation: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -364,15 +366,13 @@ pub fn fem_problem_from_vtk(config: &ParserConfig) -> Result<FEMProblem> {
         let file_condition_properties = &properties_json.conditions.properties[&condition_name];
         for element_id in condition_elements {
             let id = element_id as usize;
-            if let Some(value) = file_condition_properties.initial_temperature {
-                parser_elements[id].initial_temperature = value;
+            if file_condition_properties.initial_temperature_on {
+                parser_elements[id].initial_temperature = file_condition_properties.initial_temperature;
             }
-            if let Some(value) = file_condition_properties.flux {
-                parser_elements[id].flux = value;
+            if file_condition_properties.flux_on {
+                parser_elements[id].flux = file_condition_properties.flux;
             }
-            if let Some(value) = file_condition_properties.two_side_radiation {
-                parser_elements[id].two_side_radiation = value;
-            }
+            parser_elements[id].two_side_radiation = file_condition_properties.two_side_radiation;
         }
     }
 

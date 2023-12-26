@@ -1,5 +1,3 @@
-#!<virtualenv_dir>/bin/python
-
 import subprocess
 import os
 import timeit
@@ -25,7 +23,7 @@ def run_benchmark(folder):
     benchmark_elments_amount = folder.split("/")[-1]
     print(f"RUNNING {benchmark_elments_amount} ELEMENTS BENCHMARK ")
     print("PREPROCESSOR")
-    preprocessor = ["python3", "../standalone-raytrace/main.py", "process", folder]
+    preprocessor = ["python3", "../preprocessor/main.py", "process", folder]
     elapsed_time_preprocessor = timeit.timeit(
         lambda: subprocess.run(preprocessor), number=1
     )

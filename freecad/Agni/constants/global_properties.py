@@ -33,7 +33,7 @@ GLOBAL_PROPERTIES_INPUTS = {
     "snapPeriod": {
         "label": "Snap period",
         "unit": "s",
-        "value": 25.0,
+        "value": 100.0,
     },
     "elementRayAmount": {
         "label": "Element ray amount",

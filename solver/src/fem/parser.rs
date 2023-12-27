@@ -89,7 +89,6 @@ pub struct ParserGlobalProperties {
     albedo: f64,
     earth_ir: f64,
     solar_constant: f64,
-    space_temperature: f64,
     initial_temperature: f64,
     time_step: f64,
     snap_period: f64,

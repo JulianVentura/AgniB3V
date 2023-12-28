@@ -117,6 +117,8 @@ class ProjectWidget(QWidget):
         )
 
         horizontalLayout = QHBoxLayout()
+        horizontalLayout2 = QHBoxLayout()
+
         freecadButton = QPushButton(frame)
         freecadButton.setText(QCoreApplication.translate("Dialog", "FreeCAD", None))
         freecadButton.clicked.connect(self.openFreeCAD)
@@ -137,12 +139,20 @@ class ProjectWidget(QWidget):
         )
         visualizeNormalsButton.clicked.connect(self.visualizeNormals)
 
+        globalPropertiesButton = QPushButton()
+        globalPropertiesButton.setText(
+            QCoreApplication.translate("Dialog", "Propiedades Globales", None)
+        )
+        globalPropertiesButton.clicked.connect(self.openGlobalProperties)
+
         verticalLayout.addWidget(modelSectionLabel)
         horizontalLayout.addWidget(gmatButton)
         horizontalLayout.addWidget(freecadButton)
-        horizontalLayout.addWidget(visualizeMaterialButton)
-        horizontalLayout.addWidget(visualizeNormalsButton)
+        horizontalLayout2.addWidget(visualizeMaterialButton)
+        horizontalLayout2.addWidget(visualizeNormalsButton)
+        horizontalLayout2.addWidget(globalPropertiesButton)
         verticalLayout.addLayout(horizontalLayout)
+        verticalLayout.addLayout(horizontalLayout2)
         return verticalLayout
 
     def getProcessingSectionLayout(self, frame):
@@ -348,3 +358,20 @@ class ProjectWidget(QWidget):
         Opens the documentation in the browser.
         """
         QDesktopServices.openUrl(QUrl(DOCUMENTATION_URL, QUrl.TolerantMode))
+
+    def openGlobalProperties(self):
+        """
+        Opens the global properties dialog.
+        """
+        # Check if properties.json exists
+        propertiesPath = os.path.join(self.appState.projectDirectory, "properties.json")
+        if not os.path.exists(propertiesPath):
+            QMessageBox.critical(
+                self,
+                "Error",
+                "No existe el archivo properties.json. Para crearlo, debe exportar desde FreeCAD.",
+                QMessageBox.Ok,
+            )
+            return
+        self.appState.addRoute(ROUTES["project"])
+        self.parent.setCurrentIndex(ROUTES["globalProperties"])

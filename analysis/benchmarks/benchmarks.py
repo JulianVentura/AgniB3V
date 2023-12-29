@@ -11,7 +11,8 @@ import numpy as np
 TIMING_FOLDER = "timings"
 CURRENT_USER = os.environ["USER"]
 TIMING_FILE_PATH = f"{TIMING_FOLDER}/{CURRENT_USER}.csv"
-
+PREPROCESSOR_PATH = "../../preprocesso"
+SOLVER_PATH="../../solver"
 
 def decompose_time(total_seconds):
     hours, remainder = divmod(total_seconds, 3600)
@@ -23,23 +24,21 @@ def run_benchmark(folder):
     benchmark_elments_amount = folder.split("/")[-1]
     print(f"RUNNING {benchmark_elments_amount} ELEMENTS BENCHMARK ")
     print("PREPROCESSOR")
-    preprocessor = ["python3", "../preprocessor/main.py", "process", folder]
+    preprocessor = ["python3", f"{PREPROCESSOR_PATH}/main.py", "process", folder]
     elapsed_time_preprocessor = timeit.timeit(
         lambda: subprocess.run(preprocessor), number=1
     )
     print("SOLVER CPU")
-    solver_implicit = ["../solver/target/release/solver", folder, "Implicit"]
+    solver_implicit = [f"{SOLVER_PATH}/target/release/solver", folder, "Implicit"]
     elapsed_time_implicit = timeit.timeit(
         lambda: subprocess.run(solver_implicit), number=1
     )
 
     print("SOLVER GPU")
     wd = os.getcwd()
-    os.chdir("../solver")
-
-    solver_gpu = ["target/release/solver", folder, "GPU"]
+    os.chdir(SOLVER_PATH)
+    solver_gpu = [f"./target/release/solver", folder, "GPU"]
     elapsed_time_gpu = timeit.timeit(lambda: subprocess.run(solver_gpu), number=1)
-
     os.chdir(wd)
 
     preprocessor_time_decomposed = decompose_time(elapsed_time_preprocessor)

@@ -11,7 +11,7 @@ import numpy as np
 TIMING_FOLDER = "timings"
 CURRENT_USER = os.environ["USER"]
 TIMING_FILE_PATH = f"{TIMING_FOLDER}/{CURRENT_USER}.csv"
-PREPROCESSOR_PATH = "../../preprocesso"
+PREPROCESSOR_PATH = "../../preprocessor"
 SOLVER_PATH="../../solver"
 
 def decompose_time(total_seconds):

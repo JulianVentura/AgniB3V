@@ -29,19 +29,14 @@ class PropertiesAtlas:
                 print(f"Warning: Element {element_id} does not have a material")
 
     def _build_condition_index(self, elements_amount, properties_json):
-        self.two_sides_emission_by_element = None
-        
-        if self.global_properties["internal_emission"]:
-            self.two_sides_emission_by_element = np.ones(elements_amount, dtype=bool)
-        else:
-            self.two_sides_emission_by_element = np.zeros(elements_amount, dtype=bool)
+        self.two_sides_emission_by_element = np.zeros(elements_amount, dtype=bool)
     
         if not properties_json.get("conditions", None):
             return
         properties = properties_json["conditions"]["properties"]
         elements = properties_json["conditions"]["elements"]
         for condition_name, condition_props in properties.items():
-            two_sides_emission = condition_props["two_sides_emission"] if condition_props["two_sides_emission"] else False
+            two_sides_emission = condition_props["two_sides_radiation"] if condition_props["two_sides_radiation"] else False
             for element_id in elements[condition_name]:
                 self.two_sides_emission_by_element[element_id] = two_sides_emission
 

@@ -121,6 +121,7 @@ def process_view_factors(
         element_sun_view_factors,
         element_element_ir_view_factors,
     )
+    print("Done")
 
 
 def visualize_material(mesh_file_path, properties_file_path):

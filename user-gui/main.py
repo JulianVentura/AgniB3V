@@ -4,7 +4,6 @@ from PySide2.QtWidgets import *
 from pages.landing import LandingWidget
 from pages.project import ProjectWidget
 from pages.newProject import NewProjectWidget
-from pages.configuration import ConfigurationWidget
 from pages.globalProperties import GlobalPropertiesWidget
 from utils.appState import AppState
 
@@ -14,7 +13,6 @@ class PagesWidget(QStackedWidget):
         self.addWidget(LandingWidget(self))
         self.addWidget(NewProjectWidget(self))
         self.addWidget(ProjectWidget(self))
-        self.addWidget(ConfigurationWidget(self))
         self.addWidget(GlobalPropertiesWidget(self))
 
 class MainWindow(QMainWindow):

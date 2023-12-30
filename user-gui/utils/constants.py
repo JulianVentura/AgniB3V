@@ -1,12 +1,24 @@
+import os
+
 ROUTES = {
     "landing": 0,
     "newProject": 1,
     "project": 2,
-    "configuration": 3,
-    "globalProperties": 4,
+    "globalProperties": 3,
 }
 
-CONFIG_FILE_PATH = "./files/globalConfiguration.json"
+PROJECT_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+
+EXECUTABLES = {
+    "fileManager": "xdg-open",
+    "freecad": os.path.join(PROJECT_PATH, "freecad", "bin", "FreeCAD"),
+    "gmat": os.path.join(PROJECT_PATH, "gmat", "bin", "GMAT_Beta"),
+    "paraview": os.path.join(PROJECT_PATH, "paraview", "bin", "paraview"),
+    "plotter": os.path.join(PROJECT_PATH, "plotter", "UI.py"),
+    "preprocessor": os.path.join(PROJECT_PATH, "preprocessor", "main.py"),
+    "solver": os.path.join(PROJECT_PATH, "solver", "target", "release", "solver"),
+}
+
 
 RESULTS_SERIES="results/results.vtk.series"
 
@@ -58,4 +70,11 @@ GLOBAL_PROPERTIES_INPUTS = {
         "label": "Orbit divisions",
         "unit": "",
     },
+}
+
+SOLVER_MODES = ["CPU", "GPU"]
+
+MODES_TRANSLATIONS = {
+    "CPU": "Implicit",
+    "GPU": "GPU",
 }

@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import templates
 import numpy as np
 import std_deviation
-import cuadratic_error
+import relative_error
 
 
 def plot_convergence(source, files, points, titles, label_generator, type, unit):
@@ -52,16 +52,16 @@ def plot_convergence(source, files, points, titles, label_generator, type, unit)
         graphs.append(ax)
         names.append(f"{source}_std_deviation_{titles[i]}")
 
-        ax = cuadratic_error.plot_cuadratic_error(
+        ax = relative_error.plot_relative_error(
             times, temperatures_by_id, labels=[f + " " + unit for f in files]
         )
         templates.template_plot(
             ax,
             "Time (s)",
-            "Cuadratic Error of Temperature",
-            f"Cuadratic Error over {type} Convergence at {titles[i]} vs {files[-1]} {unit}",
+            "Relative Error of Temperature",
+            f"Relative Error over {type} Convergence at {titles[i]} vs {files[-1]} {unit}",
         )
         graphs.append(ax)
-        names.append(f"{source}_cuadratic_error_{titles[i]}")
+        names.append(f"{source}_relative_error_{titles[i]}")
 
     templates.template_save_multiple_images(graphs, source, names)

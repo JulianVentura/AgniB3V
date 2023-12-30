@@ -1,4 +1,4 @@
-from .globalConfiguration import GlobalConfiguration
+from utils.constants import SOLVER_MODES
 
 class AppStateMeta(type):
     _instance = None
@@ -11,9 +11,9 @@ class AppStateMeta(type):
 
 class AppState(metaclass=AppStateMeta):
     def __init__(self):
-        self.globalConfiguration = GlobalConfiguration()
         self.projectDirectory = None
         self.routes = []
+        self.solverMode = SOLVER_MODES[0]
 
     def openProject(self, directory):
         self.projectDirectory = directory
@@ -28,9 +28,3 @@ class AppState(metaclass=AppStateMeta):
         if len(self.routes) == 0:
             return 0
         return self.routes.pop()
-
-    def getGlobalConfiguration(self) -> dict:
-        return self.globalConfiguration.config
-    
-    def setGlobalConfiguration(self, config):
-        self.globalConfiguration.updateConfig(config)

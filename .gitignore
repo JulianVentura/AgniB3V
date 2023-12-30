@@ -404,7 +404,6 @@ solver/Sonia/*
 solver/e2e_tests
 preprocessor/files/*
 analysis/benchmarks/*/
-**/globalConfiguration.json
 *.csv
 analysis/graphics/sources/*
 analysis/graphics/images/*

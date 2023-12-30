@@ -42,13 +42,6 @@ class NewProjectWidget(QWidget):
         goBackButton.setText(QCoreApplication.translate("Dialog", u"<", None))
         goBackButton.setFixedSize(30, 30)
         goBackButton.clicked.connect(self.goToLanding)
-        
-        settingsButton = QPushButton()
-        pixmap = QPixmap(iconPath("settings.svg"))
-        icon = QIcon(pixmap)
-        settingsButton.setIcon(icon)
-        settingsButton.setFixedSize(30, 30)
-        settingsButton.clicked.connect(self.configureProject)
 
         documentationButton = QPushButton()
         pixmap = QPixmap(iconPath("documentation.svg"))
@@ -58,7 +51,6 @@ class NewProjectWidget(QWidget):
         documentationButton.clicked.connect(self.openDocumentation)
 
         rightButtonsLayout.addWidget(documentationButton)
-        rightButtonsLayout.addWidget(settingsButton)
         headerButtonsLayout.addWidget(goBackButton, alignment=Qt.AlignLeft)
         headerButtonsLayout.addLayout(rightButtonsLayout, alignment=Qt.AlignRight)
         return headerButtonsLayout
@@ -197,13 +189,6 @@ class NewProjectWidget(QWidget):
         """
         self.appState.resetRoutes()
         self.parent.setCurrentIndex(ROUTES["landing"])
-        
-    def configureProject(self):
-        """
-        Opens project configuration dialog.
-        """
-        self.appState.addRoute(ROUTES["newProject"])
-        self.parent.setCurrentIndex(ROUTES["configuration"])
 
     def openDocumentation(self):
         """

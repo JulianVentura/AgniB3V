@@ -40,13 +40,6 @@ class LandingWidget(QWidget):
         rightButtonsLayout = QHBoxLayout()
         rightButtonsLayout.setAlignment(Qt.AlignRight)
 
-        settingsButton = QPushButton()
-        pixmap = QPixmap(iconPath("settings.svg"))
-        icon = QIcon(pixmap)
-        settingsButton.setIcon(icon)
-        settingsButton.setFixedSize(30, 30)
-        settingsButton.clicked.connect(self.configureProject)
-
         documentationButton = QPushButton()
         pixmap = QPixmap(iconPath("documentation.svg"))
         icon = QIcon(pixmap)
@@ -55,7 +48,6 @@ class LandingWidget(QWidget):
         documentationButton.clicked.connect(self.openDocumentation)
 
         rightButtonsLayout.addWidget(documentationButton)
-        rightButtonsLayout.addWidget(settingsButton)
         headerButtonsLayout.addLayout(rightButtonsLayout, alignment=Qt.AlignRight)
         return headerButtonsLayout
         
@@ -131,13 +123,6 @@ class LandingWidget(QWidget):
         # TODO: validar si es un directorio valido
         # es decir, que tenga los archivos necesarios
         return True
-    
-    def configureProject(self):
-        """
-        Opens project configuration dialog.
-        """
-        self.appState.addRoute(ROUTES["landing"])
-        self.parent.setCurrentIndex(ROUTES["configuration"])
 
     def openDocumentation(self):
         """

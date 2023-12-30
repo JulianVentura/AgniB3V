@@ -4,10 +4,16 @@ from PySide2.QtWidgets import *
 import subprocess
 import os
 from utils.appState import AppState
-from utils.constants import ROUTES, RESULTS_SERIES, DOCUMENTATION_URL
+from utils.constants import (
+    ROUTES,
+    RESULTS_SERIES,
+    DOCUMENTATION_URL,
+    EXECUTABLES,
+    SOLVER_MODES,
+    MODES_TRANSLATIONS,
+)
 from utils.getFileWithExtension import getFileWithExtension
 from public.paths import iconPath
-
 
 class ProjectWidget(QWidget):
     def __init__(self, parent=None):
@@ -52,13 +58,6 @@ class ProjectWidget(QWidget):
 
         rightButtonsLayout = QHBoxLayout()
 
-        settingsButton = QPushButton()
-        pixmap = QPixmap(iconPath("settings.svg"))
-        icon = QIcon(pixmap)
-        settingsButton.setIcon(icon)
-        settingsButton.setFixedSize(30, 30)
-        settingsButton.clicked.connect(self.configureProject)
-
         documentationButton = QPushButton()
         pixmap = QPixmap(iconPath("documentation.svg"))
         icon = QIcon(pixmap)
@@ -75,7 +74,6 @@ class ProjectWidget(QWidget):
 
         rightButtonsLayout.addWidget(directoryButton)
         rightButtonsLayout.addWidget(documentationButton)
-        rightButtonsLayout.addWidget(settingsButton)
         headerButtonsLayout.addWidget(goBackButton, alignment=Qt.AlignLeft)
         headerButtonsLayout.addLayout(rightButtonsLayout, alignment=Qt.AlignRight)
         return headerButtonsLayout
@@ -117,6 +115,8 @@ class ProjectWidget(QWidget):
         )
 
         horizontalLayout = QHBoxLayout()
+        horizontalLayout2 = QHBoxLayout()
+
         freecadButton = QPushButton(frame)
         freecadButton.setText(QCoreApplication.translate("Dialog", "FreeCAD", None))
         freecadButton.clicked.connect(self.openFreeCAD)
@@ -137,12 +137,20 @@ class ProjectWidget(QWidget):
         )
         visualizeNormalsButton.clicked.connect(self.visualizeNormals)
 
+        globalPropertiesButton = QPushButton()
+        globalPropertiesButton.setText(
+            QCoreApplication.translate("Dialog", "Propiedades Globales", None)
+        )
+        globalPropertiesButton.clicked.connect(self.openGlobalProperties)
+
         verticalLayout.addWidget(modelSectionLabel)
         horizontalLayout.addWidget(gmatButton)
         horizontalLayout.addWidget(freecadButton)
-        horizontalLayout.addWidget(visualizeMaterialButton)
-        horizontalLayout.addWidget(visualizeNormalsButton)
+        horizontalLayout2.addWidget(visualizeMaterialButton)
+        horizontalLayout2.addWidget(visualizeNormalsButton)
+        horizontalLayout2.addWidget(globalPropertiesButton)
         verticalLayout.addLayout(horizontalLayout)
+        verticalLayout.addLayout(horizontalLayout2)
         return verticalLayout
 
     def getProcessingSectionLayout(self, frame):
@@ -154,8 +162,20 @@ class ProjectWidget(QWidget):
         dialogSectionLabel.setText(
             QCoreApplication.translate("Dialog", "Procesamiento", None)
         )
-
         horizontalLayout = QHBoxLayout()
+        horizontalLayout2 = QHBoxLayout()
+
+        # create switch to select if want to run cpu o gpu
+        solverModeLabel = QLabel(frame)
+        solverModeLabel.setText(
+            QCoreApplication.translate("Dialog", "Modo de ejecuci\u00f3n", None)
+        )
+        solverModeLabel.setAlignment(Qt.AlignCenter)
+        solverModeComboBox = QComboBox(frame)
+        solverModeComboBox.addItems(SOLVER_MODES)
+        solverModeComboBox.currentIndexChanged.connect(self.onChangeSolverMode)
+        solverModeComboBox.setCurrentIndex(SOLVER_MODES.index(self.appState.solverMode))
+
         calculateVFButton = QPushButton(frame)
         calculateVFButton.setText(
             QCoreApplication.translate("Dialog", "Calcular Factores de Vista", None)
@@ -179,8 +199,11 @@ class ProjectWidget(QWidget):
         verticalLayout.addWidget(dialogSectionLabel)
         horizontalLayout.addWidget(calculateVFButton)
         horizontalLayout.addWidget(solverButton)
+        horizontalLayout.addWidget(solverModeLabel)
+        horizontalLayout2.addWidget(solverAndVFButton, stretch=2)
+        horizontalLayout2.addWidget(solverModeComboBox, stretch=1)
         verticalLayout.addLayout(horizontalLayout)
-        verticalLayout.addWidget(solverAndVFButton)
+        verticalLayout.addLayout(horizontalLayout2)
         return verticalLayout
 
     def getPostprocessingSectionLayout(self, frame):
@@ -208,13 +231,19 @@ class ProjectWidget(QWidget):
         verticalLayout.addLayout(horizontalLayout)
         return verticalLayout
 
+    def onChangeSolverMode(self, index):
+        """
+        Changes the solver mode.
+        """
+        self.appState.solverMode = SOLVER_MODES[index]
+    
     def openFreeCAD(self):
         """
         Opens FreeCAD application.
         """
         freecadFile = getFileWithExtension(".FCStd", self.appState.projectDirectory)
         cmd = [
-            self.appState.globalConfiguration.getExecutable("freecad"),
+            EXECUTABLES["freecad"],
             freecadFile,
         ]
         subprocess.Popen(cmd)
@@ -223,7 +252,7 @@ class ProjectWidget(QWidget):
         """
         Opens GMAT application.
         """
-        gmat_executable = self.appState.globalConfiguration.getExecutable("gmat")
+        gmat_executable = EXECUTABLES["gmat"]
         gmat_script = getFileWithExtension(".script", self.appState.projectDirectory)
         cmd = [
             gmat_executable,
@@ -237,7 +266,7 @@ class ProjectWidget(QWidget):
         """
         cmd = [
             "python3",
-            self.appState.globalConfiguration.getExecutable("preprocessor"),
+            EXECUTABLES["preprocessor"],
             "viewn",
             self.appState.projectDirectory,
         ]
@@ -249,7 +278,7 @@ class ProjectWidget(QWidget):
         """
         cmd = [
             "python3",
-            self.appState.globalConfiguration.getExecutable("preprocessor"),
+            EXECUTABLES["preprocessor"],
             "viewm",
             self.appState.projectDirectory,
         ]
@@ -261,7 +290,7 @@ class ProjectWidget(QWidget):
         """
         cmd = [
             "python3",
-            self.appState.globalConfiguration.getExecutable("preprocessor"),
+            EXECUTABLES["preprocessor"],
             "process",
             self.appState.projectDirectory,
         ]
@@ -272,9 +301,9 @@ class ProjectWidget(QWidget):
         Runs solver simulation.
         """
         cmd = [
-            self.appState.globalConfiguration.getExecutable("solver"),
+            EXECUTABLES["solver"],
             self.appState.projectDirectory,
-            self.appState.globalConfiguration.getSolverConfiguration("mode"),
+            MODES_TRANSLATIONS[self.appState.solverMode],
         ]
         subprocess.Popen(cmd)
 
@@ -285,15 +314,15 @@ class ProjectWidget(QWidget):
         # run calculate view factors, wait till ends and run simulation
         cmd = [
             "python3",
-            self.appState.globalConfiguration.getExecutable("preprocessor"),
+            EXECUTABLES["preprocessor"],
             "process",
             self.appState.projectDirectory,
         ]
         subprocess.Popen(cmd).communicate()
         cmd = [
-            self.appState.globalConfiguration.getExecutable("solver"),
+            EXECUTABLES["solver"],
             self.appState.projectDirectory,
-            self.appState.globalConfiguration.getSolverConfiguration("mode"),
+            MODES_TRANSLATIONS[self.appState.solverMode],
         ]
         subprocess.Popen(cmd)
 
@@ -302,7 +331,7 @@ class ProjectWidget(QWidget):
         Opens ParaView application.
         """
         cmd = [
-            self.appState.globalConfiguration.getExecutable("paraview"),
+            EXECUTABLES["paraview"],
             "--data",
             os.path.join(self.appState.projectDirectory, RESULTS_SERIES),
         ]
@@ -314,7 +343,7 @@ class ProjectWidget(QWidget):
         """
         cmd = [
             "python3",
-            self.appState.globalConfiguration.getExecutable("plotter"),
+            EXECUTABLES["plotter"],
             self.appState.projectDirectory + "/results/result.vtk.series",
         ]
         subprocess.Popen(cmd)
@@ -326,19 +355,12 @@ class ProjectWidget(QWidget):
         self.appState.resetRoutes()
         self.parent.setCurrentIndex(ROUTES["landing"])
 
-    def configureProject(self):
-        """
-        Opens project configuration dialog.
-        """
-        self.appState.addRoute(ROUTES["project"])
-        self.parent.setCurrentIndex(ROUTES["configuration"])
-
     def openProjectDirectory(self):
         """
         Opens project directory.
         """
         cmd = [
-            self.appState.globalConfiguration.getExecutable("fileManager"),
+            EXECUTABLES["fileManager"],
             self.appState.projectDirectory,
         ]
         subprocess.Popen(cmd)
@@ -348,3 +370,20 @@ class ProjectWidget(QWidget):
         Opens the documentation in the browser.
         """
         QDesktopServices.openUrl(QUrl(DOCUMENTATION_URL, QUrl.TolerantMode))
+
+    def openGlobalProperties(self):
+        """
+        Opens the global properties dialog.
+        """
+        # Check if properties.json exists
+        propertiesPath = os.path.join(self.appState.projectDirectory, "properties.json")
+        if not os.path.exists(propertiesPath):
+            QMessageBox.critical(
+                self,
+                "Error",
+                "No existe el archivo properties.json. Para crearlo, debe exportar desde FreeCAD.",
+                QMessageBox.Ok,
+            )
+            return
+        self.appState.addRoute(ROUTES["project"])
+        self.parent.setCurrentIndex(ROUTES["globalProperties"])

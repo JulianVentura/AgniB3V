@@ -11,16 +11,16 @@ PROJECT_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(
 
 EXECUTABLES = {
     "fileManager": "xdg-open",
-    "freecad": os.path.join(PROJECT_PATH, "freecad", "bin", "FreeCAD"),
-    "gmat": os.path.join(PROJECT_PATH, "gmat", "bin", "GMAT_Beta"),
+    "freecad": os.path.join(PROJECT_PATH, "FreeCAD", "FreeCAD"),
+    "gmat": os.path.join(PROJECT_PATH, "GMAT", "R2022a", "bin", "GMAT_Beta"),
     "paraview": os.path.join(PROJECT_PATH, "paraview", "bin", "paraview"),
     "plotter": os.path.join(PROJECT_PATH, "plotter", "UI.py"),
     "preprocessor": os.path.join(PROJECT_PATH, "preprocessor", "main.py"),
-    "solver": os.path.join(PROJECT_PATH, "solver", "target", "release", "solver"),
+    "solver": os.path.join(PROJECT_PATH, "solver", "solver"),
 }
 
 
-RESULTS_SERIES="results/results.vtk.series"
+RESULTS_SERIES="results/result.vtk.series"
 
 DOCUMENTATION_URL="https://agnib3v.github.io/"
 

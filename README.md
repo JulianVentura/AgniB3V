@@ -1,10 +1,12 @@
 
 
-<center><img src="./user-gui/public/icons/agni.png" width=256></center>
-
-<center><font color="#9A0C0C" size=5><i>Parallelized Satellite Thermal Analysis System</i></font></center>
-
-
+<p align="center">
+    <img src="./user-gui/public/icons/agni.png" width=256>
+</p>
+<p align="center">
+    <font color="#9A0C0C" size=5><i>Parallelized Satellite Thermal Analysis System</i></font>
+</p>
+ 
 
 **This is the code repository of AGNI B3V. For install instructions, user/technical manuals and benchmarks  visit the website: https://agnib3v.github.io/**
 

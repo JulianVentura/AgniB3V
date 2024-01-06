@@ -12,7 +12,7 @@
 
 
 
-# Introduction
+## Introduction
 
 Agni B3V is an all encompassing solution for modeling, simulating and interpreting thermal phenomena affecting satellites in circular orbits and sun pointing aptitudes. It currently includes tools capable of:
 
@@ -26,63 +26,41 @@ Agni B3V is an all encompassing solution for modeling, simulating and interpreti
 
 
 
-# Authors
+## Authors
 
 This system was developed in the context of the professional task for "Universidad de Buenos Aires" by:
 
 Barreneche Franco  (fbarreneche@fi.uba.ar)
+
 Belinche Gianluca (gbelinche@fi.uba.ar) 
+
 Botta Guido (gbotta@fi.uba.ar)
+
 Ventura Julian (jventura@fi.uba.ar)
 
 
 
-# Building from source
+## Building from source
 
-A convenient installer is provided in https://agnib3v.github.io/. Alternatively, each tool can be build (if necessary) and used independently.
+A convenient installer is provided in https://agnib3v.github.io/. 
 
+Alternatively, each tool install and basic usage is described in its respective folders README.
 
-
-## Preprocessor, Plotter, User GUI
-
-Install Python 3 by your preferred method. Eg:
-
-```
-sudo apt install python3
-```
-
-Install the required Python libraries through pip:
+It is possible to install all required python modules from the root folder:
 
 ```
 pip install -r requirements.txt
 ```
 
-
-
-## Solver
-
-Install Rust through rustup as recommended in https://www.rust-lang.org/tools/install
-
-```
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
-
-Move to solver folder
-
-```
-cd solver
-```
-
-Build with cargo
-
-```
-cargo build --release
-mv target/release/solver solver
-```
+To be able to access all functions from the user GUI, install third party software as described in the following section.
 
 
 
-## FreeCAD  + Agni Addon
+## Installing third party software
+
+
+
+### FreeCAD  + Agni Addon
 
 Move to freecad folder
 
@@ -104,9 +82,9 @@ sh workbench-install.sh
 
 
 
-## GMAT
+### GMAT
 
 
 
-## Paraview
+### Paraview
 

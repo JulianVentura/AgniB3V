@@ -65,6 +65,10 @@ class WidgetConditions(QWidget):
         addButton = QPushButton("Add Condition", self)
         addButton.clicked.connect(self.addCondition)
 
+        # Create button to delete a condition
+        deleteButton = QPushButton("Delete Condition", self)
+        deleteButton.clicked.connect(self.deleteCondition)
+
         # Create ok button
         okButton = QPushButton('OK', self)
         okButton.setDefault(False)
@@ -74,6 +78,7 @@ class WidgetConditions(QWidget):
         rightSide.addWidget(self.conditionList)
         rightSide.addWidget(okButton)
         rightSide.addWidget(addButton)
+        rightSide.addWidget(deleteButton)
 
         # Add left side and list of conditions to the layout
         layout.addLayout(self.propertiesLayout)
@@ -86,13 +91,16 @@ class WidgetConditions(QWidget):
         # Clear properties
         self.clearProperties()
 
+        if (index <= -1):
+            return
+
         # Get selected condition
         conditionName = labelToCamelCase(self.conditionList.item(index).text())
-        conditionObj = self.conditions[conditionName]
+        self.selectedCondition = self.conditions[conditionName]
 
         # Show properties according to the condition
         for prop in CONDITION_PROPERTIES:
-            self.addProperty(conditionObj, prop, CONDITION_PROPERTIES[prop])
+            self.addProperty(self.selectedCondition, prop, CONDITION_PROPERTIES[prop])
 
     def addProperty(self, conditionObj, propName, propDict):
         """
@@ -164,6 +172,19 @@ class WidgetConditions(QWidget):
         mat["ThermalConductivity"] = "0 W/m/K"
         mat["ThermalExpansionCoefficient"] = "0 um/m/K"
         mat["SpecificHeat"] = "0 J/kg/K"
+    
+    def deleteCondition(self):
+        """
+        If self.selectedCondition exists, it deletes it from the list
+        and from the document
+        """
+        if self.selectedCondition:
+            conditionName = self.selectedCondition.Material["Label"]
+            FreeCAD.ActiveDocument.removeObject(conditionName)
+            self.conditionList.takeItem(self.conditionList.currentRow())
+            del self.conditions[conditionName]
+            self.selectedCondition = None
+            self.conditionList.setCurrentRow(-1)
     
     def getConditions(self):
         """

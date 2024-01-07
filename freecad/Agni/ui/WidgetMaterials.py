@@ -65,6 +65,10 @@ class WidgetMaterials(QWidget):
         addButton = QPushButton("Add Material", self)
         addButton.clicked.connect(self.addMaterial)
 
+        # Create button to delete a material
+        deleteButton = QPushButton("Delete Material", self)
+        deleteButton.clicked.connect(self.deleteMaterial)
+
         # Create ok button
         okButton = QPushButton("OK", self)
         okButton.setDefault(False)
@@ -74,6 +78,7 @@ class WidgetMaterials(QWidget):
         rightSide.addWidget(self.materialList)
         rightSide.addWidget(okButton)
         rightSide.addWidget(addButton)
+        rightSide.addWidget(deleteButton)
 
         # Add left side and list of materials to the layout
         layout.addLayout(self.propertiesLayout)
@@ -86,13 +91,16 @@ class WidgetMaterials(QWidget):
         # Clear properties
         self.clearProperties()
 
+        if (index <= -1):
+            return
+
         # Get selected material
         materialName = labelToCamelCase(self.materialList.item(index).text())
-        materialObj = self.materials[materialName]
+        self.selectedMaterial = self.materials[materialName]
 
         # Show properties according to the material
         for prop in MATERIAL_PROPERTIES:
-            self.addProperty(materialObj, prop, MATERIAL_PROPERTIES[prop])
+            self.addProperty(self.selectedMaterial, prop, MATERIAL_PROPERTIES[prop])
 
     def addProperty(self, materialObj, propName, propDict):
         """
@@ -165,6 +173,19 @@ class WidgetMaterials(QWidget):
         mat["ThermalExpansionCoefficient"] = "0 um/m/K"
         mat["SpecificHeat"] = "0 J/kg/K"
 
+    def deleteMaterial(self):
+        """
+        If self.selectedMaterial exists, it deletes it from the list
+        and from the document
+        """
+        if self.selectedMaterial:
+            materialName = self.selectedMaterial.Material["Label"]
+            FreeCAD.ActiveDocument.removeObject(materialName)
+            self.materialList.takeItem(self.materialList.currentRow())
+            del self.materials[materialName]
+            self.selectedMaterial = None
+            self.materialList.setCurrentRow(-1)
+    
     def getMaterials(self):
         """
         Returns the materials of the document

@@ -1,4 +1,5 @@
 from utils.constants import SOLVER_MODES
+from utils.ProcessManager import ProcessManager
 
 class AppStateMeta(type):
     _instance = None
@@ -14,6 +15,7 @@ class AppState(metaclass=AppStateMeta):
         self.projectDirectory = None
         self.routes = []
         self.solverMode = SOLVER_MODES[0]
+        self.processManager = ProcessManager()
 
     def openProject(self, directory):
         self.projectDirectory = directory

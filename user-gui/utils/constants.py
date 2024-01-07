@@ -7,22 +7,24 @@ ROUTES = {
     "globalProperties": 3,
 }
 
-PROJECT_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+PROJECT_PATH = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+)
 
 EXECUTABLES = {
     "fileManager": "xdg-open",
     "freecad": os.path.join(PROJECT_PATH, "FreeCAD", "FreeCAD"),
     "gmat": os.path.join(PROJECT_PATH, "GMAT", "R2022a", "bin", "GMAT_Beta"),
-    "paraview": os.path.join(PROJECT_PATH, "paraview", "bin", "paraview"),
+    "paraview": os.path.join(PROJECT_PATH, "ParaView", "bin", "paraview"),
     "plotter": os.path.join(PROJECT_PATH, "plotter", "UI.py"),
     "preprocessor": os.path.join(PROJECT_PATH, "preprocessor", "main.py"),
     "solver": os.path.join(PROJECT_PATH, "solver", "solver"),
 }
 
 
-RESULTS_SERIES="results/result.vtk.series"
+RESULTS_SERIES = "results/result.vtk.series"
 
-DOCUMENTATION_URL="https://agnib3v.github.io/"
+DOCUMENTATION_URL = "https://agnib3v.github.io/"
 
 # Dict of global properties inputs
 GLOBAL_PROPERTIES_INPUTS = {

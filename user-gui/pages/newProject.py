@@ -6,6 +6,7 @@ from utils.appState import AppState
 from utils.setUpNewProject import setUpNewProject
 from utils.constants import DOCUMENTATION_URL, ROUTES
 from public.paths import iconPath
+from os.path import expanduser
 
 class NewProjectWidget(QWidget):
     def __init__(self, parent=None):
@@ -134,7 +135,12 @@ class NewProjectWidget(QWidget):
         """
         Set directory where is going to be exported.
         """
-        directory = QFileDialog.getExistingDirectory(self, "Select Directory")
+        directory = QFileDialog.getExistingDirectory(
+            self,
+            "Select Directory",
+            expanduser("~"),
+            QFileDialog.ShowDirsOnly,
+        )
         if directory:
             self.directoryEdit.setText(directory)
     

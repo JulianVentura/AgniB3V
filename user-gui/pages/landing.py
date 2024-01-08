@@ -4,6 +4,7 @@ from PySide2.QtWidgets import *
 from utils.appState import AppState
 from utils.constants import DOCUMENTATION_URL, ROUTES
 from public.paths import iconPath
+from os.path import expanduser
 
 class LandingWidget(QWidget):
     def __init__(self, parent=None):
@@ -108,7 +109,12 @@ class LandingWidget(QWidget):
         Shows a dialog to select a directory and redirects to the project page
         if the directory is valid.
         """
-        directory = QFileDialog.getExistingDirectory(self, "Select Directory")
+        directory = QFileDialog.getExistingDirectory(
+            self,
+            "Select Directory",
+            expanduser("~"),
+            QFileDialog.ShowDirsOnly,
+        )
         if directory and self._validateDirectory(directory):
             # TODO: cargar proyecto
             self.appState.openProject(directory)

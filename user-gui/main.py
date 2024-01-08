@@ -24,6 +24,19 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(PagesWidget())
         self.show()
 
+    def closeEvent(self, event):
+        AppState().processManager.joinFinishedThreads()
+        if AppState().processManager.areThreadsAlive():
+            QMessageBox.critical(
+                self,
+                "Error",
+                "Debes cerrar todos los procesos antes de salir.",
+                QMessageBox.Ok,
+            )
+            event.ignore()
+            return
+        event.accept()
+
     def loadTranslations(self):
         translator = QTranslator()
         locale = QLocale.system().name()

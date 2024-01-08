@@ -1,7 +1,6 @@
 import FreeCAD
 import os
 import json
-import re
 from utils.jsonToCamelCase import dictToCamelCase
 from utils.firstForCondition import firstForCondition
 from public.utils import iconPath
@@ -66,15 +65,23 @@ class CmdExportMesh:
         conditionObjects = self.getConditionObjects(analysisObject)
         if len(conditionObjects) == 0:
             FreeCAD.Console.PrintWarning("No Conditions found\n")
-        
-        # TODO: check if there is parts of the object with different materials
-        # this can be done by checking if there are solid repeated or faces
-        # repeated (for the faces we should check if there are solid and faces combined
-        # and check the faces in the solid)
-        # This is wrong, but user can set two materials to the same solid/face
 
         materials = self.getElementAndProperties(femMeshObject, materialObjects, MATERIAL_PROPERTIES)
         conditions = self.getElementAndProperties(femMeshObject, conditionObjects, CONDITION_PROPERTIES)
+
+        if not materials:
+            FreeCAD.Console.PrintError("No materials assigned found\n")
+            return
+        
+        # TODO: do the same with conditions
+        if (materialsRepeated := self.materialIsRepeated(materials)):
+            FreeCAD.Console.PrintError("There are parts of the object with different materials\n")
+            FreeCAD.Console.PrintError(f"Repeated materials: {materialsRepeated}\n")
+            return
+        
+        if self.elementAreMissingMaterial(materials, femMeshObject):
+            FreeCAD.Console.PrintError("Some elements are missing material\n")
+            return
 
         # Writing path
         path = self.workbench.getExportPath()
@@ -130,7 +137,6 @@ class CmdExportMesh:
 
         # Check if every material property exists in the material
         for propertyRequired in propertiesRequired:
-            print(propertyRequired, getattr(material, propertyRequired, None))
             if getattr(material, propertyRequired, None) == None:
                 return None
             materialWithoutUnits[propertyRequired] = getattr(material, propertyRequired, None)
@@ -269,3 +275,41 @@ class CmdExportMesh:
 
         FreeCAD.Console.PrintMessage(f"Exported mesh to file {materialPath}\n")
 
+    def materialIsRepeated(self, materials):
+        """
+        Given a dictionary of materials, returns a list of materials that are
+        found in more than one element.
+        """
+        materialsRepeated = []
+        elements = materials["elements"]
+        for material in elements:
+            for otherMaterial in elements:
+                if material == otherMaterial: continue
+                if len(set(elements[material]) & set(elements[otherMaterial])) > 0:
+                    materialsRepeated.append(material)
+                    break
+        return materialsRepeated
+
+    def conditionIsRepeated(self):
+        """
+        Given a dictionary of conditions, returns a list of conditions that are
+        found in more than one element. Two conditions are repeated only if they
+        have some property in common turned on (e.g. fluxOn).
+        """
+        # TODO: implement
+        pass
+
+    def elementAreMissingMaterial(self, materials, femMeshObject):
+        """
+        Given a dictionary of materials and the mesh object, returns True if
+        some element is not assigned to any material.
+        """
+        elements = materials["elements"]
+        elementsCovered = set()
+        shape = femMeshObject.FemMesh
+        numFaces = len(shape.Faces)
+
+        for material in elements:
+            elementsCovered.update(elements[material])
+
+        return len(elementsCovered) != numFaces

@@ -246,7 +246,7 @@ class ProjectWidget(QWidget):
             EXECUTABLES["freecad"],
             freecadFile,
         ]
-        subprocess.Popen(cmd)
+        self.appState.processManager.runCommand("freecad", cmd)
 
     def openGMAT(self):
         """
@@ -258,7 +258,7 @@ class ProjectWidget(QWidget):
             gmat_executable,
             gmat_script,
         ]
-        subprocess.Popen(cmd)
+        self.appState.processManager.runCommand("gmat", cmd)
 
     def visualizeNormals(self):
         """
@@ -270,7 +270,7 @@ class ProjectWidget(QWidget):
             "viewn",
             self.appState.projectDirectory,
         ]
-        subprocess.Popen(cmd)
+        self.appState.processManager.runCommand("viewn", cmd)
 
     def visualizeMaterials(self):
         """
@@ -282,7 +282,7 @@ class ProjectWidget(QWidget):
             "viewm",
             self.appState.projectDirectory,
         ]
-        subprocess.Popen(cmd)
+        self.appState.processManager.runCommand("viewm", cmd)
 
     def calculateViewFactors(self):
         """
@@ -294,7 +294,7 @@ class ProjectWidget(QWidget):
             "process",
             self.appState.projectDirectory,
         ]
-        subprocess.Popen(cmd)
+        self.appState.processManager.runCommand("process", cmd)
 
     def runSimulation(self):
         """
@@ -305,26 +305,27 @@ class ProjectWidget(QWidget):
             self.appState.projectDirectory,
             MODES_TRANSLATIONS[self.appState.solverMode],
         ]
-        subprocess.Popen(cmd)
+        self.appState.processManager.runCommand("solver", cmd)
 
     def calculateViewFactorsAndRunSimulation(self):
         """
         Calculates view factors and runs solver simulation.
         """
         # run calculate view factors, wait till ends and run simulation
+        # TODO: fix this, use ProcessManager
         cmd = [
             "python3",
             EXECUTABLES["preprocessor"],
             "process",
             self.appState.projectDirectory,
         ]
-        subprocess.Popen(cmd).communicate()
+        subprocess.Popen(cmd).wait()
         cmd = [
             EXECUTABLES["solver"],
             self.appState.projectDirectory,
             MODES_TRANSLATIONS[self.appState.solverMode],
         ]
-        subprocess.Popen(cmd)
+        subprocess.Popen(cmd).wait()
 
     def openParaView(self):
         """
@@ -335,7 +336,7 @@ class ProjectWidget(QWidget):
             "--data",
             os.path.join(self.appState.projectDirectory, RESULTS_SERIES),
         ]
-        subprocess.Popen(cmd)
+        self.appState.processManager.runCommand("paraview", cmd)
 
     def openPlotter(self):
         """
@@ -346,7 +347,7 @@ class ProjectWidget(QWidget):
             EXECUTABLES["plotter"],
             self.appState.projectDirectory + "/results/result.vtk.series",
         ]
-        subprocess.Popen(cmd)
+        self.appState.processManager.runCommand("plotter", cmd)
 
     def goToLanding(self):
         """
@@ -363,7 +364,7 @@ class ProjectWidget(QWidget):
             EXECUTABLES["fileManager"],
             self.appState.projectDirectory,
         ]
-        subprocess.Popen(cmd)
+        self.appState.processManager.runCommand("fileManager", cmd)
 
     def openDocumentation(self):
         """

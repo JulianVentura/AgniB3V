@@ -66,8 +66,8 @@ class CmdExportMesh:
         if len(conditionObjects) == 0:
             FreeCAD.Console.PrintWarning("No Conditions found\n")
 
-        materials = self.getElementAndProperties(femMeshObject, materialObjects, MATERIAL_PROPERTIES)
-        conditions = self.getElementAndProperties(femMeshObject, conditionObjects, CONDITION_PROPERTIES)
+        materials = self.getElementAndProperties(femMeshObject, materialObjects, MATERIAL_PROPERTIES, True)
+        conditions = self.getElementAndProperties(femMeshObject, conditionObjects, CONDITION_PROPERTIES, False)
 
         if not materials:
             FreeCAD.Console.PrintError("No materials assigned found\n")
@@ -179,7 +179,7 @@ class CmdExportMesh:
 
         return triangles
 
-    def getElementAndProperties(self, femMeshObject, materialObjects, propertiesRequired):
+    def getElementAndProperties(self, femMeshObject, materialObjects, propertiesRequired, isMaterial):
         """Returns a dictionary with the elements and the properties of the materials"""
         elements = {}
         properties = {}
@@ -188,12 +188,16 @@ class CmdExportMesh:
             FreeCAD.Console.PrintMessage(f"Getting elements and properties for {materialObject.Label}\n")
             elementsWithMaterial = self.getElementsWithMaterial(materialObject)
             if len(elementsWithMaterial) == 0:
-                FreeCAD.Console.PrintError(f"No elements found with material {materialObject.Label}\n")
+                FreeCAD.Console.PrintError(
+                    f"No elements found with {'material' if isMaterial else 'condition'} {materialObject.Label}\n"
+                )
                 return
  
             trianglesWithMaterial = self.getTrianglesFromElements(elementsWithMaterial, femMeshObject)
             if len(trianglesWithMaterial) == 0:
-                FreeCAD.Console.PrintError(f"No triangles found with material {materialObject.Label}\n")
+                FreeCAD.Console.PrintError(
+                    f"No triangles found with {'material' if isMaterial else 'condition'} {materialObject.Label}\n"
+                )
                 return
             
             # TODO: is better key to be the name, label, id or something else?

@@ -78,11 +78,11 @@ def main():
 		trimesh_time.append(timeit.timeit(lambda : trimesh_benchmark(mesh), number=1))
 		open3d_time.append(timeit.timeit(lambda : open3d_benchmark(mesh), number=1))
 
+	templates.template_style()
 	fig, ax = plt.subplots()
 	ax.plot(element_amount, open3d_time, label="Open3d", marker="s")
 	ax.plot(element_amount, trimesh_time, label="Trimesh", marker="s")
-	templates.template_style()
-	templates.template_plot(ax, "Open3d vs Trimesh", "Number of Elements", "Execution Time (s)")
+	templates.template_plot(ax, "Number of Elements", "Execution Time (s)", "Open3d vs Trimesh")
 	templates.template_save_multiple_images([fig], "open3d_vs_trimesh", ["open3d_vs_trimesh"])
 		
 main()

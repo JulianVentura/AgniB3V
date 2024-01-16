@@ -1,0 +1,13 @@
+#!/bin/bash
+function run() {
+	source ./.venv/bin/activate
+	cd user-gui
+	python3 main.py
+}
+
+FUNC=$(declare -f run)
+echo "Welcome to AgniB3V" ; echo ""
+
+bash -c "$FUNC; run"
+
+

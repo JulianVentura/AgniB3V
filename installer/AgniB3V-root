@@ -1,0 +1,7 @@
+#!/bin/sh
+gnome-terminal -- sudo bash -c '$(pwd)/spawn'
+
+
+
+
+

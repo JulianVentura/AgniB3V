@@ -1,0 +1,163 @@
+#!/bin/bash
+
+log() {
+  GREEN='\033[0;32m'
+  RESET='\033[0m'
+  echo -e "${GREEN}$1${RESET}"
+}
+
+check() {
+  RED='\033[0;31m'
+  RESET='\033[0m'
+
+  cmd=${@:1:$#-1}
+  error_msg=${@:-1}
+
+  eval $cmd
+
+  if [ $? -ne 0 ]; then
+    echo -e "${RED}Error:${RESET} $error_msg"
+    exit 1
+  fi
+}
+
+PROJECT_DIRECTORY="$(pwd)"
+
+PYENV="$HOME/.pyenv/bin/pyenv"
+PIP=".venv/bin/pip"
+
+ask_sudo() {
+	log "Grant sudo permission"
+	sudo true
+}
+
+install_dependencies() {
+  log "Installing dependencies"
+
+
+  dependencies=(
+	curl
+	git
+	gcc
+	make
+	build-essential 
+	libssl-dev 
+	zlib1g-dev
+	libbz2-dev 
+	libreadline-dev 
+	libsqlite3-dev 
+	wget 
+	llvm
+	libncursesw5-dev 
+	xz-utils 
+	tk-dev 
+	libxml2-dev 
+	libxmlsec1-dev 
+	libxcb-xinerama0
+	libffi-dev 
+	liblzma-dev
+	libxcb-xinput0
+	python3-venv
+	libfuse2*
+  )
+  
+  check sudo apt update -y "Couldn't update system"
+  check sudo apt upgrade -y "Couldn't upgrade system"
+  check sudo apt-get install -y ${dependencies[@]} "Couldn't install dependencies"
+}
+
+install_python() {
+  log "Installing pyenv..."
+
+  check "curl https://pyenv.run | bash" "Couldn't install pyenv"
+
+  log "Installing python 3.10..."
+
+  check $PYENV install 3.10 -s "Couldn't install python 3.10"
+  check $PYENV local 3.10 "Couldn't install python 3.10"
+
+  log "Creating virtual environment..."
+
+  check python3 -m venv .venv "Coudln't install local python environment"
+
+  log "Updating pip..."
+  
+  check $PIP install --upgrade pip "Couldn't update pip"
+}
+
+install_requirements() {
+  log "Installing python dependencies"
+
+  check $PIP install -r requirements.txt "Couldn't install pip modules"
+}
+
+install_workbench() {
+  freecad_directory="$1/.local/share/FreeCAD"
+  plugin_name="Agni"
+  plugin_dir="${freecad_directory}/Mod/${plugin_name}"
+
+  echo $plugin_dir
+
+  check $2 rm -rf "${plugin_dir}" "Couldn't remove old FreeCAD workbench"
+  check $2 mkdir -p "${freecad_directory}/Mod" "Couldn't create FreeCAD workbench folders"
+  check $2 cp -r "$PROJECT_DIRECTORY/freecad/${plugin_name}" "${plugin_dir}" "Couldn't install workbench"
+}
+
+install_freecad() {
+  log "Installing FreeCAD"
+  freecad_url="https://github.com/FreeCAD/FreeCAD/releases/download/0.21.1/FreeCAD_0.21.1-Linux-x86_64.AppImage"
+  check curl -L -o FreeCAD $freecad_url "Couldn't download FreeCAD"
+  chmod +x FreeCAD
+  check mkdir _FreeCAD "Couldn't create FreeCAD folder"
+  check mv FreeCAD ./_FreeCAD "Couldn't move FreeCAD into folder"
+  check mv _FreeCAD FreeCAD "Couldn't rename FreeCAD folder"
+	
+  log "Installing workbench plugin"
+  install_workbench $HOME
+  install_workbench /root sudo
+}
+
+install_gmat() {
+  log "Installing GMAT"
+  
+  url="https://sourceforge.net/projects/gmat/files/GMAT/GMAT-R2022a/gmat-ubuntu-x64-R2022a.tar.gz/download"
+  check curl -L -o gmat.tar.gz $url "Couldn't download GMAT"
+  check tar -xf gmat.tar.gz "Couldn't extract GMAT"
+  check rm -rf gmat.tar.gz "Couldn't delete GMAT compress file"
+}
+
+install_paraview() {
+  log "Installing ParaView"
+  url="https://www.paraview.org/paraview-downloads/download.php?submit=Download&version=v5.12&type=binary&os=Linux&downloadFile=ParaView-5.12.0-RC1-MPI-Linux-Python3.10-x86_64.tar.gz"
+  check curl -L -o paraview.tar.gz '$url' "Couldn't download Paraview"
+  check tar -xf paraview.tar.gz "Couldn't extract Paraview"
+  check mv ParaView*x86_64 ParaView "Couldn't create ParaView folder"
+  check rm -rf paraview.tar.gz "Couldn't delete ParaView compress file"
+}
+
+install_gmsh() {
+  log "Installing Gmsh"
+  url="https://gmsh.info/bin/Linux/gmsh-4.12.0-Linux64.tgz"
+  check curl -L -o gmsh.tgz '$url' "Couldn't download Gmsh"
+  check tar -xf gmsh.tgz "Couldn't extract Gmsh"
+  check sudo mv -f gmsh-4.12.0-Linux64/bin/gmsh /usr/bin "Couldn't install gmsh"
+  check rm -rf gmsh-4.12.0-Linux64 "Couldn't delete Gmsh folder"
+  check rm -rf gmsh.tgz "Couldn't delete Gmsh compress file"
+}
+
+allow_execution() {
+  check sudo chmod +x AgniB3V "Couldn't set execution permissions for AgniB3V"
+  check sudo chmod +x AgniB3V-root "Couldn't set execution permissions for AgniB3V-root"
+  check sudo chmod +x spawn "Couldn't set execution permissions for spawn"
+  check sudo chmod +x solver/solver "Couldn't set execution permissions for solver"
+}
+
+ask_sudo
+install_dependencies
+install_python 
+install_requirements
+install_freecad
+install_gmat
+install_paraview
+install_gmsh
+allow_execution

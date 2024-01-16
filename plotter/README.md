@@ -1,8 +1,8 @@
-# User GUI
+# Plotter
 
 
 
-### Installation
+## Installation
 
 Install Python 3.10.  The recommended way is  [Pyenv](https://github.com/pyenv/pyenv)
 
@@ -17,11 +17,21 @@ pip install -r requirements.txt
 ```
 
 
-
-### Execution
+## Usage
 
 **Open user GUI**
 
 ```bash
-python3 main.py
+python UI.py
 ```
+
+
+
+**Open user GUI with specific initial file**
+
+```bash
+python UI.py /path/to/file
+```
+
+
+

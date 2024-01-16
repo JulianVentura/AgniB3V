@@ -1,19 +1,45 @@
-# OpenCL
+# Solver
 
-## Requirements
 
-* [Rust](https://www.rust-lang.org/tools/install)
 
-## Execution
+## Installation
 
-For building:
+Install Rust.  The recommended way is [Rustup]( https://www.rust-lang.org/tools/install).
 
-```
-cargo build
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-For building and running:
+Build with cargo
 
+```bash
+cargo build --release
+mv target/release/solver solver
 ```
-cargo run
+
+
+
+## Usage
+
+**Run with CPU**
+
+```bash
+./solver <directory-path> Implicit
 ```
+
+**Run with GPU**
+
+```bash
+./solver <directory-path> GPU
+```
+
+
+
+## Test
+
+Execute tests:
+
+```bash
+cargo test
+```
+

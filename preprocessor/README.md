@@ -1,47 +1,67 @@
 # Preprocessor
 
-### Installation
 
-Install python 3.10.12 and run the following command.
 
-```sh
+## Installation
+
+Install Python 3.10.  The recommended way is  [Pyenv](https://github.com/pyenv/pyenv)
+
+```bash
+pyenv install 3.10 -s
+pyenv local 3.10
+```
+Install requirements:
+
+```bash
 pip install -r requirements.txt
 ```
 
-### Execution
 
-- **Processing of view factors**
 
-It can be done by passing file paths as:
+## Usage
 
-```sh
-main process mesh_file_path properties_file_path gmat_report_file_path gmat_eclipse_file_path view_factors_file_path
+
+
+**View factor processing**
+
+```bash
+python main.py process <directory-path>
 ```
 
-- **Viewing mesh assigned materials**
+Required files: mesh.vtk, properties.json, ReportFile.txt, EclipseLocator.txt.
 
-```sh
-main viewm mesh_file_path properties_file_path
+
+
+**Mesh normals direction display**
+
+```bash
+python main.py viewn <directory-path>
 ```
 
-Requires a color property per material on properties_file_path.
+Required files: mesh.vtk
 
-- **Viewing "view factors" corresponding to element_id**
 
-```sh
-main viewvf mesh_file_path properties_file_path element_id
+
+**Assigned materials display**
+
+```bash
+python main.py viewm <directory-path>
 ```
 
-### Tests
+Required files: mesh.vtk, properties.json
+
+
+
+### Test
 
 Install pytest:
 
-```sh
+```bash
 pip install pytest
 ```
 
-And run the following command:
+Execute tests:
 
-```sh
+```bash
 pytest
 ```

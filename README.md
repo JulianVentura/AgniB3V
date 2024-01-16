@@ -42,7 +42,7 @@ Ventura Julian (jventura@fi.uba.ar)
 
 ## Building from source
 
-A convenient installer is provided in https://agnib3v.github.io/. 
+A convenient installer is provided in the [user manual](https://agnib3v.github.io/user_manual/installation/installation.html).
 
 Alternatively, each tool install and basic usage is described in its respective folders README.
 

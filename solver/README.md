@@ -4,21 +4,15 @@
 
 ## Installation
 
-Install Rust through rustup as recommended in https://www.rust-lang.org/tools/install
+Install Rust.  The recommended way is [Rustup]( https://www.rust-lang.org/tools/install).
 
-```
+```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
-
-Move to solver folder
-
-```
-cd solver
 ```
 
 Build with cargo
 
-```
+```bash
 cargo build --release
 mv target/release/solver solver
 ```
@@ -29,14 +23,14 @@ mv target/release/solver solver
 
 **Run with CPU**
 
-```
-./solver files/directory Implicit
+```bash
+./solver <directory-path> Implicit
 ```
 
 **Run with GPU**
 
-```
-./solver files/directory GPU
+```bash
+./solver <directory-path> GPU
 ```
 
 
@@ -45,7 +39,7 @@ mv target/release/solver solver
 
 Execute tests:
 
-```
+```bash
 cargo test
 ```
 

@@ -4,9 +4,15 @@
 
 ## Installation
 
-Install python 3.10.12 and run the following command:
+Install Python 3.10.  The recommended way is  [Pyenv](https://github.com/pyenv/pyenv)
 
-```sh
+```bash
+pyenv install 3.10 -s
+pyenv local 3.10
+```
+Install requirements:
+
+```bash
 pip install -r requirements.txt
 ```
 
@@ -18,8 +24,8 @@ pip install -r requirements.txt
 
 **View factor processing**
 
-```sh
-python main.py process /files/directory
+```bash
+python main.py process <directory-path>
 ```
 
 Required files: mesh.vtk, properties.json, ReportFile.txt, EclipseLocator.txt.
@@ -28,8 +34,8 @@ Required files: mesh.vtk, properties.json, ReportFile.txt, EclipseLocator.txt.
 
 **Mesh normals direction display**
 
-```
-python main.py viewn /files/directory
+```bash
+python main.py viewn <directory-path>
 ```
 
 Required files: mesh.vtk
@@ -38,8 +44,8 @@ Required files: mesh.vtk
 
 **Assigned materials display**
 
-```sh
-python main.py viewm /files/directory
+```bash
+python main.py viewm <directory-path>
 ```
 
 Required files: mesh.vtk, properties.json
@@ -50,12 +56,12 @@ Required files: mesh.vtk, properties.json
 
 Install pytest:
 
-```sh
+```bash
 pip install pytest
 ```
 
 Execute tests:
 
-```sh
+```bash
 pytest
 ```

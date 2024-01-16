@@ -4,16 +4,24 @@
 
 ### Installation
 
-Install python 3.10.12 and run the following command:
+Install Python 3.10.  The recommended way is  [Pyenv](https://github.com/pyenv/pyenv)
 
-```sh
+```bash
+pyenv install 3.10 -s
+pyenv local 3.10
+```
+Install requirements:
+
+```bash
 pip install -r requirements.txt
 ```
+
+
 
 ### Execution
 
 **Open user GUI**
 
-```sh
+```bash
 python3 main.py
 ```
